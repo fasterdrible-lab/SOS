@@ -1,5 +1,324 @@
 # CHANGELOG — SalesOS
 
+## [V.1.15.0] — 2026-09-10
+
+### Fase 8.3 — Pagina "Meus Clientes"
+- Criado `lib/organizations/client-summary.ts` (`getConsultantClients`): para cada `OrganizationMember` do usuario, roda em paralelo `getExecutiveKpis` (reaproveitado de `lib/dashboard/kpis.ts`), o `Diagnostic` mais recente e a contagem de `ActionTask` (total/`DONE`), devolvendo um resumo por cliente (score de maturidade, pipeline total, progresso do plano de acao).
+- Criada a pagina `app/(app)/clientes/page.tsx` (ja linkada na sidebar desde a FASE 1, ate entao sem destino): tabela com uma linha por organizacao-cliente do consultor, badge "Ativa" na organizacao atualmente ativa da sessao.
+- Criado `client-access-button.tsx` (Client Component): troca a organizacao ativa por linha via `POST /api/session/organization` (tarefa 8.1) e redireciona para `/dashboard`.
+- Criado `new-client-dialog.tsx` (Client Component): cria uma organizacao via `POST /api/organizations` (tarefa 8.2) e encadeia a troca de organizacao (8.1) para o consultor cair direto no `/dashboard` do cliente recem-criado.
+- FASE 8 (Dashboard Consultoria / Meus Clientes, Modulo 7) concluida: com 8.1 + 8.2 + 8.3, o consultor consegue de fato gerenciar multiplas organizacoes-cliente pela UI, nao so no schema — fecha o ultimo modulo do produto principal ainda nao construido em `docs/ARCHITECTURE.md`.
+
+**Arquivos criados:**
+- `apps/web/lib/organizations/client-summary.ts`
+- `apps/web/app/(app)/clientes/page.tsx`
+- `apps/web/app/(app)/clientes/client-access-button.tsx`
+- `apps/web/app/(app)/clientes/new-client-dialog.tsx`
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+
+## [V.1.14.0] — 2026-09-10
+
+### Fase 8.2 — Consultor cria uma nova organizacao-cliente
+- Criada a rota `POST /api/organizations` (autenticada): cria uma nova `Organization` a partir de apenas um nome e um `OrganizationMember` aninhado para o usuario logado, na mesma escrita do Prisma.
+- Criado `lib/organizations/slug.ts` (`slugifyOrganizationName`) para gerar o `slug` unico exigido pelo schema automaticamente a partir do nome (normaliza acentos, minusculas, hifens); em caso de colisao, a rota tenta ate 5 sufixos aleatorios (`crypto.randomUUID()`).
+- Criada validacao Zod `organizationInputSchema` (`name` obrigatorio, 2-120).
+- **Decisao de role:** o membro criado recebe `role = "CONSULTANT"` (nao `ADMIN`, como o titulo original da tarefa em `docs/TASKS.md` sugeria) — o enum `Role` (`OWNER`/`ADMIN`/`CONSULTANT`/`MEMBER`) existia desde a FASE 1 mas nunca foi usado por nenhuma logica do app; `CONSULTANT` e o valor semanticamente correto para "um consultor que passa a gerenciar uma organizacao-cliente".
+- Decisao deliberada: a rota nao troca a organizacao ativa da sessao automaticamente — "criar organizacao" (8.2) e "trocar de organizacao" (8.1, `POST /api/session/organization`) ficam como operacoes separadas e componiveis pela futura UI (`/clientes`, tarefa 8.3).
+- Ainda sem UI — endpoint validavel via chamada direta.
+
+**Arquivos criados:**
+- `apps/web/lib/organizations/slug.ts`
+- `apps/web/lib/validations/organization.ts`
+- `apps/web/app/api/organizations/route.ts`
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+
+## [V.1.13.0] — 2026-09-10
+
+### Fase 8.1 — Sessao multi-organizacao (trocar organizacao ativa)
+- Fundacao tecnica para o consultor navegar entre organizacoes-cliente: a sessao (`lib/auth.ts`) passa a suportar trocar o `organizationId` ativo, via `unstable_update` (NextAuth v5) + `trigger: "update"` no callback `jwt`. Nenhuma pagina/rota existente precisou mudar — todas continuam lendo `session.user.organizationId` normalmente.
+- O payload de `update()` vem do cliente, entao o callback `jwt` **revalida no banco** (`OrganizationMember`) que o usuario realmente pertence a organizacao solicitada antes de trocar `token.organizationId`/`token.role`; caso contrario o token fica inalterado.
+- Criada validacao Zod `sessionOrganizationInputSchema` e a rota `POST /api/session/organization` (autenticada): confere a posse via `OrganizationMember.findUnique` (404 se o usuario nao pertence aquela organizacao) e, caso pertenca, chama `unstable_update({ user: { organizationId } })`.
+- Ainda sem UI (`/clientes`, tarefa 8.3) e sem forma de o consultor ter uma segunda organizacao-cliente (tarefa 8.2) — 8.1 fecha apenas o mecanismo de troca, testavel via chamada direta ao endpoint.
+
+**Arquivos criados:**
+- `apps/web/lib/validations/session-organization.ts`
+- `apps/web/app/api/session/organization/route.ts`
+
+**Arquivos alterados:**
+- `apps/web/lib/auth.ts`
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+
+## [V.1.12.0] — 2026-09-10
+
+### Fase 8 (planejamento) — Dashboard Consultoria / Meus Clientes
+- Ultimo modulo do produto principal ainda nao construido (`docs/ARCHITECTURE.md`, Modulo 7). Investigacao encontrou o item de sidebar "Meus Clientes" (`/clientes`, grupo "Consultoria") ja scaffoldado desde a FASE 1 mas sem pagina de destino, cujo nome no plural aponta para uma visao cross-cliente (multi-organizacao) desde o inicio do produto — coerente com o North Star do `CLAUDE.md`.
+- Identificadas duas lacunas que bloqueiam essa visao hoje: (1) a sessao (`lib/auth.ts`) fixa uma unica `organizationId` por login e nunca troca, apesar do schema `User`<->`Organization` ja ser N:N via `OrganizationMember`; (2) nao existe nenhum fluxo de criacao de organizacao/associacao de membro no app (as linhas atuais foram inseridas manualmente para o usuario demo).
+- Perguntado ao usuario entre (a) dashboard de engajamento dentro de uma unica organizacao, sem mudar auth, ou (b) visao cross-cliente real: optou-se por (b), alinhado ao item de sidebar ja existente e ao North Star do produto.
+- Detalhada a FASE 8 em `docs/TASKS.md`, quebrada em 3 subtarefas incrementais e dependentes entre si: (8.1) sessao multi-organizacao (trocar organizacao ativa), (8.2) consultor cria uma nova organizacao-cliente, (8.3) pagina "Meus Clientes" com listagem + metricas resumidas por cliente + acesso (troca de organizacao).
+- Corrigida a rota do Modulo 7 em `docs/ARCHITECTURE.md` (estava `/consultoria`, divergente da rota real ja scaffoldada `/clientes`) e adicionado o fluxo "Troca de Organizacao Ativa".
+- Nenhum codigo foi alterado nesta tarefa — apenas planejamento e correcao de documentacao.
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `docs/ARCHITECTURE.md`
+- `CHANGELOG.md`
+
+## [V.1.11.0] — 2026-09-09
+
+### Fase 7.2 — Consultor Digital: pagina de chat
+- Criada a pagina autenticada `app/(app)/consultor/page.tsx` (ja linkada na sidebar, ate entao sem destino): busca a sessao, o historico existente da conversa (`prisma.consultantConversation.findUnique`) e o status da integracao Anthropic, repassando para o componente de chat.
+- Criado `consultant-chat.tsx` (Client Component): renderiza o historico + input quando a integracao existe; quando nao existe, mostra uma tela dedicada com CTA para `/configuracoes` (o proprio consultor pode resolver, diferente do lead no widget publico do IA SDR).
+- FASE 7 (Consultor Digital) concluida. Com isso, os dois modulos de IA previstos em `docs/ARCHITECTURE.md` (IA SDR e Consultor Digital) estao implementados de ponta a ponta — nenhum dos dois foi exercitado ainda contra um banco real ou a API real da Anthropic neste ambiente.
+
+**Arquivos criados:**
+- `apps/web/app/(app)/consultor/page.tsx`
+- `apps/web/app/(app)/consultor/consultant-chat.tsx`
+
+**Arquivos alterados:**
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.10.0] — 2026-09-09
+
+### Fase 7.1 — Consultor Digital: backend (contexto + chat autenticado)
+- Adicionados os models `ConsultantConversation` (`@@unique([organizationId])`, uma conversa continua por organizacao) e `ConsultantMessage` (+ enum `ConsultantMessageRole`: `USER`/`ASSISTANT`) ao schema Prisma, relacionados a `Organization`. Alteracao de schema solicitada explicitamente pelo usuario ao iniciar a tarefa 7.1. `npx prisma generate` executado (sem banco local disponivel para `migrate dev`).
+- Adicionada `generateConsultantReply` a `lib/ai/anthropic-client.ts`: usa o modelo `claude-sonnet-5` (mais robusto que o `claude-haiku-4-5-20251001` do IA SDR) com resposta em texto livre, sem forcar `tool_choice`.
+- Criadas rotas autenticadas `GET/POST /api/consultor/messages`: `GET` retorna o historico da conversa da organizacao; `POST` monta o contexto (ultimo `Diagnostic` + `getExecutiveKpis`), envia para a IA e persiste a mensagem do consultor + a resposta.
+- Ao contrario do IA SDR (conversa publica por lead), esta rota e autenticada e mantem uma unica conversa continua por organizacao, contextualizada automaticamente a cada resposta.
+- Ainda sem UI (`/consultor`, tarefa 7.2).
+
+**Arquivos criados:**
+- `apps/web/lib/validations/consultant-message.ts`
+- `apps/web/app/api/consultor/messages/route.ts`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`
+- `apps/web/lib/ai/anthropic-client.ts`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.9.0] — 2026-09-09
+
+### Fase 7 (planejamento) — Consultor Digital
+- Detalhada a FASE 7 em `docs/TASKS.md`: Consultor Digital (Modulo 4), o segundo e ultimo modulo de IA previsto em `docs/ARCHITECTURE.md`, quebrado em 2 subtarefas — (7.1) backend com contexto automatico (ultimo diagnostico + KPIs do CRM) e endpoint de chat autenticado, (7.2) pagina `/consultor` consumindo esse endpoint.
+- Diferenca de design em relacao ao IA SDR: conversa autenticada (nao publica) e com **uma unica conversa continua por organizacao** (nao uma por lead), contextualizada automaticamente a cada resposta com `Diagnostic` e `lib/dashboard/kpis.ts` ja existentes.
+- Nenhum codigo foi alterado nesta tarefa — apenas planejamento.
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
+## [V.1.8.0] — 2026-09-09
+
+### Fase 6.4 — IA SDR: notificar o consultor quando um lead e qualificado
+- Adicionado o campo `consultantSeenAt DateTime?` a `SdrConversation`, para saber quais leads qualificados (`HOT`) ainda nao foram vistos pelo consultor. `npx prisma generate` executado (sem banco local disponivel para `migrate dev`).
+- Criado `lib/sdr/notifications.ts` com `getUnseenQualifiedLeadsCount` e `markQualifiedLeadsSeen`.
+- `app/(app)/layout.tsx` passou a ser assincrono: busca a sessao e a contagem de leads qualificados nao vistos, repassando para `AppSidebar` via prop `qualifiedLeadsCount`.
+- `AppSidebar` passou a exibir um badge dourado com essa contagem no item "IA SDR" — item que ja existia linkado para `/sdr`, mas ainda sem pagina de destino.
+- Criada a pagina autenticada `app/(app)/sdr/page.tsx`: lista as conversas do IA SDR da organizacao (lead, classificacao, ultima mensagem, contagem de mensagens) e, ao carregar, marca as conversas `HOT` nao vistas como vistas — o badge some na navegacao seguinte.
+- **Ajuste no middleware:** o allowlist publico adicionado na 6.2 (`/sdr`) foi restrito para `/sdr/` (com barra) em `lib/auth.config.ts`, para que apenas o widget publico (`/sdr/[organizationId]`) permaneca acessivel sem sessao — a nova pagina do consultor (`/sdr`, exata) volta a exigir login.
+- FASE 6 (IA SDR) concluida: widget publico -> conversa com IA -> classificacao automatica -> Lead/Oportunidade no CRM -> notificacao ao consultor, fechando o funil descrito em `docs/ARCHITECTURE.md`.
+
+**Arquivos criados:**
+- `apps/web/lib/sdr/notifications.ts`
+- `apps/web/app/(app)/sdr/page.tsx`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`
+- `apps/web/lib/auth.config.ts`
+- `apps/web/app/(app)/layout.tsx`
+- `apps/web/components/app-sidebar.tsx`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.7.0] — 2026-09-09
+
+### Fase 6.3 — IA SDR: qualificacao gera Lead/Oportunidade no CRM
+- "Qualificada" definido como classificacao `HOT` (a mais alta entre `COLD`/`WARM`/`HOT`). `COLD`/`WARM` nao geram registros no CRM.
+- Criado `lib/sdr/lead-id.ts` com `sdrLeadId`/`sdrOpportunityId`, ids deterministicos a partir do `conversationId` (mesmo padrao de idempotencia sem alterar schema usado em `lib/diagnostico/action-plan-id.ts`, tarefa 4.3).
+- `POST /api/sdr/[organizationId]/conversations/[conversationId]/messages` passa a criar automaticamente um `Lead` (`status = QUALIFIED`, `source = "IA SDR"`, `score = 80`) e uma `Opportunity` vinculada (`stage` inicial `PROSPECTING`) na primeira vez que a conversa for classificada como `HOT`; chamadas seguintes nao duplicam os registros.
+- A sincronizacao com o CRM e um efeito colateral nao-critico: uma falha ao criar o Lead/Oportunidade nao impede a resposta da IA ao lead.
+
+**Arquivos criados:**
+- `apps/web/lib/sdr/lead-id.ts`
+
+**Arquivos alterados:**
+- `apps/web/app/api/sdr/[organizationId]/conversations/[conversationId]/messages/route.ts`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.6.0] — 2026-09-09
+
+### Fase 6.2 — IA SDR: widget publico embarcavel
+- Criada a pagina publica `/sdr/[organizationId]` (`page.tsx`, Server Component sem `auth()`): valida que a organizacao existe (404 caso contrario) e renderiza o widget de chat.
+- Criado `chat-widget.tsx` (Client Component): janela de chat que inicia a conversa automaticamente no primeiro envio, troca mensagens com a IA e exibe um badge com a classificacao atual (Frio/Morno/Quente); trata organizacao sem integracao configurada com uma tela de "Atendimento indisponivel".
+- **Correcao de bug encontrada ao construir esta tarefa:** o middleware global (`lib/auth.config.ts`, `callbacks.authorized`) bloqueava qualquer rota fora de `/login`, `/register` e `/api/auth/*` para quem nao tinha sessao — os endpoints "publicos" `/api/sdr/**` criados na tarefa 6.1 na pratica exigiam login. Adicionado allowlist explicito para `/sdr` e `/api/sdr`.
+
+**Arquivos criados:**
+- `apps/web/app/sdr/[organizationId]/page.tsx`
+- `apps/web/app/sdr/[organizationId]/chat-widget.tsx`
+
+**Arquivos alterados:**
+- `apps/web/lib/auth.config.ts`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.5.0] — 2026-09-09
+
+### Fase 6.1 — IA SDR: backend de conversa com classificacao automatica
+- Adicionados os models `SdrConversation` e `SdrMessage` (+ enums `SdrLeadTemperature`: `COLD`/`WARM`/`HOT` e `SdrMessageRole`: `LEAD`/`ASSISTANT`) ao schema Prisma, relacionados a `Organization`. Alteracao de schema solicitada explicitamente pelo usuario ao iniciar a tarefa 6.1. `npx prisma generate` executado (sem banco local disponivel para `migrate dev` neste ambiente).
+- Criado `lib/ai/anthropic-client.ts`: cliente fino (via `fetch`, sem SDK adicional) para `https://api.anthropic.com/v1/messages`, usando `tool_choice` forcado para garantir sempre uma resposta estruturada `{ reply, classification }` do modelo `claude-haiku-4-5-20251001`.
+- Criadas rotas publicas (sem sessao de usuario) `POST /api/sdr/[organizationId]/conversations` (inicia conversa, valida organizacao + integracao Anthropic configurada) e `POST /api/sdr/[organizationId]/conversations/[conversationId]/messages` (envia mensagem do lead, persiste o historico, chama a IA com a chave descriptografada da organizacao e classifica automaticamente a conversa).
+- A chave de API da organizacao nunca e retornada em nenhuma resposta HTTP; e descriptografada apenas em memoria no momento da chamada a Anthropic.
+- Ainda sem widget/UI publica para o lead (tarefa 6.2) e sem geracao automatica de Lead/Oportunidade no CRM (tarefa 6.3).
+
+**Arquivos criados:**
+- `apps/web/lib/ai/anthropic-client.ts`
+- `apps/web/lib/validations/sdr-conversation.ts`
+- `apps/web/app/api/sdr/[organizationId]/conversations/route.ts`
+- `apps/web/app/api/sdr/[organizationId]/conversations/[conversationId]/messages/route.ts`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+- `docs/ARCHITECTURE.md`
+
+## [V.1.4.0] — 2026-09-09
+
+### Fase 6 (planejamento) — IA SDR
+- Entre os dois modulos de IA previstos (Modulo 3 — IA SDR, Modulo 4 — Consultor Digital), o usuario definiu priorizar o **IA SDR**.
+- Detalhada a FASE 6 em `docs/TASKS.md`, quebrada em 4 subtarefas incrementais: (6.1) modelo de conversa do SDR + endpoint de chat com classificacao automatica via IA, (6.2) widget publico embarcavel, (6.3) conversa qualificada gera Lead/Oportunidade no CRM, (6.4) notificacao ao consultor.
+- Nenhum codigo foi alterado nesta tarefa — apenas planejamento, conforme recomendado em `docs/CURRENT_STATE.md` ("definir e detalhar o proximo modulo de IA antes de iniciar nova implementacao").
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
+## [V.1.3.1] — 2026-09-08
+
+### Correcoes — encontradas ao rodar o app localmente pela primeira vez (Postgres via Docker + `prisma migrate dev` + fluxo completo testado no navegador)
+
+- **Bug: diagnostico era salvo prematuramente ao avancar da etapa "Processo" para "Revisao".**
+  Causa: o botao "Proximo"/"Salvar diagnostico" e o MESMO componente `<Button>` na mesma posicao da arvore, alternando `type="button"`/`type="submit"` via ternario. Ao clicar em "Proximo" no penultimo passo, o React atualiza o estado (`isLastStep` passa a `true`) e re-renderiza sincronamente ainda durante o mesmo evento de clique/tecla, trocando o `type` do botao para `"submit"` — e o navegador entao dispara a submissao nativa do formulario com base no `type` JA ATUALIZADO, pulando a tela de revisao. Reproduzido de forma deterministica tanto por mouse quanto por teclado (Enter).
+  Correcao: `handleSubmit` deixou de depender do evento nativo do formulario; o botao final agora e sempre `type="button"` e chama `handleSubmit()` diretamente (`apps/web/app/(app)/diagnostico/wizard.tsx`).
+
+- **Bug: selects de estagio/status/prioridade/empresa/contato mostravam o valor bruto (`PROSPECTING`, `PENDING`) em vez do rotulo (`Prospeccao`, `Pendente`).**
+  Causa: `<Select.Value>` do Base UI, sem `items` no `Select.Root`, exibe o valor bruto por padrao. Correcao: passado um `children` (funcao `value => label`) para cada `<SelectValue>`, com fallback para o placeholder quando vazio. Afetava `opportunity-card.tsx` (estagio), `task-status-select.tsx` (status), `task-form-dialog.tsx` (prioridade), `contact-form-dialog.tsx` e `opportunity-form-dialog.tsx` (empresa/contato).
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/diagnostico/wizard.tsx`
+- `apps/web/app/(app)/pipeline/opportunity-card.tsx`
+- `apps/web/app/(app)/pipeline/opportunity-form-dialog.tsx`
+- `apps/web/app/(app)/planos/[id]/task-status-select.tsx`
+- `apps/web/app/(app)/planos/[id]/task-form-dialog.tsx`
+- `apps/web/app/(app)/contatos/contact-form-dialog.tsx`
+- `docs/CURRENT_STATE.md`
+
+## [V.1.3.0] — 2026-09-08
+
+### Fase 5.1 — Configuracoes: Integracoes de IA
+- Adicionado o model `ApiIntegration` (enum `ApiProvider`: `ANTHROPIC`, `OPENAI`) ao schema Prisma, relacionado a `Organization`, com chave unica por (organizacao, provedor). Alteracao de schema solicitada explicitamente pelo usuario. `npx prisma generate` executado (sem banco local disponivel para `migrate dev` neste ambiente).
+- Criado `lib/security/crypto.ts` (AES-256-GCM) para criptografar/descriptografar/mascarar as chaves de API antes de persistir ou exibir.
+- Criadas rotas `GET/POST /api/settings/integrations` e `DELETE /api/settings/integrations/[provider]`, isoladas por organizacao.
+- Criada pagina `/configuracoes` (ja linkada na sidebar) com um card por provedor de IA, permitindo configurar, atualizar e remover a chave — nunca exibida em texto puro.
+- Adicionada `INTEGRATION_ENCRYPTION_KEY` ao `.env.example`.
+- Prepara a base para os futuros modulos de IA (IA SDR, Consultor Digital) consumirem uma chave por organizacao; nenhuma chamada de IA foi implementada nesta tarefa.
+
+**Arquivos criados:**
+- `apps/web/lib/security/crypto.ts`
+- `apps/web/lib/validations/api-integration.ts`
+- `apps/web/app/api/settings/integrations/route.ts`
+- `apps/web/app/api/settings/integrations/[provider]/route.ts`
+- `apps/web/app/(app)/configuracoes/page.tsx`
+- `apps/web/app/(app)/configuracoes/integration-card.tsx`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`
+- `apps/web/.env.example`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+- `docs/ARCHITECTURE.md`
+
+## [V.1.2.0] — 2026-09-08
+
+### Fase 4.3 — Gerar Plano de Acao a partir do Diagnostico
+- Criado `lib/diagnostico/action-plan-id.ts` com um `id` deterministico (`actionplan-diagnostico-<diagnosticId>`) para o `ActionPlan`, usado como chave de idempotencia sem alterar o schema.
+- Criada rota `POST /api/diagnosticos/[id]/plano`: gera o `ActionPlan` com uma `ActionTask` por recomendacao do diagnostico; reaproveita o plano existente em chamadas repetidas.
+- Pagina `/diagnostico/[id]` ganha o botao "Gerar plano de acao" (`create-plan-button.tsx`), ao lado do botao de oportunidade, que vira link para `/planos/[id]` apos a criacao.
+- FASE 4 (Plano de Acao) concluida: Planos, Tarefas e a integracao Diagnostico -> Plano de Acao estao fechadas.
+
+**Arquivos criados:**
+- `apps/web/lib/diagnostico/action-plan-id.ts`
+- `apps/web/app/api/diagnosticos/[id]/plano/route.ts`
+- `apps/web/app/(app)/diagnostico/[id]/create-plan-button.tsx`
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/diagnostico/[id]/page.tsx`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.1.0] — 2026-09-08
+
+### Documentacao — README do projeto
+- Reescrito `apps/web/README.md` (ainda com o boilerplate do `create-next-app`) explicando o que o SalesOS realmente faz: o loop Diagnostico -> Score/Insights -> CRM -> Dashboard -> Plano de Acao, multiempresa, stack e como rodar localmente.
+
+### Fase 4.2 — Plano de Acao: Detalhe (Tarefas)
+- Criada validacao Zod `actionTaskInputSchema`/`actionTaskStatusUpdateSchema` e rotas `GET/POST /api/action-plans/[id]/tasks` + `PATCH /api/action-plans/[id]/tasks/[taskId]`, sempre checando a posse do plano pai pela organizacao.
+- Criada pagina `/planos/[id]` com cabecalho do plano e tabela de tarefas (titulo, responsavel, prioridade, prazo, status), dialog de criacao (`task-form-dialog.tsx`) e select de status por linha (`task-status-select.tsx`).
+- `/planos` passa a linkar o titulo de cada plano para o seu detalhe.
+
+**Arquivos criados:**
+- `apps/web/lib/validations/action-task.ts`
+- `apps/web/app/api/action-plans/[id]/tasks/route.ts`
+- `apps/web/app/api/action-plans/[id]/tasks/[taskId]/route.ts`
+- `apps/web/app/(app)/planos/[id]/page.tsx`
+- `apps/web/app/(app)/planos/[id]/task-form-dialog.tsx`
+- `apps/web/app/(app)/planos/[id]/task-status-select.tsx`
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/planos/page.tsx`
+- `apps/web/README.md`
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
+## [V.1.0.0] — 2026-09-08
+
+### Fase 4.1 — Plano de Acao: Listagem e Cadastro
+- Definida a FASE 4 (Plano de Acao) em `docs/TASKS.md`, cobrindo a pagina `/planos` ja linkada na sidebar.
+- Criada validacao Zod `actionPlanInputSchema` e rota `GET/POST /api/action-plans`, isolada por `organizationId`, com contagem de tarefas por plano.
+- Criada pagina `/planos` com tabela de planos (titulo, objetivo, status, tarefas, criado em) e estado vazio, e dialog de cadastro (`action-plan-form-dialog.tsx`).
+
+**Arquivos criados:**
+- `apps/web/lib/validations/action-plan.ts`
+- `apps/web/app/api/action-plans/route.ts`
+- `apps/web/app/(app)/planos/page.tsx`
+- `apps/web/app/(app)/planos/action-plan-form-dialog.tsx`
+
+**Arquivos alterados:**
+- `docs/SPEC.md`
+- `docs/CURRENT_STATE.md`
+- `docs/TASKS.md`
+
 ## [V.0.9.0] — 2026-09-08
 
 ### Fase 3.4 — Criar Oportunidade a partir do Diagnostico

@@ -126,7 +126,12 @@ export function ContactFormDialog({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sem empresa vinculada" />
+                  <SelectValue placeholder="Sem empresa vinculada">
+                    {(value: string) =>
+                      companies.find((company) => company.id === value)?.name ??
+                      "Sem empresa vinculada"
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {companies.map((company) => (

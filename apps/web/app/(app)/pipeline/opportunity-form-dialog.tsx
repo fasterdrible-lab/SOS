@@ -141,7 +141,12 @@ export function OpportunityFormDialog({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sem empresa vinculada" />
+                  <SelectValue placeholder="Sem empresa vinculada">
+                    {(value: string) =>
+                      companies.find((company) => company.id === value)?.name ??
+                      "Sem empresa vinculada"
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {companies.map((company) => (
@@ -162,7 +167,12 @@ export function OpportunityFormDialog({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sem contato vinculado" />
+                  <SelectValue placeholder="Sem contato vinculado">
+                    {(value: string) =>
+                      contacts.find((contact) => contact.id === value)?.name ??
+                      "Sem contato vinculado"
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {contacts.map((contact) => (

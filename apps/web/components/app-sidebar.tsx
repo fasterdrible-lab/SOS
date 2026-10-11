@@ -27,6 +27,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -62,7 +63,11 @@ const navItems = [
   },
 ]
 
-export function AppSidebar() {
+export function AppSidebar({
+  qualifiedLeadsCount = 0,
+}: {
+  qualifiedLeadsCount?: number
+}) {
   const pathname = usePathname()
 
   return (
@@ -104,7 +109,13 @@ export function AppSidebar() {
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
                       <span>{item.title}</span>
-                      {isActive && <ChevronRight className="ml-auto w-3 h-3 opacity-60" />}
+                      {item.href === "/sdr" && qualifiedLeadsCount > 0 ? (
+                        <Badge className="ml-auto h-4 min-w-4 justify-center rounded-full bg-[#D4A64F] px-1 text-[10px] text-[#1E1B3A]">
+                          {qualifiedLeadsCount}
+                        </Badge>
+                      ) : (
+                        isActive && <ChevronRight className="ml-auto w-3 h-3 opacity-60" />
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 )

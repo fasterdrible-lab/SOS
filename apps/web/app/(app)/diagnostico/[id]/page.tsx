@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowUpRight, Lightbulb } from "lucide-react"
 
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { diagnosticActionPlanId } from "@/lib/diagnostico/action-plan-id"
 import { diagnosticOpportunityMarker } from "@/lib/diagnostico/opportunity-marker"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
 import { CreateOpportunityButton } from "./create-opportunity-button"
+import { CreatePlanButton } from "./create-plan-button"
 
 type DiagnosticInsight = {
   title: string
@@ -53,6 +55,11 @@ export default async function DiagnosticoResultadoPage({
       organizationId,
       notes: { contains: diagnosticOpportunityMarker(diagnostic.id) },
     },
+    select: { id: true },
+  })
+
+  const existingActionPlan = await prisma.actionPlan.findFirst({
+    where: { id: diagnosticActionPlanId(diagnostic.id), organizationId },
     select: { id: true },
   })
 
@@ -168,6 +175,11 @@ export default async function DiagnosticoResultadoPage({
             <CreateOpportunityButton
               diagnosticId={diagnostic.id}
               hasOpportunity={Boolean(existingOpportunity)}
+            />
+
+            <CreatePlanButton
+              diagnosticId={diagnostic.id}
+              hasActionPlan={Boolean(existingActionPlan)}
             />
 
             <Link

@@ -17,14 +17,17 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members       OrganizationMember[]
-  leads         Lead[]
-  companies     Company[]
-  contacts      Contact[]
-  opportunities Opportunity[]
-  activities    Activity[]
-  diagnostics   Diagnostic[]
-  actionPlans   ActionPlan[]
+  members         OrganizationMember[]
+  leads           Lead[]
+  companies       Company[]
+  contacts        Contact[]
+  opportunities   Opportunity[]
+  activities      Activity[]
+  diagnostics     Diagnostic[]
+  actionPlans     ActionPlan[]
+  apiIntegrations ApiIntegration[]
+  sdrConversations SdrConversation[]
+  consultantConversation ConsultantConversation?
 
   @@map("organizations")
 }
@@ -210,9 +213,9 @@ model Activity {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  contact      Contact?      @relation(fields: [contactId], references: [id])
-  opportunity  Opportunity?  @relation(fields: [opportunityId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact      Contact?     @relation(fields: [contactId], references: [id])
+  opportunity  Opportunity? @relation(fields: [opportunityId], references: [id])
 
   @@index([organizationId])
   @@map("activities")
@@ -280,6 +283,83 @@ model ActionTask {
   @@map("action_tasks")
 }
 
+// ─── INTEGRAÇÕES DE IA ────────────────────────────────────────────────────────
+
+model ApiIntegration {
+  id              String      @id @default(cuid())
+  organizationId  String
+  provider        ApiProvider
+  apiKeyEncrypted String      @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@map("api_integrations")
+}
+
+// ─── IA SDR ──────────────────────────────────────────────────────────────────
+
+model SdrConversation {
+  id             String             @id @default(cuid())
+  organizationId String
+  leadName       String?
+  leadEmail      String?
+  leadPhone      String?
+  classification SdrLeadTemperature @default(COLD)
+  consultantSeenAt DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages     SdrMessage[]
+
+  @@index([organizationId])
+  @@map("sdr_conversations")
+}
+
+model SdrMessage {
+  id             String         @id @default(cuid())
+  conversationId String
+  role           SdrMessageRole
+  content        String         @db.Text
+  createdAt      DateTime       @default(now())
+
+  conversation SdrConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("sdr_messages")
+}
+
+// ─── CONSULTOR DIGITAL ─────────────────────────────────────────────────────────
+
+model ConsultantConversation {
+  id             String   @id @default(cuid())
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  messages     ConsultantMessage[]
+
+  @@unique([organizationId])
+  @@map("consultant_conversations")
+}
+
+model ConsultantMessage {
+  id             String                @id @default(cuid())
+  conversationId String
+  role           ConsultantMessageRole
+  content        String                @db.Text
+  createdAt      DateTime              @default(now())
+
+  conversation ConsultantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("consultant_messages")
+}
+
 // ─── ENUMS ───────────────────────────────────────────────────────────────────
 
 enum Plan {
@@ -340,4 +420,25 @@ enum TaskStatus {
   IN_PROGRESS
   DONE
   CANCELLED
+}
+
+enum ApiProvider {
+  ANTHROPIC
+  OPENAI
+}
+
+enum SdrMessageRole {
+  LEAD
+  ASSISTANT
+}
+
+enum SdrLeadTemperature {
+  COLD
+  WARM
+  HOT
+}
+
+enum ConsultantMessageRole {
+  USER
+  ASSISTANT
 }

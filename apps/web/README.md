@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SalesOS
 
-## Getting Started
+**SalesOS** é uma plataforma operacional de crescimento comercial — não é "mais um CRM".
 
-First, run the development server:
+A ideia central: a maioria das empresas não tem um problema de ferramenta, tem um problema de **processo comercial mal estruturado**. O SalesOS conecta diagnóstico, CRM, indicadores e plano de ação em um único fluxo, para que uma operação comercial saia do "achismo" e passe a ser gerenciada com dados.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> **North Star:** um consultor comercial consegue gerenciar 5x mais clientes sem aumentar a carga operacional.
+
+## O que a aplicação faz hoje
+
+O produto é organizado como um **loop fechado**, e não como módulos isolados:
+
+```
+Diagnóstico Comercial → Score de Maturidade → Gargalos/Recomendações
+        → Oportunidade no CRM → Pipeline de Vendas → Dashboard Executivo
+        → Plano de Ação
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. Diagnóstico Comercial (`/diagnostico`)
+Um wizard multi-step coleta os dados essenciais da operação de vendas de uma empresa: faturamento, número de vendedores, leads/mês, ticket médio, taxa de conversão, uso (ou não) de CRM, processo comercial e principais dores.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Score de Maturidade + Gargalos e Recomendações (`/diagnostico/[id]`)
+A partir dos dados coletados, o backend calcula uma **nota de maturidade comercial (0–100)** com base em 4 pilares ponderados — uso de CRM, processo documentado, taxa de conversão e volume de leads por vendedor. O mesmo cálculo gera automaticamente uma lista de **gargalos** identificados e **recomendações** de correção. Nenhuma regra de negócio fica no frontend: tudo é calculado e validado no servidor.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. CRM Inteligente (`/empresas`, `/contatos`, `/pipeline`)
+CRM enxuto para operar o que o diagnóstico revelou:
+- **Empresas** e **Contatos** — cadastro básico de contas e pessoas.
+- **Pipeline** — board de oportunidades organizado por estágio (Prospecção → Qualificação → Proposta → Negociação → Fechado Ganho/Perdido), com criação de oportunidades e mudança de estágio.
 
-## Learn More
+Direto na página de resultado do diagnóstico existe um botão **"Criar oportunidade no CRM"**, que gera a empresa (se ainda não existir) e uma oportunidade inicial no pipeline — fechando o loop entre diagnóstico e execução.
 
-To learn more about Next.js, take a look at the following resources:
+### 4. Dashboard Executivo (`/dashboard`)
+KPIs calculados em tempo real a partir dos dados reais da organização (não são valores fixos):
+- Pipeline Total (soma das oportunidades abertas)
+- Leads Ativos
+- Oportunidades em aberto
+- Taxa de Conversão
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Cada indicador mostra a variação em relação ao mês anterior.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 5. Plano de Ação (`/planos`)
+Cadastro de planos de crescimento (título + objetivo) por organização, com tarefas associadas — a peça que transforma o diagnóstico em execução acompanhável. Direto no resultado do diagnóstico também existe um botão **"Gerar plano de ação"**, que cria automaticamente uma tarefa para cada recomendação.
 
-## Deploy on Vercel
+### 6. Configurações (`/configuracoes`)
+Cada organização configura suas próprias chaves de API para os provedores de IA (Anthropic e OpenAI). As chaves ficam criptografadas no banco e nunca são exibidas por completo — é a base pronta para os módulos de IA (IA SDR, Consultor Digital) que ainda serão construídos.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Multiempresa (multi-tenant)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Toda a plataforma é multiempresa: um usuário pertence a uma `Organization`, e **todos os dados são sempre filtrados por `organizationId`** — tanto na leitura quanto na escrita. Autenticação via NextAuth v5 (Google e credenciais).
+
+## Módulos planejados (ainda não implementados)
+
+Segundo `docs/ARCHITECTURE.md`, os próximos módulos do produto são:
+- **IA SDR** — qualificação automática de leads via IA.
+- **Consultor Digital** — assistente de IA para o consultor acompanhar clientes.
+- **Dashboard Consultoria** — visão do consultor sobre a carteira de clientes.
+- **Academia Comercial** — conteúdo/treinamento.
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Linguagem | TypeScript |
+| Estilização | Tailwind CSS v4 + Shadcn UI (base-ui) |
+| Banco | PostgreSQL |
+| ORM | Prisma 7 (`prisma-client` + `@prisma/adapter-pg`) |
+| Auth | NextAuth v5 (Auth.js) — Google + Credentials |
+| Validação | Zod |
+
+## Estrutura do projeto
+
+```
+app/
+  (auth)/login/          -> tela de login
+  (app)/                 -> área autenticada (sidebar + módulos)
+    dashboard/            -> KPIs executivos
+    diagnostico/           -> wizard + resultado (nota, gargalos, recomendações)
+    empresas/, contatos/, pipeline/  -> CRM
+    planos/                -> planos de ação
+  api/                    -> route handlers (diagnósticos, empresas, contatos,
+                              oportunidades, planos de ação, auth)
+lib/
+  auth.ts, auth.config.ts, db.ts   -> sessão, tenant e cliente Prisma
+  validations/            -> schemas Zod compartilhados por entidade
+  scoring/                -> engine de maturidade comercial + insights
+  dashboard/              -> cálculo dos KPIs executivos
+  diagnostico/            -> integração diagnóstico → CRM
+prisma/schema.prisma      -> schema multiempresa (Organization, Lead, Company,
+                              Contact, Opportunity, Diagnostic, ActionPlan...)
+```
+
+## Como rodar localmente
+
+```bash
+npm install
+
+# copie e preencha as variáveis de ambiente
+cp .env.example .env
+
+# rode as migrations
+npx prisma migrate dev
+
+npm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000).
+
+- `npm run build` — build de produção
+- `npm run lint` — lint do projeto
+
+## Documentação do produto
+
+O estado do produto, as regras de negócio e o histórico de decisões vivem em `docs/`, na raiz do repositório (não nesta pasta `apps/web`):
+
+- `docs/CURRENT_STATE.md` — o que já foi entregue e o que falta.
+- `docs/TASKS.md` — backlog e detalhamento de cada tarefa concluída.
+- `docs/ARCHITECTURE.md` — arquitetura, módulos e decisões técnicas.
+- `docs/SPEC.md` — especificação funcional de cada feature.
+- `CHANGELOG.md` — histórico de versões.

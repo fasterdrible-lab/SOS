@@ -128,8 +128,8 @@ export function DiagnosticWizard() {
     setStep((current) => Math.max(current - 1, 0))
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function handleSubmit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
     setError("")
     setIsSubmitting(true)
 
@@ -341,7 +341,8 @@ export function DiagnosticWizard() {
 
               {isLastStep ? (
                 <Button
-                  type="submit"
+                  type="button"
+                  onClick={() => handleSubmit()}
                   disabled={isSubmitting}
                   className="bg-[#D4A64F] text-[#1E1B3A] hover:bg-[#E0B85A]"
                 >

@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(prisma as any),
   session: { strategy: "jwt" },
@@ -48,7 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
 
@@ -61,6 +61,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.organizationId = member?.organizationId ?? null
         token.role = member?.role ?? null
       }
+
+      if (trigger === "update" && token.id) {
+        const requestedOrganizationId = (
+          session as { user?: { organizationId?: string } } | null | undefined
+        )?.user?.organizationId
+
+        if (requestedOrganizationId) {
+          // Revalida a posse no banco a cada troca: o payload de update() vem do
+          // cliente, entao a sessao nunca pode confiar nele sem checar a membership.
+          const member = await prisma.organizationMember.findUnique({
+            where: {
+              organizationId_userId: {
+                organizationId: requestedOrganizationId,
+                userId: token.id as string,
+              },
+            },
+            select: { organizationId: true, role: true },
+          })
+
+          if (member) {
+            token.organizationId = member.organizationId
+            token.role = member.role
+          }
+        }
+      }
+
       return token
     },
     async session({ session, token }) {

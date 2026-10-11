@@ -43,7 +43,7 @@ Módulo 3 — IA SDR                   → /app/(app)/sdr
 Módulo 4 — Consultor Digital        → /app/(app)/consultor
 Módulo 5 — Plano de Ação            → /app/(app)/planos
 Módulo 6 — Dashboard Executivo      → /app/(app)/dashboard
-Módulo 7 — Dashboard Consultoria    → /app/(app)/consultoria
+Módulo 7 — Dashboard Consultoria    → /app/(app)/clientes
 Módulo 8 — Academia Comercial       → /app/(app)/academia
 ```
 
@@ -66,6 +66,8 @@ Organization (tenant)
   └── Activity
   └── ActionPlan
   └── Diagnostic
+  └── ApiIntegration (chave de API por provedor de IA, criptografada)
+  └── SdrConversation (conversa do IA SDR com um lead, N:N via SdrMessage)
 ```
 
 ## Fluxos Principais
@@ -87,6 +89,14 @@ Todas queries: WHERE organization_id = session.organizationId
 ```
 Lead acessa widget → conversa com Claude → classificação automática
 → Oportunidade criada no CRM → consultor notificado
+```
+
+### Troca de Organização Ativa (Consultor multi-cliente — Módulo 7)
+```
+Consultor pertence a N organizações (OrganizationMember, N:N)
+→ sessão mantém uma única organização ativa (session.user.organizationId)
+→ consultor troca a organização ativa em "Meus Clientes" (/clientes)
+→ todas as rotas de (app)/** continuam filtrando por session.user.organizationId, sem alteração
 ```
 
 ## Decisões Técnicas

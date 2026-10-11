@@ -22,8 +22,11 @@ export const authConfig: NextAuthConfig = {
         nextUrl.pathname.startsWith("/login") ||
         nextUrl.pathname.startsWith("/register")
       const isApiAuth = nextUrl.pathname.startsWith("/api/auth")
+      const isSdrPublicRoute =
+        nextUrl.pathname.startsWith("/sdr/") ||
+        nextUrl.pathname.startsWith("/api/sdr")
 
-      if (isApiAuth) return true
+      if (isApiAuth || isSdrPublicRoute) return true
       if (isAuthRoute) {
         if (isLoggedIn) return Response.redirect(new URL("/dashboard", nextUrl))
         return true

@@ -94,7 +94,9 @@ export function OpportunityCard({
             {isUpdating ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <SelectValue />
+              <SelectValue>
+                {(value: (typeof OPPORTUNITY_STAGES)[number]) => STAGE_LABELS[value]}
+              </SelectValue>
             )}
           </SelectTrigger>
           <SelectContent>
