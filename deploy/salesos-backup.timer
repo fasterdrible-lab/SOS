@@ -1,0 +1,10 @@
+[Unit]
+Description=Agenda o backup diario do SalesOS
+
+[Timer]
+# 03:30 no horario de Brasilia.
+OnCalendar=*-*-* 06:30:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

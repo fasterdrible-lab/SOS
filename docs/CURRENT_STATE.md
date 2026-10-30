@@ -1,6 +1,6 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.15.2  
+**Versao atual:** V.1.15.4  
 **Data:** 2026-10-30  
 **Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado (falta `www`)
 
@@ -134,9 +134,12 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A interface nao foi usada em navegador (cliques, dialogs): a validacao foi por HTTP. Login Google tambem nao foi testado.
 
-- Rota publica do IA SDR sem limite de uso (tarefa 10.4): com uma chave Anthropic ativa, qualquer pessoa com o link pode gerar custo para a organizacao.
 
 ## Ultima Tarefa Concluida
+**Tarefa 10.7** - Backup diario do banco de producao na VPS, com restauracao testada. Os backups ainda ficam so na VPS (tarefa 10.8).
+
+**Tarefa 10.4** - Rota publica do IA SDR com limite por conversa, por organizacao e por IP.
+
 **Tarefa 10.3** - Dominio apontado para a VPS e certificado emitido para `saleos.tech`.
 
 **Tarefa 10.2** - App e banco publicados na VPS em Docker, atras do nginx, com porta do app restrita a localhost.
@@ -152,4 +155,4 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
-Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, configurar backup do banco de producao e concluir a tarefa 10.4. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
+Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, definir um destino fora da VPS para os backups (tarefa 10.8). Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.

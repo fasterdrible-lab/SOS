@@ -1,5 +1,39 @@
 # CHANGELOG — SalesOS
 
+## [V.1.15.4] — 2026-10-30
+
+### Fase 10.7 — Backup do banco de producao
+- Backup diario as 03:30 (Brasilia) na VPS, com validacao do dump, retencao de 14 dias e copia do `.env`.
+- Restauracao testada em banco temporario, com resultado igual ao da producao.
+- Pendente (tarefa 10.8): copiar os backups para fora da VPS.
+
+**Arquivos criados:**
+- `.gitattributes`
+- `deploy/backup.sh`
+- `deploy/salesos-backup.service`
+- `deploy/salesos-backup.timer`
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
+## [V.1.15.3] — 2026-10-30
+
+### Fase 10.4 — Limite de uso da rota publica do IA SDR
+- Criado `lib/sdr/usage-limits.ts`: ate 30 mensagens do lead por conversa e 300 por organizacao em 24h. Acima disso, a rota responde 429 sem chamar a IA.
+- Adicionado limite por IP em `/api/sdr/` no nginx (12 requisicoes por minuto, rajada de 10).
+
+**Arquivos criados:**
+- `apps/web/lib/sdr/usage-limits.ts`
+
+**Arquivos alterados:**
+- `apps/web/app/api/sdr/[organizationId]/conversations/[conversationId]/messages/route.ts`
+- `deploy/nginx-saleos.conf`
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
 ## [V.1.15.2] — 2026-10-30
 
 ### Fase 10.1 — Preparacao para publicacao em saleos.tech

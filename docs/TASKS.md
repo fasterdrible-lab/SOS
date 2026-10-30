@@ -184,7 +184,32 @@ Solicitado pelo usuario em 2026-10-30. Destino definido pelo usuario: VPS `200.1
 | 10.3 | Apontar `saleos.tech` para a VPS no DNS da Hostinger e emitir o certificado | done |
 | 10.5 | Criar o admin de producao | done |
 | 10.6 | Restaurar o `CNAME www` (depois expandir o certificado com `certbot --nginx -d saleos.tech -d www.saleos.tech --cert-name saleos.tech --expand`) | blocked: requer acao do usuario |
-| 10.4 | Limitar o uso da rota publica do IA SDR antes de divulgar o widget | todo |
+| 10.4 | Limitar o uso da rota publica do IA SDR antes de divulgar o widget | done |
+| 10.7 | Backup diario do banco de producao na VPS, com restauracao testada | done |
+| 10.8 | Copiar os backups para fora da VPS | blocked: requer destino definido pelo usuario |
+
+## Tarefa: 10.7 - Backup diario do banco de producao
+
+### Resultado
+- `deploy/backup.sh`, com `salesos-backup.timer`: roda todo dia as 03:30 (Brasilia), valida o dump antes de aceita-lo, mantem 14 dias em `/var/backups/salesos` (permissao 700) e guarda uma copia do `.env` em `env.backup`, necessaria para ler as chaves de API do banco.
+- Restauracao testada em banco temporario, com contagens iguais as da producao. Retencao testada com um arquivo antigo.
+- Backup manual: `systemctl start salesos-backup.service`. Logs: `journalctl -u salesos-backup.service`.
+
+### Restaurar (substitui os dados atuais)
+1. `cd /opt/salesos && docker compose stop web`
+2. `docker compose exec -T db pg_restore -U salesos -d salesos --clean --if-exists --no-owner < /var/backups/salesos/<arquivo>.dump`
+3. `docker compose start web`
+
+### Limitacoes
+- Os backups ficam na mesma VPS: nao protegem contra a perda do servidor (tarefa 10.8).
+- Nao ha alerta em caso de falha do backup; a falha aparece apenas no `journalctl`.
+
+## Tarefa: 10.4 - Limitar o uso da rota publica do IA SDR
+
+### Resultado
+- App (`lib/sdr/usage-limits.ts`): ate 30 mensagens do lead por conversa e 300 por organizacao em 24h, contadas no banco; acima disso, 429 sem chamar a IA. Sem alteracao de schema.
+- nginx (`deploy/nginx-saleos.conf`): `/api/sdr/` limitada a 12 requisicoes por minuto por IP, com rajada de 10. O arquivo ativo na VPS tambem contem as linhas do certbot; o backup anterior esta em `/root/saleos.nginx.bak`.
+- Limitacao conhecida: requisicoes simultaneas podem passar da contagem por poucas mensagens, pois a checagem nao e transacional. O limite por IP reduz esse efeito.
 
 ## Tarefa: 10.2 - Subir app e banco na VPS
 

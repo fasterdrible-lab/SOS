@@ -4,6 +4,7 @@ import { AnthropicApiError, generateSdrReply } from "@/lib/ai/anthropic-client"
 import { prisma } from "@/lib/db"
 import { decryptSecret } from "@/lib/security/crypto"
 import { sdrLeadId, sdrOpportunityId } from "@/lib/sdr/lead-id"
+import { getSdrUsageLimitError } from "@/lib/sdr/usage-limits"
 import { sdrMessageInputSchema } from "@/lib/validations/sdr-conversation"
 
 async function qualifyLead(
@@ -90,6 +91,15 @@ export async function POST(
       { error: "Organizacao sem integracao de IA configurada." },
       { status: 422 }
     )
+  }
+
+  const limitError = await getSdrUsageLimitError(
+    organizationId,
+    conversation.messages.filter((message) => message.role === "LEAD").length
+  )
+
+  if (limitError) {
+    return NextResponse.json({ error: limitError }, { status: 429 })
   }
 
   const history = [
