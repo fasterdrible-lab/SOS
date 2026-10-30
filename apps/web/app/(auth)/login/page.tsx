@@ -149,10 +149,7 @@ export default function LoginPage() {
           </Button>
 
           <p className="text-center text-sm text-muted-foreground mt-8">
-            Não tem conta?{" "}
-            <a href="/register" className="text-[#D4A64F] hover:text-[#E0B85A] font-medium">
-              Solicitar acesso
-            </a>
+            Não tem conta? O acesso é liberado pelo administrador.
           </p>
         </div>
       </div>

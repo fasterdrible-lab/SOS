@@ -164,6 +164,55 @@ Quebrada em 3 subtarefas incrementais e dependentes entre si (cada uma so faz se
 
 FASE 8 concluida.
 
+## FASE 9 - Validacao de ponta a ponta
+
+Solicitado pelo usuario em 2026-10-30: validar o que foi construido antes de iniciar o Modulo 8 (Academia Comercial).
+
+| # | Tarefa | Status |
+|---|--------|--------|
+| 9.1 | Validar os fluxos do app contra o banco real (sem depender de resposta real da IA) | done |
+| 9.2 | Validar as respostas reais da IA (IA SDR, Consultor Digital e Lead/Oportunidade em conversa `HOT`) | blocked: requer chave Anthropic valida |
+
+## FASE 10 - Publicacao em saleos.tech
+
+Solicitado pelo usuario em 2026-10-30. Destino definido pelo usuario: VPS `200.141.20.162`, compartilhada com a producao do SALE-IA (`/opt/saleia`, `api.saleia.app.br`), com DNS na Hostinger.
+
+| # | Tarefa | Status |
+|---|--------|--------|
+| 10.1 | Preparar o app para build limpo e primeiro acesso em banco vazio | done |
+| 10.2 | Subir app e banco na VPS (Docker em `/opt/salesos`, nginx, migrations) | done |
+| 10.3 | Apontar `saleos.tech` para a VPS no DNS da Hostinger e emitir o certificado | done |
+| 10.5 | Criar o admin de producao | done |
+| 10.6 | Restaurar o `CNAME www` (depois expandir o certificado com `certbot --nginx -d saleos.tech -d www.saleos.tech --cert-name saleos.tech --expand`) | blocked: requer acao do usuario |
+| 10.4 | Limitar o uso da rota publica do IA SDR antes de divulgar o widget | todo |
+
+## Tarefa: 10.2 - Subir app e banco na VPS
+
+### Resultado
+- `deploy/docker-compose.yml`: Postgres sem porta publicada e app em `127.0.0.1:3010`. `deploy/nginx-saleos.conf`: site `saleos.tech`, com `www` redirecionando para o dominio principal.
+- Imagem construida localmente e carregada na VPS (`docker save` + `docker load`), para o build nao disputar CPU com o SALE-IA.
+- Segredos gerados na VPS, em `/opt/salesos/.env` (permissao 600).
+- Migrations aplicadas com `docker compose run --rm --no-deps web npx prisma migrate deploy`.
+- Atualizar: gerar nova imagem, carregar na VPS, alterar `WEB_TAG` no `.env` e rodar `docker compose up -d web`. Rodar `docker compose run` em scripts com `</dev/null`, pois ele consome a entrada padrao.
+
+## Tarefa: 10.1 - Preparar o app para publicacao
+
+### Resultado
+- Adicionado `postinstall: prisma generate`: o cliente Prisma fica no `.gitignore` e nada o gerava em um build limpo.
+- Criado `scripts/create-admin.mjs` (`npm run create-admin`): sem pagina de cadastro, um banco novo nao teria nenhum usuario capaz de entrar. Os valores Google do `.env` local parecem placeholders.
+- Validado em clone limpo, sem `.env`: `npm ci` e `npm run build` passaram. Com `next start`, o usuario criado pelo script entrou e as paginas autenticadas responderam 200.
+
+## Tarefa: 9.1 - Validar os fluxos do app contra o banco real
+
+### Resultado
+- Banco: container `salesos-postgres` (porta 5437), com as 2 migrations aplicadas e sem desvio em relacao ao schema. Nao foi preciso rodar `prisma migrate dev`.
+- App em `next dev` na porta 3100 (a 3000 estava ocupada por outro projeto), com usuario e organizacoes descartaveis, removidos ao final.
+- 47 verificacoes HTTP aprovadas, nenhuma falha, nenhum codigo alterado: login por credenciais, protecao de rotas, widget publico, criar/trocar organizacao (incluindo 404 para organizacao alheia), 10 paginas autenticadas, empresa, diagnostico com score, oportunidade e plano idempotentes, integracoes com chave mascarada, 422/502 do Consultor Digital e do IA SDR, isolamento entre organizacoes.
+
+### Fora desta tarefa
+- Respostas reais da IA (tarefa 9.2): nos testes de erro foi usada uma chave Anthropic falsa. A integracao salva na organizacao demo tambem resultou em 502.
+- Uso da interface em navegador e login Google.
+
 ## Tarefa: 8.1 - Sessao multi-organizacao (trocar organizacao ativa)
 
 ### Objetivo

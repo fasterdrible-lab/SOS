@@ -32,7 +32,7 @@ SalesOS
 | Vetores | pgvector |
 | Auth | NextAuth v5 (Auth.js) |
 | IA | Anthropic Claude API |
-| Deploy | Vercel (web) + Railway (PostgreSQL) |
+| Deploy | VPS 200.141.20.162: Docker (app + PostgreSQL) atrás do nginx, em `/opt/salesos` |
 
 ## Estrutura de Módulos
 
@@ -106,5 +106,5 @@ Consultor pertence a N organizações (OrganizationMember, N:N)
 | Next.js API routes (não NestJS) | Menos complexidade no MVP, mesmo stack |
 | NextAuth v5 | Suporte nativo a App Router, flexível |
 | Prisma | DX superior, type-safe, migrations simples |
-| Railway para PostgreSQL | Deploy fácil com pgvector |
+| VPS própria para app e PostgreSQL | Definido pelo usuário em 2026-10-30; compartilhada com o SALE-IA |
 | Tailwind + Shadcn | Velocidade de desenvolvimento, customizável |

@@ -1,5 +1,50 @@
 # CHANGELOG — SalesOS
 
+## [V.1.15.2] — 2026-10-30
+
+### Fase 10.1 — Preparacao para publicacao em saleos.tech
+- Adicionado `postinstall: prisma generate`, necessario para build em ambiente limpo.
+- Criado `scripts/create-admin.mjs` (`npm run create-admin`) para o primeiro acesso em banco vazio, ja que o app nao tem pagina de cadastro.
+- Validado em clone limpo: `npm ci`, `npm run build` e primeiro login em `next start`.
+
+### Fase 10.2 — Publicacao na VPS
+- Destino alterado pelo usuario de Vercel/Railway para a VPS `200.141.20.162`, compartilhada com o SALE-IA.
+- App e PostgreSQL em Docker (`/opt/salesos`), com o app restrito a `127.0.0.1:3010` e o banco sem porta publicada; site proprio no nginx para `saleos.tech`.
+- Migrations aplicadas no banco de producao, que segue vazio.
+
+### Fase 10.3 — Dominio e HTTPS
+- `saleos.tech` apontado para a VPS e certificado Let's Encrypt emitido, com redirecionamento de HTTP para HTTPS.
+- Login, criacao e troca de organizacao testados pelo dominio real, com dados de teste removidos ao final.
+- Admin de producao criado pelo usuario (tarefa 10.5). Pendente (tarefa 10.6): restaurar o `CNAME www`.
+- **Bug: o link "Solicitar acesso" da tela de login levava a um 404**, pois `/register` nunca existiu. Substituido por um aviso de que o acesso e liberado pelo administrador (`apps/web/app/(auth)/login/page.tsx`). Cadastro publico nao foi criado.
+
+**Arquivos criados:**
+- `apps/web/scripts/create-admin.mjs`
+- `apps/web/Dockerfile`
+- `apps/web/.dockerignore`
+- `deploy/docker-compose.yml`
+- `deploy/nginx-saleos.conf`
+
+**Arquivos alterados:**
+- `apps/web/package.json`
+- `docs/ARCHITECTURE.md`
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
+## [V.1.15.1] — 2026-10-30
+
+### Fase 9.1 — Validacao de ponta a ponta contra o banco real
+- App exercitado contra o banco de desenvolvimento (`salesos-postgres`) com 47 verificacoes HTTP, todas aprovadas: autenticacao, multi-organizacao, isolamento entre organizacoes, CRM, diagnostico, integracoes e tratamento de erro da IA.
+- Corrigido `docs/CURRENT_STATE.md`: as migrations ja estavam aplicadas e sem desvio em relacao ao schema, ao contrario do que o documento dizia.
+- Respostas reais da IA seguem sem validacao (tarefa 9.2, bloqueada): falta uma chave Anthropic valida.
+- Nenhum codigo foi alterado nesta tarefa.
+
+**Arquivos alterados:**
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
 ## [V.1.15.0] — 2026-09-10
 
 ### Fase 8.3 — Pagina "Meus Clientes"

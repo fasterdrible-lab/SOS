@@ -1,11 +1,15 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.15.0  
-**Data:** 2026-09-10  
-**Fase:** FASE 8 concluida - Dashboard Consultoria / Meus Clientes (Modulo 7)
+**Versao atual:** V.1.15.2  
+**Data:** 2026-10-30  
+**Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado (falta `www`)
 
 ## Estado Atual
-Tarefa 8.3 concluida: a pagina `/clientes` (ja linkada na sidebar desde a FASE 1, ate entao sem destino) lista todas as organizacoes das quais o consultor e membro, com metricas resumidas por cliente (score do ultimo diagnostico, pipeline total, progresso do plano de acao), um botao "Acessar" por linha (troca a organizacao ativa via `POST /api/session/organization`, tarefa 8.1, e leva ao `/dashboard` daquele cliente) e um formulario "Novo cliente" que cria a organizacao (`POST /api/organizations`, tarefa 8.2) e ja entra nela automaticamente. Com isso, o Modulo 7 (Dashboard Consultoria) fica utilizavel de ponta a ponta pela primeira vez: um consultor consegue gerenciar multiplas organizacoes-cliente de fato, nao so no schema.
+Tarefa 10.3 concluida: `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Login, criacao e troca de organizacao foram testados pelo dominio real. O admin de producao foi criado pelo usuario (tarefa 10.5). `www.saleos.tech` nao resolve no DNS e o certificado cobre apenas o dominio principal (tarefa 10.6).
+
+Antes disso, a Tarefa 9.1 foi concluida: o app foi exercitado contra o banco real de desenvolvimento (container Docker `salesos-postgres`, porta 5437, migrations ja aplicadas e sem desvio em relacao ao schema) com um roteiro HTTP de 47 verificacoes, todas aprovadas, sem alteracao de codigo. As respostas reais da IA continuam sem validacao (tarefa 9.2), por falta de uma chave Anthropic valida.
+
+Antes desta fase, a Tarefa 8.3 foi concluida: a pagina `/clientes` (ja linkada na sidebar desde a FASE 1, ate entao sem destino) lista todas as organizacoes das quais o consultor e membro, com metricas resumidas por cliente (score do ultimo diagnostico, pipeline total, progresso do plano de acao), um botao "Acessar" por linha (troca a organizacao ativa via `POST /api/session/organization`, tarefa 8.1, e leva ao `/dashboard` daquele cliente) e um formulario "Novo cliente" que cria a organizacao (`POST /api/organizations`, tarefa 8.2) e ja entra nela automaticamente. Com isso, o Modulo 7 (Dashboard Consultoria) fica utilizavel de ponta a ponta pela primeira vez: um consultor consegue gerenciar multiplas organizacoes-cliente de fato, nao so no schema.
 
 FASE 8 concluida: 8.1 (sessao multi-organizacao), 8.2 (criar organizacao-cliente) e 8.3 (pagina "Meus Clientes") fecham o ultimo modulo do produto principal ainda nao construido (`docs/ARCHITECTURE.md`, Modulo 7). Ver `docs/TASKS.md` para o detalhamento completo das 3 subtarefas.
 
@@ -125,18 +129,27 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - `npm.cmd run lint` falha em arquivos pre-existentes fora do escopo:
   - `apps/web/app/(auth)/login/page.tsx`
   - `apps/web/hooks/use-mobile.ts`
-- Nao ha banco de dados local disponivel neste ambiente: as migrations do IA SDR/integracoes (`api_integrations`, `sdr_conversations` com `consultantSeenAt`, `sdr_messages`) e do Consultor Digital (`consultant_conversations`, `consultant_messages`) ainda nao foram criadas/aplicadas (`npx prisma migrate dev` pendente para quando houver um banco de dev ou deploy). `npx prisma generate` foi executado apos cada alteracao de schema.
-- Endpoints do IA SDR e do Consultor Digital ainda nao foram testados contra a API real da Anthropic nem em navegador neste ambiente (sem banco/chave disponiveis); validados por leitura de codigo e `npm run build`.
-- `POST /api/session/organization` (8.1), `POST /api/organizations` (8.2) e a pagina `/clientes` (8.3) tambem nao foram testados contra um banco real neste ambiente (mesma limitacao); validados por `npm run build` e leitura de codigo.
+- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 2 migrations estao aplicadas e `prisma migrate diff` nao aponta desvio.
+- Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a integracao Anthropic salva na organizacao demo resulta em 502 (causa exata nao investigada, a rota nao expoe o erro do provedor) e a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`.
+- O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
+- A interface nao foi usada em navegador (cliques, dialogs): a validacao foi por HTTP. Login Google tambem nao foi testado.
+
+- Rota publica do IA SDR sem limite de uso (tarefa 10.4): com uma chave Anthropic ativa, qualquer pessoa com o link pode gerar custo para a organizacao.
 
 ## Ultima Tarefa Concluida
-**Tarefa 8.3** - Pagina "Meus Clientes" (`/clientes`): listagem cross-organizacao com metricas por cliente, botao "Acessar" (troca a organizacao ativa) e dialog "Novo cliente" (cria + troca + redireciona). FASE 8 (Dashboard Consultoria) concluida.
+**Tarefa 10.3** - Dominio apontado para a VPS e certificado emitido para `saleos.tech`.
+
+**Tarefa 10.2** - App e banco publicados na VPS em Docker, atras do nginx, com porta do app restrita a localhost.
+
+**Tarefa 10.1** - Preparacao para publicacao: `postinstall` com `prisma generate` e script `create-admin`, validados em clone limpo.
+
+**Tarefa 9.1** - Validacao de ponta a ponta contra o banco real: 47 verificacoes aprovadas cobrindo login, multi-organizacao, isolamento entre organizacoes, CRM, diagnostico, integracoes e tratamento de erro da IA. Dados de teste removidos ao final.
 
 ## O Que Falta
 - Corrigir lint pre-existente em tarefa separada, se desejado.
-- Rodar `npx prisma migrate dev` assim que houver um banco de desenvolvimento/deploy disponivel, para aplicar todas as tabelas pendentes (IA SDR, integracoes, Consultor Digital, sessao/organizacoes) — nenhuma migration foi aplicada ainda neste projeto (todo o schema de IA foi validado apenas com `npx prisma generate`).
-- Testar os fluxos completos (IA SDR, Consultor Digital, criar/trocar/listar organizacoes em `/clientes`) contra a API real da Anthropic e em navegador com um banco real, assim que houver ambiente disponivel — nenhum foi exercitado de ponta a ponta ainda.
+- Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
+- Fazer um teste manual da interface em navegador.
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
-Os 8 modulos principais do produto (Diagnostico, CRM, IA SDR, Consultor Digital, Plano de Acao, Dashboard Executivo, Dashboard Consultoria) estao implementados, mas nenhum foi exercitado contra um banco real. Antes de iniciar o Modulo 8 (Academia Comercial, o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido), recomenda-se validar o fluxo completo (`npx prisma migrate dev` + chave Anthropic real + teste manual no navegador, incluindo a troca/criacao de organizacoes em `/clientes`) para confirmar que o que foi construido funciona como esperado.
+Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, configurar backup do banco de producao e concluir a tarefa 10.4. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
