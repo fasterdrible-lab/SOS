@@ -136,7 +136,9 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 
 
 ## Ultima Tarefa Concluida
-**Tarefa 10.7** - Backup diario do banco de producao na VPS, com restauracao testada. Os backups ainda ficam so na VPS (tarefa 10.8).
+**Tarefa 10.8** - Copia externa criptografada dos backups no Backblaze B2 (bucket `SALEOS`).
+
+**Tarefa 10.7** - Backup diario do banco de producao na VPS, com restauracao testada.
 
 **Tarefa 10.4** - Rota publica do IA SDR com limite por conversa, por organizacao e por IP.
 
@@ -155,4 +157,4 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
-Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, definir um destino fora da VPS para os backups (tarefa 10.8). Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
+Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat (tarefa 10.9). Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.

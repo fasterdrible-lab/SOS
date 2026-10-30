@@ -186,7 +186,8 @@ Solicitado pelo usuario em 2026-10-30. Destino definido pelo usuario: VPS `200.1
 | 10.6 | Restaurar o `CNAME www` (depois expandir o certificado com `certbot --nginx -d saleos.tech -d www.saleos.tech --cert-name saleos.tech --expand`) | blocked: requer acao do usuario |
 | 10.4 | Limitar o uso da rota publica do IA SDR antes de divulgar o widget | done |
 | 10.7 | Backup diario do banco de producao na VPS, com restauracao testada | done |
-| 10.8 | Copiar os backups para fora da VPS | blocked: requer destino definido pelo usuario |
+| 10.8 | Copiar os backups para fora da VPS (Backblaze B2, bucket `SALEOS`) | done: upload real concluido pelo rclone; conferencia no painel pendente com o usuario |
+| 10.9 | Trocar a chave do Backblaze por uma nunca exposta em chat, usando `setup-offsite.sh`, e remover as anteriores | blocked: requer acao do usuario (a chave `...0004`, instalada a pedido do usuario em 2026-10-30, tambem foi enviada pelo chat) |
 
 ## Tarefa: 10.7 - Backup diario do banco de producao
 
@@ -200,8 +201,14 @@ Solicitado pelo usuario em 2026-10-30. Destino definido pelo usuario: VPS `200.1
 2. `docker compose exec -T db pg_restore -U salesos -d salesos --clean --if-exists --no-owner < /var/backups/salesos/<arquivo>.dump`
 3. `docker compose start web`
 
+### Copia externa (tarefa 10.8)
+- Com `/opt/salesos/offsite.env` presente, `backup.sh` empacota o dump e o `.env`, criptografa com GPG (AES256) usando `/opt/salesos/offsite.pass`, confere o arquivo e envia para o bucket `SALEOS` via rclone. Sem esse arquivo, o backup segue apenas local.
+- `setup-offsite.sh` pede a chave no terminal, gera a senha e a exibe uma vez. A senha precisa ficar guardada fora da VPS: sem ela, os arquivos externos nao podem ser abertos.
+- Abrir um backup externo: `gpg -d <arquivo>.tar.gz.gpg | tar -xz`.
+
 ### Limitacoes
-- Os backups ficam na mesma VPS: nao protegem contra a perda do servidor (tarefa 10.8).
+- A chave do tipo Write Only nao lista nem le o bucket, mas tem `deleteFiles`: quem controlar a VPS pode apagar arquivos do bucket. Para impedir isso, seria preciso usar Object Lock (hoje desativado).
+- Sem leitura, a VPS nao confere o arquivo depois do envio; a conferencia e feita no painel do Backblaze.
 - Nao ha alerta em caso de falha do backup; a falha aparece apenas no `journalctl`.
 
 ## Tarefa: 10.4 - Limitar o uso da rota publica do IA SDR

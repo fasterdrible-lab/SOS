@@ -5,11 +5,13 @@
 ### Fase 10.7 — Backup do banco de producao
 - Backup diario as 03:30 (Brasilia) na VPS, com validacao do dump, retencao de 14 dias e copia do `.env`.
 - Restauracao testada em banco temporario, com resultado igual ao da producao.
-- Pendente (tarefa 10.8): copiar os backups para fora da VPS.
+- Copia externa ativa: backup criptografado com GPG e enviado ao Backblaze B2 via rclone. A restauracao foi simulada com destino local.
+- Pendente (tarefa 10.9): trocar a chave do Backblaze, exposta no chat.
 
 **Arquivos criados:**
 - `.gitattributes`
 - `deploy/backup.sh`
+- `deploy/setup-offsite.sh`
 - `deploy/salesos-backup.service`
 - `deploy/salesos-backup.timer`
 
