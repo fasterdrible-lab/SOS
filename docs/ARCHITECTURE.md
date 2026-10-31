@@ -6,17 +6,20 @@ Multiempresa por tenant_id em todas as tabelas.
 
 ```
 SalesOS
-├── apps/web/          → Next.js 14 App Router
+├── apps/web/          → Next.js 16 App Router
 │   ├── app/           → Rotas e páginas
-│   │   ├── (auth)/    → Login, cadastro
+│   │   ├── (auth)/    → Login
 │   │   ├── (app)/     → Área autenticada
+│   │   ├── sdr/       → Widget público do IA SDR
 │   │   └── api/       → API Routes
 │   ├── components/    → Componentes UI
 │   ├── lib/           → Utilitários, auth, db client
-│   └── hooks/         → React hooks
-├── prisma/
-│   ├── schema.prisma  → Schema do banco
-│   └── migrations/    → Migrations
+│   ├── hooks/         → React hooks
+│   ├── scripts/       → Scripts operacionais (create-admin)
+│   └── prisma/
+│       ├── schema.prisma  → Schema do banco
+│       └── migrations/    → Migrations
+├── deploy/            → Compose, nginx e backup de produção
 └── docs/              → Documentação
 ```
 
@@ -24,12 +27,12 @@ SalesOS
 
 | Camada | Tecnologia |
 |--------|-----------|
-| Framework | Next.js 14 (App Router) |
+| Framework | Next.js 16 (App Router) |
 | Linguagem | TypeScript |
 | Estilização | Tailwind CSS + Shadcn UI |
 | Banco | PostgreSQL 15+ |
-| ORM | Prisma 5 |
-| Vetores | pgvector |
+| ORM | Prisma 7 |
+| Vetores | pgvector (planejado; ainda não usado nem instalado em produção) |
 | Auth | NextAuth v5 (Auth.js) |
 | IA | Anthropic Claude API |
 | Deploy | VPS 200.141.20.162: Docker (app + PostgreSQL) atrás do nginx, em `/opt/salesos` |
@@ -80,8 +83,9 @@ Login → NextAuth → Session com {userId, organizationId, role}
 
 ### Multiempresa
 ```
-User cria Organization → vira Admin
-User convida membros → email → aceite → OrganizationMember
+Consultor cria Organization em /clientes → vira OrganizationMember (CONSULTANT)
+Convite de membros por email: planejado, ainda não implementado
+Usuários são criados por script (npm run create-admin): não há cadastro público
 Todas queries: WHERE organization_id = session.organizationId
 ```
 
@@ -89,6 +93,19 @@ Todas queries: WHERE organization_id = session.organizationId
 ```
 Lead acessa widget → conversa com Claude → classificação automática
 → Oportunidade criada no CRM → consultor notificado
+```
+
+### Limites do IA SDR (rota pública)
+```
+nginx: 12 requisições por minuto por IP em /api/sdr/ (rajada de 10)
+App: 30 mensagens do lead por conversa e 300 por organização em 24h
+Acima disso: 429, sem chamar a IA
+```
+
+### Backup
+```
+Timer diário → pg_dump validado → 14 dias em /var/backups/salesos
+→ dump + .env criptografados com GPG → Backblaze B2
 ```
 
 ### Troca de Organização Ativa (Consultor multi-cliente — Módulo 7)

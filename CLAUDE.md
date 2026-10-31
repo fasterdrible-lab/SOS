@@ -7,17 +7,18 @@ Conecta CRM + IA + Consultoria + Processos + Indicadores + Automação em uma ú
 **North Star:** Um consultor gerencia 5x mais clientes sem aumentar carga operacional.
 
 ## Stack Oficial
-- **Frontend:** Next.js 14 (App Router), TypeScript, Tailwind CSS, Shadcn UI
+- **Frontend:** Next.js 16 (App Router), TypeScript, Tailwind CSS v4, Shadcn UI
 - **Backend:** Next.js API Routes (Route Handlers)
 - **Banco:** PostgreSQL + Prisma ORM + pgvector
 - **Auth:** NextAuth v5 (Auth.js)
 - **IA:** Anthropic Claude + OpenAI
-- **Infra:** Docker + Vercel/Railway
+- **Infra:** Docker + nginx em VPS própria (ver [docs/DEPLOY.md](./docs/DEPLOY.md))
 
 ## Estrutura do Projeto
 ```
 /apps/web/          → Next.js app (frontend + API routes)
-/prisma/            → Schema e migrations
+/apps/web/prisma/   → Schema e migrations
+/deploy/            → Arquivos de produção (compose, nginx, backup)
 /docs/              → Documentação do projeto
 CLAUDE.md           → Este arquivo
 CHANGELOG.md        → Histórico de versões
@@ -34,10 +35,12 @@ CHANGELOG.md        → Histórico de versões
 - Ambiente de dev: `npm run dev` na pasta `apps/web`
 - Build: `npm run build`
 - DB migrations: `npx prisma migrate dev`
-- Variáveis de ambiente: `.env.local` (nunca commitar)
+- Variáveis de ambiente: `apps/web/.env` (nunca commitar)
+- Produção: `https://saleos.tech`; publicação, backups e restauração em [docs/DEPLOY.md](./docs/DEPLOY.md)
+- A VPS é compartilhada com o SALE-IA: nunca interromper o serviço dele nem gerar o build lá
 
 ## Versão Atual
-**V.0.1.0** — FASE 1: Estrutura documental e scaffold do projeto
+**V.1.15.6** — FASE 10: publicado em produção (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
 
 ## Admin do Sistema
 - Email: fasterdrible@gmail.com

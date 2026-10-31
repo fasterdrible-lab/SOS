@@ -42,19 +42,26 @@ Cada indicador mostra a variação em relação ao mês anterior.
 Cadastro de planos de crescimento (título + objetivo) por organização, com tarefas associadas — a peça que transforma o diagnóstico em execução acompanhável. Direto no resultado do diagnóstico também existe um botão **"Gerar plano de ação"**, que cria automaticamente uma tarefa para cada recomendação.
 
 ### 6. Configurações (`/configuracoes`)
-Cada organização configura suas próprias chaves de API para os provedores de IA (Anthropic e OpenAI). As chaves ficam criptografadas no banco e nunca são exibidas por completo — é a base pronta para os módulos de IA (IA SDR, Consultor Digital) que ainda serão construídos.
+Cada organização configura suas próprias chaves de API para os provedores de IA (Anthropic e OpenAI). As chaves ficam criptografadas no banco e nunca são exibidas por completo. O IA SDR e o Consultor Digital usam a chave Anthropic; a chave OpenAI ainda não é consumida.
+
+### 7. IA SDR (`/sdr`, widget público em `/sdr/[organizationId]`)
+Um widget público conversa com o lead, classifica o interesse (frio, morno, quente) e, em conversa quente, cria Lead e Oportunidade no CRM e notifica o consultor na sidebar. A rota pública tem limites por conversa, por organização e por IP.
+
+### 8. Consultor Digital (`/consultor`)
+Chat autenticado que usa o último diagnóstico e os KPIs do CRM como contexto de cada resposta, com uma conversa contínua por organização.
+
+### 9. Meus Clientes (`/clientes`)
+Visão do consultor sobre a carteira: lista as organizações com métricas por cliente, troca a organização ativa e cria novos clientes. **É o ponto de partida:** todo dado pertence a um cliente, então o primeiro passo depois do login é criar um.
+
+> As respostas reais da IA ainda não foram validadas com uma chave Anthropic válida.
 
 ## Multiempresa (multi-tenant)
 
-Toda a plataforma é multiempresa: um usuário pertence a uma `Organization`, e **todos os dados são sempre filtrados por `organizationId`** — tanto na leitura quanto na escrita. Autenticação via NextAuth v5 (Google e credenciais).
+Toda a plataforma é multiempresa: um usuário pode pertencer a várias `Organization`, com uma ativa por sessão, e **todos os dados são sempre filtrados por `organizationId`** — tanto na leitura quanto na escrita. Autenticação via NextAuth v5 (Google e credenciais). Não há cadastro público: usuários são criados com `npm run create-admin`.
 
-## Módulos planejados (ainda não implementados)
+## Módulo planejado (ainda não implementado)
 
-Segundo `docs/ARCHITECTURE.md`, os próximos módulos do produto são:
-- **IA SDR** — qualificação automática de leads via IA.
-- **Consultor Digital** — assistente de IA para o consultor acompanhar clientes.
-- **Dashboard Consultoria** — visão do consultor sobre a carteira de clientes.
-- **Academia Comercial** — conteúdo/treinamento.
+- **Academia Comercial** — conteúdo/treinamento (`/academia`, já na sidebar).
 
 ## Stack
 
@@ -108,6 +115,11 @@ Abra [http://localhost:3000](http://localhost:3000).
 
 - `npm run build` — build de produção
 - `npm run lint` — lint do projeto
+- `npm run create-admin` — cria um usuário ou redefine a senha (requer `DATABASE_URL`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`)
+
+## Produção
+
+Publicado em https://saleos.tech. Publicação, backups e restauração estão em `docs/DEPLOY.md`.
 
 ## Documentação do produto
 
@@ -117,4 +129,5 @@ O estado do produto, as regras de negócio e o histórico de decisões vivem em 
 - `docs/TASKS.md` — backlog e detalhamento de cada tarefa concluída.
 - `docs/ARCHITECTURE.md` — arquitetura, módulos e decisões técnicas.
 - `docs/SPEC.md` — especificação funcional de cada feature.
+- `docs/DEPLOY.md` — operação de produção.
 - `CHANGELOG.md` — histórico de versões.

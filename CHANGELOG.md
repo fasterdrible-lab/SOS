@@ -1,5 +1,23 @@
 # CHANGELOG — SalesOS
 
+## [V.1.15.6] — 2026-10-30
+
+### Documentacao
+- Criado `docs/DEPLOY.md`: operacao de producao, publicacao, usuarios, backups, restauracao e diagnostico.
+- `CLAUDE.md`, `docs/ARCHITECTURE.md` e `apps/web/README.md` alinhados ao estado real: stack, estrutura, producao na VPS e modulos ja construidos.
+- `docs/CURRENT_STATE.md` atualizado com o estado de producao e os riscos conhecidos.
+- Nenhum codigo foi alterado.
+
+**Arquivos criados:**
+- `docs/DEPLOY.md`
+
+**Arquivos alterados:**
+- `CLAUDE.md`
+- `apps/web/README.md`
+- `docs/ARCHITECTURE.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
 ## [V.1.15.5] — 2026-10-30
 
 ### Correcao — primeiro acesso sem organizacao ativa

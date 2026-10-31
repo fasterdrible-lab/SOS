@@ -1,11 +1,17 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.15.5  
+**Versao atual:** V.1.15.6  
 **Data:** 2026-10-30  
 **Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado (falta `www`)
 
 ## Estado Atual
-Tarefa 10.3 concluida: `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Login, criacao e troca de organizacao foram testados pelo dominio real. O admin de producao foi criado pelo usuario (tarefa 10.5). `www.saleos.tech` nao resolve no DNS e o certificado cobre apenas o dominio principal (tarefa 10.6).
+`https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao completa em `docs/DEPLOY.md`.
+
+- Producao em uso: o admin ja entrou pelo navegador e existem 1 cliente e 1 empresa cadastrados. Imagem atual: `salesos-web:4`.
+- Protecoes ativas: limite de uso do IA SDR (conversa, organizacao e IP) e backup diario, local e criptografado no Backblaze B2.
+- `main` e `feat/fases-4-8` foram alinhadas no GitHub em 2026-10-30, no commit `96005f4`.
+- `www.saleos.tech` nao resolve no DNS e o certificado cobre apenas o dominio principal (tarefa 10.6).
+- Nenhuma chave de IA esta cadastrada em producao: IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 Antes disso, a Tarefa 9.1 foi concluida: o app foi exercitado contra o banco real de desenvolvimento (container Docker `salesos-postgres`, porta 5437, migrations ja aplicadas e sem desvio em relacao ao schema) com um roteiro HTTP de 47 verificacoes, todas aprovadas, sem alteracao de codigo. As respostas reais da IA continuam sem validacao (tarefa 9.2), por falta de uma chave Anthropic valida.
 
@@ -89,6 +95,15 @@ apps/web/app/(app)/clientes/page.tsx              -> pagina "Meus Clientes" (lis
 apps/web/app/(app)/clientes/client-access-button.tsx -> botao que troca a organizacao ativa por linha
 apps/web/app/(app)/clientes/new-client-dialog.tsx -> dialog de criacao de cliente (cria + troca + redireciona)
 docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e 7
+docs/DEPLOY.md                                    -> operacao de producao (publicar, backups, restauracao, diagnostico)
+apps/web/lib/sdr/usage-limits.ts                  -> limites de mensagens do IA SDR por conversa e por organizacao
+apps/web/scripts/create-admin.mjs                 -> cria usuario ou redefine a senha (nao ha cadastro publico)
+apps/web/Dockerfile                               -> imagem de producao
+deploy/docker-compose.yml                         -> app + PostgreSQL na VPS
+deploy/nginx-saleos.conf                          -> site saleos.tech + limite por IP do IA SDR
+deploy/backup.sh                                  -> backup diario, local e no Backblaze B2
+deploy/setup-offsite.sh                           -> configura ou troca a chave do Backblaze
+deploy/salesos-backup.service, .timer             -> agendamento do backup
 ```
 
 ## Funcionalidades Concluidas
@@ -123,6 +138,10 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - [x] Sessao multi-organizacao: trocar a organizacao ativa entre as que o usuario pertence (`POST /api/session/organization`)
 - [x] Consultor cria uma nova organizacao-cliente (`POST /api/organizations`)
 - [x] Pagina "Meus Clientes" (`/clientes`): listagem cross-organizacao com metricas por cliente + acessar + novo cliente
+- [x] Aviso global quando nao ha cliente ativo
+- [x] Publicacao em `https://saleos.tech` (VPS, Docker, nginx, HTTPS)
+- [x] Limite de uso da rota publica do IA SDR
+- [x] Backup diario local e externo criptografado
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -132,7 +151,12 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 - Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 2 migrations estao aplicadas e `prisma migrate diff` nao aponta desvio.
 - Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a integracao Anthropic salva na organizacao demo resulta em 502 (causa exata nao investigada, a rota nao expoe o erro do provedor) e a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
-- A interface nao foi usada em navegador (cliques, dialogs): a validacao foi por HTTP. Login Google tambem nao foi testado.
+- A validacao automatizada foi por HTTP. O usuario ja usou login, criacao de cliente e cadastro de empresa em navegador; as demais telas nao passaram por teste completo de interface. Login Google nao foi testado e depende de credenciais reais.
+- Backup externo: a conferencia do arquivo no bucket depende do painel do Backblaze, e baixar e restaurar um arquivo do bucket real ainda nao foi testado (a restauracao foi simulada com destino local).
+- A chave Backblaze `...0004`, em uso, foi enviada pelo chat (tarefa 10.9) e tem permissao de apagar arquivos do bucket. O Object Lock esta desativado.
+- Nao ha alerta de falha do backup nem de indisponibilidade do site.
+- A VPS tem 2 nucleos e nenhuma swap, e e compartilhada com o SALE-IA.
+- O repositorio no GitHub parece publico: a API respondeu sem autenticacao.
 
 
 ## Ultima Tarefa Concluida
@@ -153,7 +177,9 @@ docs/SPEC.md                                      -> spec das Fases 2, 3, 4, 6 e
 ## O Que Falta
 - Corrigir lint pre-existente em tarefa separada, se desejado.
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
-- Fazer um teste manual da interface em navegador.
+- Fazer um teste manual completo das demais telas em navegador.
+- Restaurar o `CNAME www` (tarefa 10.6) e trocar a chave do Backblaze (tarefa 10.9).
+- Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
