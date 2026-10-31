@@ -1,5 +1,35 @@
 # CHANGELOG — SalesOS
 
+## [V.1.17.0] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+
+### Tarefa V2-2.1 — Meu Dia, cabecalho global e metas
+- Nova tela **Meu Dia** (`/meu-dia`), agora a pagina inicial apos o login: meta do mes com barra de progresso, ideal de hoje, projecao e ritmo por dia util; conversao, ticket medio e vendas de hoje; propostas aguardando resposta, negociacoes esfriando (mais de 14 dias na etapa), fechamento previsto vencido, tarefas atrasadas e de hoje dos planos de acao e leads quentes do IA SDR.
+- Vendedor ve apenas os proprios numeros e a propria meta; gestor e administrador veem a organizacao e a meta da equipe.
+- Reunioes, follow-ups, fechamento do dia e recomendacoes da SALEIA aparecem como blocos "em breve", sem dados ficticios.
+- **Metas mensais** (`SalesGoal`): meta da equipe e por vendedor, definidas por gestor ou administrador no proprio Meu Dia (`PUT /api/goals`, auditado).
+- `GET /api/meu-dia` devolve os mesmos indicadores da tela.
+- Datas no fuso de Brasilia (`lib/time/business-calendar.ts`): uma venda as 22h do dia 31 conta no proprio mes, embora o servidor rode em UTC. Dias uteis de segunda a sexta.
+- **Cabecalho global** em todas as telas: titulo da pagina, cliente ativo e menu do usuario com "Trocar de cliente" e **Sair**, que nao existia.
+- **Menu lateral reorganizado** (Operacao, CRM, Inteligencia, Consultoria) a partir de `lib/navigation.ts`: itens restritos somem para quem nao pode abri-los, e o link para `/academia` (404) foi removido.
+- Corrigido: o quadro do pipeline alargava a pagina e escondia o botao "Nova oportunidade" e a parte direita do cabecalho.
+- Testes: `meu-dia-rules.test.mjs` (11) e `meu-dia.integration.mjs` (15).
+
+**Migration:** `20261101000000_sales_goals` (tabela nova). Aplicada apenas no banco de desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/app/(app)/meu-dia/page.tsx`, `goal-dialog.tsx`
+- `apps/web/app/api/meu-dia/route.ts`, `apps/web/app/api/goals/route.ts`
+- `apps/web/components/app-header.tsx`
+- `apps/web/lib/navigation.ts`, `lib/time/business-calendar.ts`, `lib/meu-dia/goal-progress.ts`, `lib/meu-dia/summary.ts`, `lib/validations/goal.ts`
+- `apps/web/tests/meu-dia-rules.test.mjs`, `apps/web/tests/meu-dia.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/components/app-sidebar.tsx`, `components/access-denied.tsx`, `app/(app)/layout.tsx`
+- As 12 paginas autenticadas (cabecalho proprio removido)
+- `apps/web/app/page.tsx`, `app/(auth)/login/page.tsx`, `lib/auth.config.ts`, `app/(app)/clientes/*` (entrada no Meu Dia)
+- `apps/web/lib/authz/permissions.ts`, `lib/audit/record.ts`, `prisma/schema.prisma`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.16.2] — 2026-10-31 (publicada em producao com a V.1.16.1, imagem `salesos-web:6`)
 
 ### Tarefa V2-1.3 — Qualidade tecnica

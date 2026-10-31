@@ -30,6 +30,7 @@ model Organization {
   consultantConversation ConsultantConversation?
   auditLogs       AuditLog[]
   opportunityStageHistory OpportunityStageHistory[]
+  salesGoals      SalesGoal[]
 
   @@map("organizations")
 }
@@ -66,6 +67,8 @@ model User {
   ownedOpportunities Opportunity[]
   auditLogs AuditLog[]
   opportunityStageChanges OpportunityStageHistory[]
+  salesGoals         SalesGoal[] @relation("SalesGoalUser")
+  salesGoalsUpdated  SalesGoal[] @relation("SalesGoalUpdatedBy")
 
   @@map("users")
 }
@@ -250,6 +253,30 @@ model OpportunityStageHistory {
   @@index([opportunityId, changedAt])
   @@index([organizationId, changedAt])
   @@map("opportunity_stage_history")
+}
+
+// ─── METAS ───────────────────────────────────────────────────────────────────
+
+/// Meta mensal de faturamento da organizacao (userId nulo) ou de um vendedor.
+model SalesGoal {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  /// "ORG" ou o id do vendedor: garante uma unica meta por escopo e mes.
+  scopeKey       String
+  /// AAAA-MM, no fuso de Brasilia.
+  month          String
+  amount         Decimal  @db.Decimal(14, 2)
+  updatedById    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation("SalesGoalUser", fields: [userId], references: [id], onDelete: Cascade)
+  updatedBy    User?        @relation("SalesGoalUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, month, scopeKey])
+  @@map("sales_goals")
 }
 
 // ─── DIAGNÓSTICO ─────────────────────────────────────────────────────────────

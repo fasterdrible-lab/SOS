@@ -73,6 +73,7 @@ Organization (tenant)
   └── SdrConversation (conversa do IA SDR com um lead, N:N via SdrMessage)
   └── AuditLog (operacoes sensiveis, sem segredos)
   └── OpportunityStageHistory (toda mudanca de etapa, com responsavel)
+  └── SalesGoal (meta mensal da equipe ou de um vendedor)
 ```
 
 ## Fluxos Principais
@@ -98,6 +99,16 @@ A sessao le vinculo e papel do banco a cada auth(); o JWT nao e fonte de autoriz
 Rotas: denyUnless(role, permissao) -> 403. Matriz em lib/authz/permissions.ts
 Vendedor: oportunidades filtradas por ownerId (opportunityScope)
 Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
+```
+
+### Navegacao e Meu Dia
+```
+Menu e titulo do cabecalho: lib/navigation.ts (item some sem a permissao)
+Entrada apos login: /meu-dia
+Meu Dia: getMyDaySummary (lib/meu-dia/summary.ts), usado pela pagina e por GET /api/meu-dia
+  vendedor: proprias oportunidades e meta individual | gestor/admin: organizacao e meta da equipe
+Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias uteis seg-sex
+Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /api/goals
 ```
 
 ### Erros da API

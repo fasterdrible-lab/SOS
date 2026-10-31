@@ -33,11 +33,11 @@ export default function LoginPage() {
       return
     }
 
-    router.push("/dashboard")
+    router.push("/meu-dia")
   }
 
   async function handleGoogle() {
-    await signIn("google", { callbackUrl: "/dashboard" })
+    await signIn("google", { callbackUrl: "/meu-dia" })
   }
 
   return (

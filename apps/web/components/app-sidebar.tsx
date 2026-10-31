@@ -2,19 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import {
-  LayoutDashboard,
-  Users,
-  Target,
-  Zap,
-  BrainCircuit,
-  BarChart3,
-  BookOpen,
-  ClipboardList,
-  TrendingUp,
-  Settings,
-  ChevronRight,
-} from "lucide-react"
+import { ChevronRight, TrendingUp } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -28,47 +16,27 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
+import { hasPermission } from "@/lib/authz/permissions"
+import { NAV_GROUPS, SETTINGS_ITEM, isActivePath, type NavItem } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
-const navItems = [
-  {
-    label: "Principal",
-    items: [
-      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { title: "Diagnóstico", href: "/diagnostico", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "CRM",
-    items: [
-      { title: "Pipeline", href: "/pipeline", icon: Target },
-      { title: "Empresas", href: "/empresas", icon: Users },
-      { title: "Contatos", href: "/contatos", icon: Users },
-    ],
-  },
-  {
-    label: "Inteligência",
-    items: [
-      { title: "IA SDR", href: "/sdr", icon: Zap },
-      { title: "Consultor Digital", href: "/consultor", icon: BrainCircuit },
-      { title: "Plano de Ação", href: "/planos", icon: ClipboardList },
-    ],
-  },
-  {
-    label: "Consultoria",
-    items: [
-      { title: "Meus Clientes", href: "/clientes", icon: BarChart3 },
-      { title: "Academia", href: "/academia", icon: BookOpen },
-    ],
-  },
-]
+function canSee(item: NavItem, role: string | null) {
+  return !item.permission || hasPermission(role, item.permission)
+}
 
 export function AppSidebar({
   qualifiedLeadsCount = 0,
+  role,
 }: {
   qualifiedLeadsCount?: number
+  role: string | null
 }) {
   const pathname = usePathname()
+
+  const groups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => canSee(item, role)),
+  })).filter((group) => group.items.length > 0)
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -87,18 +55,19 @@ export function AppSidebar({
       <SidebarSeparator className="opacity-20" />
 
       <SidebarContent className="px-2 py-2">
-        {navItems.map((group) => (
+        {groups.map((group) => (
           <SidebarGroup key={group.label} className="mb-1">
             <SidebarGroupLabel className="text-[10px] uppercase tracking-widest text-muted-foreground/60 px-2 mb-1">
               {group.label}
             </SidebarGroupLabel>
             <SidebarMenu>
               {group.items.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                const isActive = isActivePath(pathname, item.href)
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       isActive={isActive}
+                      tooltip={item.title}
                       render={<Link href={item.href} />}
                       className={cn(
                         "rounded-md transition-all",
@@ -125,20 +94,24 @@ export function AppSidebar({
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="px-2 py-3">
-        <SidebarSeparator className="opacity-20 mb-3" />
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              render={<Link href="/configuracoes" />}
-              className="text-muted-foreground hover:text-white hover:bg-white/5 rounded-md"
-            >
-              <Settings className="w-4 h-4" />
-              <span>Configurações</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+      {canSee(SETTINGS_ITEM, role) && (
+        <SidebarFooter className="px-2 py-3">
+          <SidebarSeparator className="opacity-20 mb-3" />
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={isActivePath(pathname, SETTINGS_ITEM.href)}
+                tooltip={SETTINGS_ITEM.title}
+                render={<Link href={SETTINGS_ITEM.href} />}
+                className="text-muted-foreground hover:text-white hover:bg-white/5 rounded-md"
+              >
+                <SETTINGS_ITEM.icon className="w-4 h-4" />
+                <span>{SETTINGS_ITEM.title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      )}
     </Sidebar>
   )
 }

@@ -3,9 +3,6 @@ import { hasPermission } from "@/lib/authz/permissions"
 import { AccessDenied } from "@/components/access-denied"
 import { prisma } from "@/lib/db"
 import { decryptSecret, maskSecret } from "@/lib/security/crypto"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { API_PROVIDERS } from "@/lib/validations/api-integration"
 
 import { IntegrationCard } from "./integration-card"
@@ -42,23 +39,7 @@ export default async function ConfiguracoesPage() {
   )
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-background/80 px-6 backdrop-blur">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-        <Separator orientation="vertical" className="h-4 opacity-20" />
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">
-            Configuracoes
-          </span>
-          <Badge
-            variant="outline"
-            className="border-[#D4A64F]/30 bg-[#D4A64F]/5 text-[10px] text-[#D4A64F]"
-          >
-            Organizacao
-          </Badge>
-        </div>
-      </header>
-
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-5xl space-y-6">
           <div>

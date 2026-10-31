@@ -28,7 +28,7 @@ export function ClientAccessButton({ organizationId }: { organizationId: string 
       return
     }
 
-    router.push("/dashboard")
+    router.push("/meu-dia")
     router.refresh()
   }
 

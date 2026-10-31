@@ -6,8 +6,6 @@ import { hasPermission } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import {
   Table,
   TableBody,
@@ -38,23 +36,7 @@ export default async function PlanosPage() {
     : []
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-background/80 px-6 backdrop-blur">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-        <Separator orientation="vertical" className="h-4 opacity-20" />
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">
-            Plano de Acao
-          </span>
-          <Badge
-            variant="outline"
-            className="border-[#D4A64F]/30 bg-[#D4A64F]/5 text-[10px] text-[#D4A64F]"
-          >
-            Inteligencia
-          </Badge>
-        </div>
-      </header>
-
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="flex items-center justify-between">

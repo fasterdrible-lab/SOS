@@ -10,7 +10,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-1.1 | Autenticacao e permissoes | done (em producao desde 2026-10-31, `salesos-web:5`) |
 | V2-1.2 | Integridade comercial | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (em producao desde 2026-10-31, `salesos-web:6`) |
-| V2-2 | Meu Dia | proxima |
+| V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (nao publicada) |
+| V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | proxima |
 | V2-3 | Dashboard Executivo | todo |
 | V2-4 | Kanban de Negociacoes | todo |
 | V2-5 | Clientes 360 | todo |
@@ -24,6 +25,25 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-2.1 - Meu Dia, cabecalho global e metas
+
+### Decisao (usuario, 2026-10-31)
+Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administrador.
+
+### Resultado
+- Tela, API, metas, cabecalho e menu (ver `CHANGELOG.md` V.1.17.0).
+- Testes: `npm run check` (41 unitarios) e `npm run test:integration` (54, em 4 suites).
+- Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: desktop (gestor), celular 390 px (vendedor), menu do usuario, dialogo de metas e pipeline.
+
+### Limitacoes conhecidas
+- O cabecalho ainda nao tem busca global, notificacoes nem alternancia de tema (V2-2.2).
+- Feriados nao entram na conta de dias uteis.
+- O limite de 14 dias para "esfriando" e fixo ate as configuracoes comerciais (V2-9).
+- Reunioes, follow-ups e fechamento do dia dependem das FASES V2-6 e V2-8; recomendacoes, da V2-7.
+- O `/dashboard` ainda calcula o mes em UTC; sera alinhado ao fuso de Brasilia na FASE V2-3.
+- Tarefas dos planos de acao nao tem responsavel: aparecem para toda a organizacao.
+- O clique em uma negociacao leva ao pipeline, que ainda nao tem pagina de detalhe.
 
 ## Tarefa: V2-1.3 - Qualidade tecnica
 

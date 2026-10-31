@@ -1,9 +1,6 @@
 import { auth } from "@/lib/auth"
 import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { OPPORTUNITY_STAGES } from "@/lib/validations/opportunity"
 
 import { OpportunityCard, type OpportunityCardData } from "./opportunity-card"
@@ -73,21 +70,7 @@ export default async function PipelinePage() {
   })
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-background/80 px-6 backdrop-blur">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-        <Separator orientation="vertical" className="h-4 opacity-20" />
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">Pipeline</span>
-          <Badge
-            variant="outline"
-            className="border-[#D4A64F]/30 bg-[#D4A64F]/5 text-[10px] text-[#D4A64F]"
-          >
-            CRM
-          </Badge>
-        </div>
-      </header>
-
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="space-y-6">
           <div className="flex items-center justify-between">

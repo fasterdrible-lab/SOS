@@ -1,9 +1,6 @@
 import Link from "next/link"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
   TrendingUp,
   Users,
@@ -96,22 +93,7 @@ export default async function DashboardPage() {
   const kpiCards = buildKpiCards(kpis)
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="flex items-center gap-3 px-6 h-14 border-b border-white/5 sticky top-0 bg-background/80 backdrop-blur z-10">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-        <Separator orientation="vertical" className="h-4 opacity-20" />
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">Dashboard</span>
-          <Badge
-            variant="outline"
-            className="text-[10px] border-[#D4A64F]/30 text-[#D4A64F] bg-[#D4A64F]/5"
-          >
-            Beta
-          </Badge>
-        </div>
-      </header>
-
+    <div className="flex flex-1 flex-col">
       {/* Content */}
       <main className="flex-1 p-6 space-y-6">
         {/* Welcome */}

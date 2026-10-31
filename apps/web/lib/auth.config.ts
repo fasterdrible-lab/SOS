@@ -28,7 +28,7 @@ export const authConfig: NextAuthConfig = {
 
       if (isApiAuth || isSdrPublicRoute) return true
       if (isAuthRoute) {
-        if (isLoggedIn) return Response.redirect(new URL("/dashboard", nextUrl))
+        if (isLoggedIn) return Response.redirect(new URL("/meu-dia", nextUrl))
         return true
       }
       if (!isLoggedIn) return false

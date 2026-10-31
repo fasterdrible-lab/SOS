@@ -65,7 +65,7 @@ export function NewClientDialog() {
     }
 
     resetAndClose()
-    router.push("/dashboard")
+    router.push("/meu-dia")
     router.refresh()
   }
 

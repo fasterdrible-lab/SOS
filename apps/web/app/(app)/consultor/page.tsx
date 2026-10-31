@@ -2,9 +2,6 @@ import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { AccessDenied } from "@/components/access-denied"
 import { prisma } from "@/lib/db"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
 
 import { ConsultantChat } from "./consultant-chat"
 
@@ -36,23 +33,7 @@ export default async function ConsultorPage() {
   }))
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-background/80 px-6 backdrop-blur">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-        <Separator orientation="vertical" className="h-4 opacity-20" />
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-white">
-            Consultor Digital
-          </span>
-          <Badge
-            variant="outline"
-            className="border-[#D4A64F]/30 bg-[#D4A64F]/5 text-[10px] text-[#D4A64F]"
-          >
-            Inteligencia
-          </Badge>
-        </div>
-      </header>
-
+    <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col space-y-4">
           <div>

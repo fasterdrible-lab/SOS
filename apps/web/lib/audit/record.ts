@@ -6,6 +6,8 @@ export type AuditAction =
   | "integration.removed"
   | "organization.created"
   | "session.organization-switched"
+  | "goal.saved"
+  | "goal.removed"
 
 interface AuditEntry {
   organizationId: string

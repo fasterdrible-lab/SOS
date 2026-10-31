@@ -1,14 +1,8 @@
 import { ShieldAlert } from "lucide-react"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
-
 export function AccessDenied() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-white/5 bg-background/80 px-6 backdrop-blur">
-        <SidebarTrigger className="text-muted-foreground hover:text-white" />
-      </header>
-
+    <div className="flex flex-1 flex-col">
       <main className="flex flex-1 flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A64F]/10">
           <ShieldAlert className="h-7 w-7 text-[#D4A64F]" />
