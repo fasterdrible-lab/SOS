@@ -53,7 +53,7 @@ export default function LoginPage() {
 
         <div>
           <blockquote className="text-2xl font-light text-white/90 leading-relaxed mb-6">
-            "Transformamos conhecimento de consultoria em software escalável."
+            &ldquo;Transformamos conhecimento de consultoria em software escalável.&rdquo;
           </blockquote>
           <div className="flex gap-8">
             <Stat value="5x" label="mais clientes" />

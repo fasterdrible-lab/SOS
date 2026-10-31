@@ -100,6 +100,14 @@ Vendedor: oportunidades filtradas por ownerId (opportunityScope)
 Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
 ```
 
+### Erros da API
+```
+Handler exportado = withApiErrors("METODO /caminho", handler)
+Erro previsto -> apiError(codigo, mensagem) | validationError(zodError)
+Corpo: { error, code, fields? }  (os componentes leem `error`)
+Erro inesperado -> 500 { code: INTERNAL } + logServerError (JSON, sem segredos)
+```
+
 ### Ciclo da Oportunidade
 ```
 Criacao (createOpportunity) -> PROSPECTING + 1a entrada em OpportunityStageHistory

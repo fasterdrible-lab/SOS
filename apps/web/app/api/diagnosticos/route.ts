@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
@@ -8,15 +10,12 @@ import { generateBottlenecks, generateRecommendations } from "@/lib/scoring/insi
 import { calculateMaturityScore } from "@/lib/scoring/maturity"
 import { diagnosticInputSchema } from "@/lib/validations/diagnostic"
 
-export async function POST(request: Request) {
+export const POST = withApiErrors("POST /api/diagnosticos", async (request: Request) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para criar diagnostico." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para criar diagnostico.")
   }
 
   const denied = denyUnless(session.user.role, "diagnostics:write")
@@ -27,19 +26,13 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = diagnosticInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const maturityScore = calculateMaturityScore(parsed.data)
@@ -63,10 +56,8 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ diagnostic }, { status: 201 })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel salvar o diagnostico." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/diagnosticos", error)
+    return apiError("INTERNAL", "Nao foi possivel salvar o diagnostico.")
   }
-}
+})

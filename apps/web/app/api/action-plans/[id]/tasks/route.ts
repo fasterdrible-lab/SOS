@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { actionTaskInputSchema } from "@/lib/validations/action-task"
 
-export async function GET(
+export const GET = withApiErrors("GET /api/action-plans/[id]/tasks", async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para listar tarefas." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para listar tarefas.")
   }
 
   const denied = denyUnless(session.user.role, "action-plans:read")
@@ -30,10 +29,7 @@ export async function GET(
   })
 
   if (!actionPlan) {
-    return NextResponse.json(
-      { error: "Plano de acao nao encontrado." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Plano de acao nao encontrado.")
   }
 
   const tasks = await prisma.actionTask.findMany({
@@ -42,20 +38,17 @@ export async function GET(
   })
 
   return NextResponse.json({ tasks })
-}
+})
 
-export async function POST(
+export const POST = withApiErrors("POST /api/action-plans/[id]/tasks", async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para criar tarefa." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para criar tarefa.")
   }
 
   const denied = denyUnless(session.user.role, "action-plans:write")
@@ -69,10 +62,7 @@ export async function POST(
   })
 
   if (!actionPlan) {
-    return NextResponse.json(
-      { error: "Plano de acao nao encontrado." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Plano de acao nao encontrado.")
   }
 
   let body: unknown
@@ -80,19 +70,13 @@ export async function POST(
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = actionTaskInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const { dueDate, ...rest } = parsed.data
@@ -107,10 +91,8 @@ export async function POST(
     })
 
     return NextResponse.json({ task }, { status: 201 })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel salvar a tarefa." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/action-plans/[id]/tasks", error)
+    return apiError("INTERNAL", "Nao foi possivel salvar a tarefa.")
   }
-}
+})

@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { recordAudit } from "@/lib/audit/record"
 import { prisma } from "@/lib/db"
 import { apiIntegrationDeleteSchema } from "@/lib/validations/api-integration"
 
-export async function DELETE(
+export const DELETE = withApiErrors("DELETE /api/settings/integrations/[provider]", async (
   request: Request,
   { params }: { params: Promise<{ provider: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para remover integracao." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para remover integracao.")
   }
 
   const denied = denyUnless(session.user.role, "integrations:manage")
@@ -27,7 +26,7 @@ export async function DELETE(
   const parsed = apiIntegrationDeleteSchema.safeParse({ provider: rawProvider })
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Provedor invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Provedor invalido.")
   }
 
   const existing = await prisma.apiIntegration.findUnique({
@@ -41,10 +40,7 @@ export async function DELETE(
   })
 
   if (!existing) {
-    return NextResponse.json(
-      { error: "Integracao nao encontrada." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Integracao nao encontrada.")
   }
 
   try {
@@ -65,10 +61,8 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel remover a integracao." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("DELETE /api/settings/integrations/[provider]", error)
+    return apiError("INTERNAL", "Nao foi possivel remover a integracao.")
   }
-}
+})

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { recordAudit } from "@/lib/audit/record"
@@ -7,15 +9,12 @@ import { prisma } from "@/lib/db"
 import { decryptSecret, encryptSecret, maskSecret } from "@/lib/security/crypto"
 import { apiIntegrationInputSchema } from "@/lib/validations/api-integration"
 
-export async function GET() {
+export const GET = withApiErrors("GET /api/settings/integrations", async () => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para listar integracoes." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para listar integracoes.")
   }
 
   const denied = denyUnless(session.user.role, "integrations:manage")
@@ -33,17 +32,14 @@ export async function GET() {
       updatedAt: integration.updatedAt,
     })),
   })
-}
+})
 
-export async function POST(request: Request) {
+export const POST = withApiErrors("POST /api/settings/integrations", async (request: Request) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para configurar integracao." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para configurar integracao.")
   }
 
   const denied = denyUnless(session.user.role, "integrations:manage")
@@ -54,19 +50,13 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = apiIntegrationInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const { provider, apiKey } = parsed.data
@@ -107,10 +97,8 @@ export async function POST(request: Request) {
         updatedAt: integration.updatedAt,
       },
     })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel salvar a integracao." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/settings/integrations", error)
+    return apiError("INTERNAL", "Nao foi possivel salvar a integracao.")
   }
-}
+})

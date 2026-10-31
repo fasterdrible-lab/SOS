@@ -1,3 +1,5 @@
+import Link from "next/link"
+
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -176,13 +178,13 @@ export default async function DashboardPage() {
               O SalesOS analisa sua operação atual e gera um plano de crescimento
               personalizado com base nos seus dados.
             </p>
-            <a
+            <Link
               href="/diagnostico"
               className="inline-flex items-center gap-2 bg-[#D4A64F] hover:bg-[#E0B85A] text-[#1E1B3A] font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors"
             >
               Iniciar Diagnóstico
               <ArrowUpRight className="w-4 h-4" />
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </main>

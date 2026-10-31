@@ -1,23 +1,22 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { diagnosticActionPlanId } from "@/lib/diagnostico/action-plan-id"
 import type { DiagnosticInsight } from "@/lib/scoring/insights"
 
-export async function POST(
+export const POST = withApiErrors("POST /api/diagnosticos/[id]/plano", async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para gerar plano de acao." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para gerar plano de acao.")
   }
 
   const denied = denyUnless(session.user.role, "action-plans:write")
@@ -30,10 +29,7 @@ export async function POST(
   })
 
   if (!diagnostic) {
-    return NextResponse.json(
-      { error: "Diagnostico nao encontrado." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Diagnostico nao encontrado.")
   }
 
   const actionPlanId = diagnosticActionPlanId(diagnostic.id)
@@ -66,10 +62,8 @@ export async function POST(
     })
 
     return NextResponse.json({ actionPlan }, { status: 201 })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel gerar o plano de acao." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/diagnosticos/[id]/plano", error)
+    return apiError("INTERNAL", "Nao foi possivel gerar o plano de acao.")
   }
-}
+})

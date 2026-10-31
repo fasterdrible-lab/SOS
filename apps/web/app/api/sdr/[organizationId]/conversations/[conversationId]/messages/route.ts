@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { AnthropicApiError, generateSdrReply } from "@/lib/ai/anthropic-client"
 import { prisma } from "@/lib/db"
 import { createOpportunity } from "@/lib/opportunities/create"
@@ -54,12 +56,12 @@ async function qualifyLead(
   })
 }
 
-export async function POST(
+export const POST = withApiErrors("POST /api/sdr/[organizationId]/conversations/[conversationId]/messages", async (
   request: Request,
   {
     params,
   }: { params: Promise<{ organizationId: string; conversationId: string }> }
-) {
+) => {
   const { organizationId, conversationId } = await params
 
   const conversation = await prisma.sdrConversation.findFirst({
@@ -68,10 +70,7 @@ export async function POST(
   })
 
   if (!conversation) {
-    return NextResponse.json(
-      { error: "Conversa nao encontrada." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Conversa nao encontrada.")
   }
 
   let body: unknown
@@ -79,19 +78,13 @@ export async function POST(
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = sdrMessageInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const integration = await prisma.apiIntegration.findUnique({
@@ -100,10 +93,7 @@ export async function POST(
   })
 
   if (!integration) {
-    return NextResponse.json(
-      { error: "Organizacao sem integracao de IA configurada." },
-      { status: 422 }
-    )
+    return apiError("UNPROCESSABLE", "Organizacao sem integracao de IA configurada.")
   }
 
   const limitError = await getSdrUsageLimitError(
@@ -112,7 +102,7 @@ export async function POST(
   )
 
   if (limitError) {
-    return NextResponse.json({ error: limitError }, { status: 429 })
+    return apiError("RATE_LIMITED", limitError)
   }
 
   const history = [
@@ -127,11 +117,9 @@ export async function POST(
 
   try {
     apiKey = decryptSecret(integration.apiKeyEncrypted)
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel acessar a integracao de IA." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/sdr/[organizationId]/conversations/[conversationId]/messages", error)
+    return apiError("INTERNAL", "Nao foi possivel acessar a integracao de IA.")
   }
 
   try {
@@ -166,9 +154,10 @@ export async function POST(
           leadEmail: conversation.leadEmail,
           leadPhone: conversation.leadPhone,
         })
-      } catch {
+      } catch (error) {
         // Efeito colateral nao-critico: a resposta ao lead segue normalmente.
         // A proxima mensagem classificada como HOT tenta novamente.
+        logServerError("IA SDR: criar lead qualificado", error)
       }
     }
 
@@ -178,16 +167,12 @@ export async function POST(
       classification: result.classification,
     })
   } catch (error) {
+    logServerError("POST /api/sdr/[organizationId]/conversations/[conversationId]/messages", error)
+
     if (error instanceof AnthropicApiError) {
-      return NextResponse.json(
-        { error: "Nao foi possivel obter resposta da IA." },
-        { status: 502 }
-      )
+      return apiError("UPSTREAM_FAILED", "Nao foi possivel obter resposta da IA.")
     }
 
-    return NextResponse.json(
-      { error: "Nao foi possivel processar a mensagem." },
-      { status: 500 }
-    )
+    return apiError("INTERNAL", "Nao foi possivel processar a mensagem.")
   }
-}
+})

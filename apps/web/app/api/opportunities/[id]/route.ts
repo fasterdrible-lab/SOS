@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, codeForStatus, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
@@ -10,18 +12,15 @@ import { opportunityStageUpdateSchema } from "@/lib/validations/opportunity"
 
 class StaleStageError extends Error {}
 
-export async function PATCH(
+export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para atualizar oportunidade." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para atualizar oportunidade.")
   }
 
   const denied = denyUnless(session.user.role, "opportunities:write")
@@ -34,19 +33,13 @@ export async function PATCH(
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = opportunityStageUpdateSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const existing = await prisma.opportunity.findFirst({
@@ -58,10 +51,7 @@ export async function PATCH(
   })
 
   if (!existing) {
-    return NextResponse.json(
-      { error: "Oportunidade nao encontrada." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Oportunidade nao encontrada.")
   }
 
   const transition = planStageTransition({
@@ -73,7 +63,7 @@ export async function PATCH(
   })
 
   if (!transition.ok) {
-    return NextResponse.json({ error: transition.error }, { status: transition.status })
+    return apiError(codeForStatus(transition.status), transition.error)
   }
 
   if (transition.unchanged) {
@@ -111,15 +101,10 @@ export async function PATCH(
     return NextResponse.json({ opportunity: serializeOpportunity(opportunity) })
   } catch (error) {
     if (error instanceof StaleStageError) {
-      return NextResponse.json(
-        { error: "A oportunidade foi alterada por outra pessoa. Atualize a pagina." },
-        { status: 409 }
-      )
+      return apiError("CONFLICT", "A oportunidade foi alterada por outra pessoa. Atualize a pagina.")
     }
 
-    return NextResponse.json(
-      { error: "Nao foi possivel atualizar a oportunidade." },
-      { status: 500 }
-    )
+    logServerError("PATCH /api/opportunities/[id]", error)
+    return apiError("INTERNAL", "Nao foi possivel atualizar a oportunidade.")
   }
-}
+})

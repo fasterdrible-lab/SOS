@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { prisma } from "@/lib/db"
 import { sdrStartConversationSchema } from "@/lib/validations/sdr-conversation"
 
-export async function POST(
+export const POST = withApiErrors("POST /api/sdr/[organizationId]/conversations", async (
   request: Request,
   { params }: { params: Promise<{ organizationId: string }> }
-) {
+) => {
   const { organizationId } = await params
 
   const organization = await prisma.organization.findUnique({
@@ -15,10 +17,7 @@ export async function POST(
   })
 
   if (!organization) {
-    return NextResponse.json(
-      { error: "Organizacao nao encontrada." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Organizacao nao encontrada.")
   }
 
   const integration = await prisma.apiIntegration.findUnique({
@@ -27,10 +26,7 @@ export async function POST(
   })
 
   if (!integration) {
-    return NextResponse.json(
-      { error: "Organizacao sem integracao de IA configurada." },
-      { status: 422 }
-    )
+    return apiError("UNPROCESSABLE", "Organizacao sem integracao de IA configurada.")
   }
 
   let body: unknown
@@ -44,13 +40,7 @@ export async function POST(
   const parsed = sdrStartConversationSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   try {
@@ -69,10 +59,8 @@ export async function POST(
     })
 
     return NextResponse.json({ conversation }, { status: 201 })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel iniciar a conversa." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/sdr/[organizationId]/conversations", error)
+    return apiError("INTERNAL", "Nao foi possivel iniciar a conversa.")
   }
-}
+})

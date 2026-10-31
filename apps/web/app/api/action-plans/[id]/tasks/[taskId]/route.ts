@@ -1,22 +1,21 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { actionTaskStatusUpdateSchema } from "@/lib/validations/action-task"
 
-export async function PATCH(
+export const PATCH = withApiErrors("PATCH /api/action-plans/[id]/tasks/[taskId]", async (
   request: Request,
   { params }: { params: Promise<{ id: string; taskId: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para atualizar tarefa." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para atualizar tarefa.")
   }
 
   const denied = denyUnless(session.user.role, "action-tasks:update-status")
@@ -29,19 +28,13 @@ export async function PATCH(
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = actionTaskStatusUpdateSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const existing = await prisma.actionTask.findFirst({
@@ -50,10 +43,7 @@ export async function PATCH(
   })
 
   if (!existing) {
-    return NextResponse.json(
-      { error: "Tarefa nao encontrada." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Tarefa nao encontrada.")
   }
 
   try {
@@ -63,10 +53,8 @@ export async function PATCH(
     })
 
     return NextResponse.json({ task })
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel atualizar a tarefa." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("PATCH /api/action-plans/[id]/tasks/[taskId]", error)
+    return apiError("INTERNAL", "Nao foi possivel atualizar a tarefa.")
   }
-}
+})

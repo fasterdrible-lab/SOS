@@ -9,8 +9,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-0 | Etapa Zero: auditoria e preservacao | done |
 | V2-1.1 | Autenticacao e permissoes | done (em producao desde 2026-10-31, `salesos-web:5`) |
 | V2-1.2 | Integridade comercial | done (nao publicada) |
-| V2-1.3 | Qualidade tecnica (lint, erros padronizados) | proxima |
-| V2-2 | Meu Dia | todo |
+| V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (nao publicada) |
+| V2-2 | Meu Dia | proxima |
 | V2-3 | Dashboard Executivo | todo |
 | V2-4 | Kanban de Negociacoes | todo |
 | V2-5 | Clientes 360 | todo |
@@ -24,6 +24,26 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-1.3 - Qualidade tecnica
+
+### Resultado
+- `npm run lint`: 0 erros. `tsc` e build passam.
+- Erros padronizados, handlers envolvidos e logs seguros (ver `CHANGELOG.md` V.1.16.2).
+- Testes: `npm run check` (30 unitarios) e `npm run test:integration` (39, em 3 suites).
+- O 500 provocado no teste gerou no log do servidor: `{"level":"error","scope":"GET /api/settings/integrations",...,"name":"Error","message":"Payload criptografado invalido."}`.
+
+### Como rodar a integracao localmente
+1. `docker start salesos-postgres` e `npx prisma migrate deploy`
+2. `npm run build` e `AUTH_URL=http://localhost:3100 AUTH_TRUST_HOST=true npx next start -p 3100`
+3. `npm run test:integration` (recusa rodar se o banco ou o app nao forem locais)
+
+### Limitacoes conhecidas
+- Os logs vao para a saida do container (`docker compose logs web`). Nao ha coleta, retencao nem alerta.
+- `withApiErrors` em si nao tem teste unitario (depende de `next/navigation`); e coberto pelo teste de integracao do 500.
+- Os testes unitarios emitem um aviso do Node sobre o tipo de modulo dos arquivos `.ts`; nao afeta o resultado.
+- O CI so roda depois do push; o resultado da primeira execucao esta registrado no relatorio da tarefa.
+- `npm audit --omit=dev` ainda indica 1 alerta critico, em dependencia da CLI do `shadcn` que nao roda no app.
 
 ## Tarefa: V2-1.2 - Integridade comercial
 

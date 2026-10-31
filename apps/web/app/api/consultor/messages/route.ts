@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import {
   AnthropicApiError,
   generateConsultantReply,
@@ -29,15 +31,12 @@ async function buildContext(organizationId: string): Promise<string> {
   return `${diagnosticSummary}\n${kpisSummary}`
 }
 
-export async function GET() {
+export const GET = withApiErrors("GET /api/consultor/messages", async () => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para acessar o consultor digital." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para acessar o consultor digital.")
   }
 
   const denied = denyUnless(session.user.role, "consultant:use")
@@ -49,17 +48,14 @@ export async function GET() {
   })
 
   return NextResponse.json({ messages: conversation?.messages ?? [] })
-}
+})
 
-export async function POST(request: Request) {
+export const POST = withApiErrors("POST /api/consultor/messages", async (request: Request) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para acessar o consultor digital." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para acessar o consultor digital.")
   }
 
   const denied = denyUnless(session.user.role, "consultant:use")
@@ -70,19 +66,13 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = consultantMessageInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const integration = await prisma.apiIntegration.findUnique({
@@ -91,10 +81,7 @@ export async function POST(request: Request) {
   })
 
   if (!integration) {
-    return NextResponse.json(
-      { error: "Organizacao sem integracao de IA configurada." },
-      { status: 422 }
-    )
+    return apiError("UNPROCESSABLE", "Organizacao sem integracao de IA configurada.")
   }
 
   const conversation = await prisma.consultantConversation.upsert({
@@ -108,11 +95,9 @@ export async function POST(request: Request) {
 
   try {
     apiKey = decryptSecret(integration.apiKeyEncrypted)
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel acessar a integracao de IA." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/consultor/messages", error)
+    return apiError("INTERNAL", "Nao foi possivel acessar a integracao de IA.")
   }
 
   const history = [
@@ -149,16 +134,12 @@ export async function POST(request: Request) {
       userMessageId: userMessage.id,
     })
   } catch (error) {
+    logServerError("POST /api/consultor/messages", error)
+
     if (error instanceof AnthropicApiError) {
-      return NextResponse.json(
-        { error: "Nao foi possivel obter resposta da IA." },
-        { status: 502 }
-      )
+      return apiError("UPSTREAM_FAILED", "Nao foi possivel obter resposta da IA.")
     }
 
-    return NextResponse.json(
-      { error: "Nao foi possivel processar a mensagem." },
-      { status: 500 }
-    )
+    return apiError("INTERNAL", "Nao foi possivel processar a mensagem.")
   }
-}
+})

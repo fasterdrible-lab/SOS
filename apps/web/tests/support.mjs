@@ -1,9 +1,11 @@
 // Apoio aos testes de integracao: cliente HTTP com cookies e travas de ambiente.
 import assert from "node:assert/strict"
+import { existsSync } from "node:fs"
 
 import pg from "pg"
 
-process.loadEnvFile(".env")
+// No CI as variaveis vem do ambiente.
+if (existsSync(".env")) process.loadEnvFile(".env")
 
 export const BASE_URL = process.env.BASE_URL ?? "http://localhost:3100"
 export const PASSWORD = "senha-de-teste-integracao-123"

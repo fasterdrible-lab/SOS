@@ -34,13 +34,15 @@ CHANGELOG.md        → Histórico de versões
 ## Regras de Deploy
 - Ambiente de dev: `npm run dev` na pasta `apps/web`
 - Build: `npm run build`
+- Verificacao rapida: `npm run check` (lint, tipos e testes unitarios); integracao: `npm run test:integration` com o app em `localhost:3100` (ver `docs/TASKS.md`, V2-1.3)
+- Erros da API: sempre `apiError`/`validationError` (`lib/api/errors.ts`) e handlers envolvidos em `withApiErrors`
 - DB migrations: `npx prisma migrate dev`
 - Variáveis de ambiente: `apps/web/.env` (nunca commitar)
 - Produção: `https://saleos.tech`; publicação, backups e restauração em [docs/DEPLOY.md](./docs/DEPLOY.md)
 - A VPS é compartilhada com o SALE-IA: nunca interromper o serviço dele nem gerar o build lá
 
 ## Versão Atual
-**V.1.16.1** na branch `feat/saleos-v2` (Prompt Mestre V2). Produção: V.1.16.0, imagem `salesos-web:5` (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
+**V.1.16.2** na branch `feat/saleos-v2` (Prompt Mestre V2). Produção: V.1.16.0, imagem `salesos-web:5` (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
 
 ## Admin do Sistema
 - Email: fasterdrible@gmail.com

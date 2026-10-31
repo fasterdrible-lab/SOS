@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError, validationError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { opportunityScope } from "@/lib/authz/permissions"
@@ -8,15 +10,12 @@ import { createOpportunity, serializeOpportunity } from "@/lib/opportunities/cre
 import { resolveOpportunityLinks } from "@/lib/opportunities/rules"
 import { opportunityInputSchema } from "@/lib/validations/opportunity"
 
-export async function GET() {
+export const GET = withApiErrors("GET /api/opportunities", async () => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para listar oportunidades." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para listar oportunidades.")
   }
 
   const denied = denyUnless(session.user.role, "opportunities:read")
@@ -35,17 +34,14 @@ export async function GET() {
   })
 
   return NextResponse.json({ opportunities: opportunities.map(serializeOpportunity) })
-}
+})
 
-export async function POST(request: Request) {
+export const POST = withApiErrors("POST /api/opportunities", async (request: Request) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para criar oportunidade." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para criar oportunidade.")
   }
 
   const denied = denyUnless(session.user.role, "opportunities:write")
@@ -56,19 +52,13 @@ export async function POST(request: Request) {
   try {
     body = await request.json()
   } catch {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const parsed = opportunityInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json(
-      {
-        error: "Dados invalidos.",
-        fields: parsed.error.flatten().fieldErrors,
-      },
-      { status: 400 }
-    )
+    return validationError(parsed.error)
   }
 
   const { companyId, contactId, expectedClose, ...rest } = parsed.data
@@ -80,7 +70,7 @@ export async function POST(request: Request) {
     })
 
     if (!company) {
-      return NextResponse.json({ error: "Empresa invalida." }, { status: 400 })
+      return apiError("BAD_REQUEST", "Empresa invalida.")
     }
   }
 
@@ -92,13 +82,13 @@ export async function POST(request: Request) {
     : null
 
   if (contactId && !contact) {
-    return NextResponse.json({ error: "Contato invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Contato invalido.")
   }
 
   const links = resolveOpportunityLinks({ companyId: companyId ?? null, contact })
 
   if (!links.ok) {
-    return NextResponse.json({ error: links.error }, { status: 400 })
+    return apiError("BAD_REQUEST", links.error)
   }
 
   try {
@@ -121,10 +111,8 @@ export async function POST(request: Request) {
       { opportunity: serializeOpportunity(opportunity) },
       { status: 201 }
     )
-  } catch {
-    return NextResponse.json(
-      { error: "Nao foi possivel salvar a oportunidade." },
-      { status: 500 }
-    )
+  } catch (error) {
+    logServerError("POST /api/opportunities", error)
+    return apiError("INTERNAL", "Nao foi possivel salvar a oportunidade.")
   }
-}
+})

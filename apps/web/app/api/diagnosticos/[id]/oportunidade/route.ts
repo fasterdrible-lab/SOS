@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 
+import { apiError, logServerError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { getAccessLevel } from "@/lib/authz/permissions"
@@ -15,18 +17,15 @@ import {
 } from "@/lib/opportunities/create"
 import type { Opportunity } from "@/lib/generated/prisma/client"
 
-export async function POST(
+export const POST = withApiErrors("POST /api/diagnosticos/[id]/oportunidade", async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
+) => {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
   if (!session?.user?.id || !organizationId) {
-    return NextResponse.json(
-      { error: "Usuario sem permissao para converter diagnostico." },
-      { status: 401 }
-    )
+    return apiError("UNAUTHENTICATED", "Usuario sem permissao para converter diagnostico.")
   }
 
   const denied = denyUnless(session.user.role, "opportunities:write")
@@ -39,10 +38,7 @@ export async function POST(
   })
 
   if (!diagnostic) {
-    return NextResponse.json(
-      { error: "Diagnostico nao encontrado." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Diagnostico nao encontrado.")
   }
 
   const opportunityId = diagnosticOpportunityId(diagnostic.id)
@@ -62,10 +58,7 @@ export async function POST(
       getAccessLevel(session.user.role) === "SELLER" &&
       opportunity.ownerId !== session.user.id
     ) {
-      return NextResponse.json(
-        { error: "A oportunidade deste diagnostico pertence a outro vendedor." },
-        { status: 409 }
-      )
+      return apiError("CONFLICT", "A oportunidade deste diagnostico pertence a outro vendedor.")
     }
 
     return NextResponse.json({ opportunity: serializeOpportunity(opportunity) })
@@ -118,9 +111,7 @@ export async function POST(
       if (created) return respondWithExisting(created)
     }
 
-    return NextResponse.json(
-      { error: "Nao foi possivel criar a oportunidade." },
-      { status: 500 }
-    )
+    logServerError("POST /api/diagnosticos/[id]/oportunidade", error)
+    return apiError("INTERNAL", "Nao foi possivel criar a oportunidade.")
   }
-}
+})

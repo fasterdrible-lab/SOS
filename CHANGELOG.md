@@ -1,5 +1,29 @@
 # CHANGELOG — SalesOS
 
+## [V.1.16.2] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+
+### Tarefa V2-1.3 — Qualidade tecnica
+- Lint zerado: os 4 erros antigos corrigidos (`<a>` interno no dashboard, aspas na tela de login e `useIsMobile` reescrito com `useSyncExternalStore`).
+- Erros da API padronizados em `lib/api/errors.ts`: corpo unico `{ error, code, fields? }`, com codigo estavel (`UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `BAD_REQUEST`, `CONFLICT`, `UNPROCESSABLE`, `RATE_LIMITED`, `INTERNAL`, `UPSTREAM_FAILED`). Mensagens e status anteriores mantidos.
+- `withApiErrors` (`lib/api/handler.ts`) envolve todos os 23 handlers: erro inesperado vira 500 em JSON, em vez da pagina de erro do Next.
+- Logs de erro no servidor, em uma linha JSON com escopo. Antes, as falhas eram descartadas sem registro, inclusive as da Anthropic e a criacao de lead do IA SDR. O log oculta chaves, tokens, e-mails e URLs com credencial e nao inclui a mensagem de erros do Prisma.
+- CI no GitHub Actions (`.github/workflows/ci.yml`): lint, tipos, testes unitarios, migrations, build e testes de integracao em PostgreSQL temporario.
+- Scripts `npm run check` e `npm run test:integration`. Novos testes: `api-errors.test.mjs` (7) e `errors.integration.mjs` (6).
+
+**Arquivos criados:**
+- `apps/web/lib/api/errors.ts`
+- `apps/web/lib/api/handler.ts`
+- `apps/web/tests/api-errors.test.mjs`
+- `apps/web/tests/errors.integration.mjs`
+- `.github/workflows/ci.yml`
+
+**Arquivos alterados:**
+- Todas as rotas em `apps/web/app/api` (exceto a do NextAuth)
+- `apps/web/lib/authz/guard.ts`, `apps/web/hooks/use-mobile.ts`
+- `apps/web/app/(app)/dashboard/page.tsx`, `apps/web/app/(auth)/login/page.tsx`
+- `apps/web/tests/support.mjs`, `apps/web/package.json`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.16.1] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
 
 ### Tarefa V2-1.2 — Integridade comercial

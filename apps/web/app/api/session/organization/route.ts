@@ -1,22 +1,24 @@
 import { NextResponse } from "next/server"
 
+import { apiError } from "@/lib/api/errors"
+import { withApiErrors } from "@/lib/api/handler"
 import { recordAudit } from "@/lib/audit/record"
 import { auth, unstable_update } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { sessionOrganizationInputSchema } from "@/lib/validations/session-organization"
 
-export async function POST(request: Request) {
+export const POST = withApiErrors("POST /api/session/organization", async (request: Request) => {
   const session = await auth()
 
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Nao autorizado." }, { status: 401 })
+    return apiError("UNAUTHENTICATED", "Nao autorizado.")
   }
 
   const body = await request.json().catch(() => null)
   const parsed = sessionOrganizationInputSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Payload invalido." }, { status: 400 })
+    return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
   const member = await prisma.organizationMember.findUnique({
@@ -30,10 +32,7 @@ export async function POST(request: Request) {
   })
 
   if (!member) {
-    return NextResponse.json(
-      { error: "Voce nao pertence a essa organizacao." },
-      { status: 404 }
-    )
+    return apiError("NOT_FOUND", "Voce nao pertence a essa organizacao.")
   }
 
   await unstable_update({ user: { organizationId: member.organizationId } })
@@ -49,4 +48,4 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ organizationId: member.organizationId, role: member.role })
-}
+})
