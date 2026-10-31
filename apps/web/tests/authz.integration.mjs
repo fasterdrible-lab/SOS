@@ -1,83 +1,20 @@
 // Testa autorizacao e isolamento por HTTP, contra o app e o banco de desenvolvimento.
 // Requer o app rodando (BASE_URL) e cria apenas registros com o prefixo abaixo,
-// removidos ao final. Recusa rodar fora de localhost.
+// removidos ao final. Recusa rodar fora de localhost (tests/support.mjs).
 import assert from "node:assert/strict"
 import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
-import pg from "pg"
 
-process.loadEnvFile(".env")
+import { Client, PASSWORD, createDb } from "./support.mjs"
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3100"
 const PREFIX = "authz-test-"
-const PASSWORD = "senha-de-teste-authz-123"
 const FAKE_API_KEY = "sk-ant-chave-falsa-de-teste-0123456789"
 
-const databaseHost = new URL(process.env.DATABASE_URL).hostname
-assert.ok(
-  ["localhost", "127.0.0.1"].includes(databaseHost) &&
-    ["localhost", "127.0.0.1"].includes(new URL(BASE_URL).hostname),
-  "Estes testes so rodam em ambiente local."
-)
-
-const db = new pg.Client({ connectionString: process.env.DATABASE_URL })
+const db = createDb()
 const id = (name) => `${PREFIX}${name}`
 const email = (name) => `${PREFIX}${name}@exemplo.test`
-
-class Client {
-  cookies = new Map()
-
-  store(response) {
-    for (const cookie of response.headers.getSetCookie()) {
-      const [pair] = cookie.split(";")
-      const index = pair.indexOf("=")
-      this.cookies.set(pair.slice(0, index), pair.slice(index + 1))
-    }
-  }
-
-  async request(path, init = {}) {
-    const response = await fetch(`${BASE_URL}${path}`, {
-      redirect: "manual",
-      ...init,
-      headers: {
-        ...init.headers,
-        cookie: [...this.cookies].map(([key, value]) => `${key}=${value}`).join("; "),
-      },
-    })
-    this.store(response)
-    return response
-  }
-
-  json(path, method, body) {
-    return this.request(path, {
-      method,
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    })
-  }
-
-  async login(name) {
-    const csrf = await (await this.request("/api/auth/csrf")).json()
-    await this.request("/api/auth/callback/credentials", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        csrfToken: csrf.csrfToken,
-        email: email(name),
-        password: PASSWORD,
-        callbackUrl: BASE_URL,
-      }),
-    })
-    const session = await this.session()
-    assert.equal(session?.user?.email, email(name), `login de ${name} falhou`)
-    return this
-  }
-
-  async session() {
-    return (await this.request("/api/auth/session")).json()
-  }
-}
+const login = (name) => new Client().login(email(name))
 
 async function cleanup() {
   const like = `${PREFIX}%`
@@ -206,7 +143,7 @@ describe("sem sessao", () => {
 
 describe("isolamento entre organizacoes", () => {
   it("nao lista nem altera dados de outra organizacao", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     assert.ok(!(await listIds(admin)).includes(id("opp-b")))
 
     const patch = await admin.json(`/api/opportunities/${id("opp-b")}`, "PATCH", {
@@ -219,7 +156,7 @@ describe("isolamento entre organizacoes", () => {
   })
 
   it("nao troca para organizacao alheia", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     const response = await admin.json("/api/session/organization", "POST", {
       organizationId: id("org-b"),
     })
@@ -228,7 +165,7 @@ describe("isolamento entre organizacoes", () => {
   })
 
   it("nao aceita identificadores de outra organizacao", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     const opportunity = await admin.json("/api/opportunities", "POST", {
       title: "Com empresa alheia",
       value: 10,
@@ -243,12 +180,12 @@ describe("isolamento entre organizacoes", () => {
 
 describe("vendedor", () => {
   it("ve apenas as proprias oportunidades", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     assert.deepEqual(await listIds(vendedor), [id("opp-v1")])
   })
 
   it("nao altera oportunidade de colega nem sem dono", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     for (const name of ["opp-v2", "opp-livre"]) {
       const response = await vendedor.json(`/api/opportunities/${id(name)}`, "PATCH", {
         stage: "PROPOSAL",
@@ -258,7 +195,7 @@ describe("vendedor", () => {
   })
 
   it("altera a propria e cria oportunidade sendo o dono", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     const patch = await vendedor.json(`/api/opportunities/${id("opp-v1")}`, "PATCH", {
       stage: "QUALIFICATION",
     })
@@ -274,7 +211,7 @@ describe("vendedor", () => {
   })
 
   it("nao escolhe outro dono pelo payload", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     const created = await vendedor.json("/api/opportunities", "POST", {
       title: "Tentativa de dono falso",
       value: 1,
@@ -289,7 +226,7 @@ describe("vendedor", () => {
   })
 
   it("recebe 403 nas acoes restritas", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     const attempts = [
       vendedor.request("/api/settings/integrations"),
       vendedor.json("/api/settings/integrations", "POST", {
@@ -307,7 +244,7 @@ describe("vendedor", () => {
   })
 
   it("nao ve as paginas restritas", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     for (const route of ["/configuracoes", "/consultor", "/sdr"]) {
       const response = await vendedor.request(route)
       assert.ok((await response.text()).includes("Acesso restrito"), route)
@@ -315,7 +252,7 @@ describe("vendedor", () => {
   })
 
   it("ve no pipeline e no dashboard apenas os proprios valores", async () => {
-    const vendedor = await new Client().login("vendedor2")
+    const vendedor = await login("vendedor2")
 
     const pipeline = await (await vendedor.request("/pipeline")).text()
     assert.ok(pipeline.includes(id("opp-v2")))
@@ -326,12 +263,12 @@ describe("vendedor", () => {
     assert.ok(dashboard.includes("1.000"))
     assert.ok(!dashboard.includes("7.77"))
 
-    const gestor = await new Client().login("gestor")
+    const gestor = await login("gestor")
     assert.ok((await (await gestor.request("/dashboard")).text()).includes("7.77"))
   })
 
   it("continua operando o CRM", async () => {
-    const vendedor = await new Client().login("vendedor1")
+    const vendedor = await login("vendedor1")
     const company = await vendedor.json("/api/companies", "POST", { name: "Empresa do vendedor" })
     assert.equal(company.status, 201)
   })
@@ -339,14 +276,14 @@ describe("vendedor", () => {
 
 describe("gestor", () => {
   it("ve toda a organizacao, sem dados de outra", async () => {
-    const gestor = await new Client().login("gestor")
+    const gestor = await login("gestor")
     const ids = await listIds(gestor)
     for (const name of ["opp-v1", "opp-v2", "opp-livre"]) assert.ok(ids.includes(id(name)))
     assert.ok(!ids.includes(id("opp-b")))
   })
 
   it("cria plano, mas nao administra integracoes nem organizacoes", async () => {
-    const gestor = await new Client().login("gestor")
+    const gestor = await login("gestor")
     const plan = await gestor.json("/api/action-plans", "POST", {
       title: "Plano do gestor",
       objective: "Objetivo do plano",
@@ -362,7 +299,7 @@ describe("gestor", () => {
 
 describe("administrador", () => {
   it("salva e remove integracao, com auditoria e sem expor a chave", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
 
     const saved = await admin.json("/api/settings/integrations", "POST", {
       provider: "ANTHROPIC",
@@ -387,24 +324,24 @@ describe("administrador", () => {
   })
 
   it("registra quem mudou a etapa", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     const response = await admin.json(`/api/opportunities/${id("opp-livre")}`, "PATCH", {
       stage: "NEGOTIATION",
     })
     assert.equal(response.status, 200)
 
     const { rows } = await db.query(
-      `select "actorUserId", metadata from audit_logs
-       where action = 'opportunity.stage-changed' and "entityId" = $1`,
+      `select "changedById", "fromStage", "toStage" from opportunity_stage_history
+       where "opportunityId" = $1`,
       [id("opp-livre")]
     )
-    assert.equal(rows.length, 1)
-    assert.equal(rows[0].actorUserId, id("admin"))
-    assert.deepEqual(rows[0].metadata, { from: "PROSPECTING", to: "NEGOTIATION" })
+    assert.deepEqual(rows, [
+      { changedById: id("admin"), fromStage: "PROSPECTING", toStage: "NEGOTIATION" },
+    ])
   })
 
   it("cria e entra em nova organizacao, com auditoria", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     const created = await admin.json("/api/organizations", "POST", { name: `${PREFIX}nova` })
     assert.equal(created.status, 201)
     const organization = await created.json()
@@ -426,7 +363,7 @@ describe("administrador", () => {
   })
 
   it("mantem as paginas funcionando", async () => {
-    const admin = await new Client().login("admin")
+    const admin = await login("admin")
     for (const route of [
       "/dashboard",
       "/pipeline",
@@ -447,7 +384,7 @@ describe("administrador", () => {
 
 describe("primeiro acesso", () => {
   it("usuario sem vinculo cria o primeiro cliente, mas nao le dados", async () => {
-    const novo = await new Client().login("novo")
+    const novo = await login("novo")
     assert.equal((await novo.session()).user.organizationId, null)
     assert.equal((await novo.request("/api/opportunities")).status, 401)
     assert.equal((await novo.json("/api/organizations", "POST", { name: `${PREFIX}primeiro` })).status, 201)
@@ -456,7 +393,7 @@ describe("primeiro acesso", () => {
 
 describe("mudancas valem na sessao ja aberta", () => {
   it("nova permissao e rebaixamento valem sem novo login", async () => {
-    const client = await new Client().login("promovido")
+    const client = await login("promovido")
     assert.equal((await client.request("/api/settings/integrations")).status, 403)
 
     await db.query(`update organization_members set role = 'CONSULTANT' where id = $1`, [
@@ -471,7 +408,7 @@ describe("mudancas valem na sessao ja aberta", () => {
   })
 
   it("membro removido perde o acesso na hora", async () => {
-    const client = await new Client().login("removido")
+    const client = await login("removido")
     assert.equal((await client.request("/api/companies")).status, 200)
 
     await db.query(`delete from organization_members where id = $1`, [id("removido")])
@@ -481,7 +418,7 @@ describe("mudancas valem na sessao ja aberta", () => {
   })
 
   it("usuario excluido nao mantem sessao valida", async () => {
-    const client = await new Client().login("excluido")
+    const client = await login("excluido")
     await db.query(`delete from users where id = $1`, [id("excluido")])
 
     assert.equal((await client.request("/api/companies")).status, 401)

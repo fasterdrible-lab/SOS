@@ -4,7 +4,16 @@ import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { getAccessLevel } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
-import { diagnosticOpportunityMarker } from "@/lib/diagnostico/opportunity-marker"
+import {
+  diagnosticOpportunityId,
+  diagnosticOpportunityMarker,
+} from "@/lib/diagnostico/opportunity-marker"
+import {
+  createOpportunity,
+  isUniqueConstraintError,
+  serializeOpportunity,
+} from "@/lib/opportunities/create"
+import type { Opportunity } from "@/lib/generated/prisma/client"
 
 export async function POST(
   request: Request,
@@ -36,16 +45,22 @@ export async function POST(
     )
   }
 
+  const opportunityId = diagnosticOpportunityId(diagnostic.id)
   const marker = diagnosticOpportunityMarker(diagnostic.id)
 
-  const existingOpportunity = await prisma.opportunity.findFirst({
-    where: { organizationId, notes: { contains: marker } },
-  })
+  // O marcador em `notes` cobre oportunidades criadas antes do id deterministico.
+  const findExisting = () =>
+    prisma.opportunity.findFirst({
+      where: {
+        organizationId,
+        OR: [{ id: opportunityId }, { notes: { contains: marker } }],
+      },
+    })
 
-  if (existingOpportunity) {
+  const respondWithExisting = (opportunity: Opportunity) => {
     if (
       getAccessLevel(session.user.role) === "SELLER" &&
-      existingOpportunity.ownerId !== session.user.id
+      opportunity.ownerId !== session.user.id
     ) {
       return NextResponse.json(
         { error: "A oportunidade deste diagnostico pertence a outro vendedor." },
@@ -53,38 +68,56 @@ export async function POST(
       )
     }
 
-    return NextResponse.json({ opportunity: existingOpportunity })
+    return NextResponse.json({ opportunity: serializeOpportunity(opportunity) })
   }
 
-  try {
-    const company =
-      (await prisma.company.findFirst({
-        where: {
-          organizationId,
-          name: { equals: diagnostic.companyName, mode: "insensitive" },
-        },
-      })) ??
-      (await prisma.company.create({
-        data: {
-          organizationId,
-          name: diagnostic.companyName,
-          segment: diagnostic.segment,
-        },
-      }))
+  const existingOpportunity = await findExisting()
 
-    const opportunity = await prisma.opportunity.create({
-      data: {
-        organizationId,
-        ownerId: session.user.id,
-        companyId: company.id,
-        title: `Oportunidade - ${diagnostic.companyName}`,
-        value: diagnostic.averageTicket,
-        notes: `Criada a partir do diagnostico comercial. ${marker}`,
-      },
+  if (existingOpportunity) return respondWithExisting(existingOpportunity)
+
+  try {
+    const opportunity = await prisma.$transaction(async (tx) => {
+      const company =
+        (await tx.company.findFirst({
+          where: {
+            organizationId,
+            name: { equals: diagnostic.companyName, mode: "insensitive" },
+          },
+        })) ??
+        (await tx.company.create({
+          data: {
+            organizationId,
+            name: diagnostic.companyName,
+            segment: diagnostic.segment,
+          },
+        }))
+
+      return createOpportunity(
+        tx,
+        {
+          id: opportunityId,
+          organizationId,
+          ownerId: session.user.id,
+          companyId: company.id,
+          title: `Oportunidade - ${diagnostic.companyName}`,
+          value: diagnostic.averageTicket,
+          notes: `Criada a partir do diagnostico comercial. ${marker}`,
+        },
+        session.user.id
+      )
     })
 
-    return NextResponse.json({ opportunity }, { status: 201 })
-  } catch {
+    return NextResponse.json(
+      { opportunity: serializeOpportunity(opportunity) },
+      { status: 201 }
+    )
+  } catch (error) {
+    // Pedido simultaneo criou a mesma oportunidade primeiro.
+    if (isUniqueConstraintError(error)) {
+      const created = await findExisting()
+      if (created) return respondWithExisting(created)
+    }
+
     return NextResponse.json(
       { error: "Nao foi possivel criar a oportunidade." },
       { status: 500 }

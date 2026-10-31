@@ -72,6 +72,7 @@ Organization (tenant)
   └── ApiIntegration (chave de API por provedor de IA, criptografada)
   └── SdrConversation (conversa do IA SDR com um lead, N:N via SdrMessage)
   └── AuditLog (operacoes sensiveis, sem segredos)
+  └── OpportunityStageHistory (toda mudanca de etapa, com responsavel)
 ```
 
 ## Fluxos Principais
@@ -97,6 +98,16 @@ A sessao le vinculo e papel do banco a cada auth(); o JWT nao e fonte de autoriz
 Rotas: denyUnless(role, permissao) -> 403. Matriz em lib/authz/permissions.ts
 Vendedor: oportunidades filtradas por ownerId (opportunityScope)
 Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
+```
+
+### Ciclo da Oportunidade
+```
+Criacao (createOpportunity) -> PROSPECTING + 1a entrada em OpportunityStageHistory
+Mudanca de etapa -> planStageTransition (lib/opportunities/rules.ts):
+  CLOSED_LOST exige motivo | reabrir exige gestor ou administrador
+  probabilidade pela etapa | wonAt/lostAt com a data real | stageChangedAt
+-> updateMany condicionado a etapa lida (409 se mudou) + historico, na mesma transacao
+Faturamento e conversao usam wonAt/lostAt, nunca updatedAt
 ```
 
 ### IA SDR

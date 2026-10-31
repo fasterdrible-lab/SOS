@@ -29,6 +29,7 @@ model Organization {
   sdrConversations SdrConversation[]
   consultantConversation ConsultantConversation?
   auditLogs       AuditLog[]
+  opportunityStageHistory OpportunityStageHistory[]
 
   @@map("organizations")
 }
@@ -64,6 +65,7 @@ model User {
   members  OrganizationMember[]
   ownedOpportunities Opportunity[]
   auditLogs AuditLog[]
+  opportunityStageChanges OpportunityStageHistory[]
 
   @@map("users")
 }
@@ -185,11 +187,14 @@ model Opportunity {
   leadId         String?
   ownerId        String?
   title          String
-  value          Float            @default(0)
+  value          Decimal          @default(0) @db.Decimal(14, 2)
   stage          OpportunityStage @default(PROSPECTING)
   probability    Int              @default(10)
   expectedClose  DateTime?
   lostReason     String?
+  wonAt          DateTime?
+  lostAt         DateTime?
+  stageChangedAt DateTime         @default(now())
   notes          String?          @db.Text
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -200,6 +205,7 @@ model Opportunity {
   lead         Lead?        @relation(fields: [leadId], references: [id])
   owner        User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   activities   Activity[]
+  stageHistory OpportunityStageHistory[]
 
   @@index([organizationId])
   @@index([organizationId, ownerId])
@@ -225,6 +231,25 @@ model Activity {
 
   @@index([organizationId])
   @@map("activities")
+}
+
+model OpportunityStageHistory {
+  id             String            @id @default(cuid())
+  organizationId String
+  opportunityId  String
+  fromStage      OpportunityStage?
+  toStage        OpportunityStage
+  changedById    String?
+  lostReason     String?
+  changedAt      DateTime          @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  opportunity  Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  changedBy    User?        @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([opportunityId, changedAt])
+  @@index([organizationId, changedAt])
+  @@map("opportunity_stage_history")
 }
 
 // ─── DIAGNÓSTICO ─────────────────────────────────────────────────────────────

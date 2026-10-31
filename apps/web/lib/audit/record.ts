@@ -6,7 +6,6 @@ export type AuditAction =
   | "integration.removed"
   | "organization.created"
   | "session.organization-switched"
-  | "opportunity.stage-changed"
 
 interface AuditEntry {
   organizationId: string

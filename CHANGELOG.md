@@ -1,6 +1,39 @@
 # CHANGELOG — SalesOS
 
-## [V.1.16.0] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+## [V.1.16.1] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+
+### Tarefa V2-1.2 — Integridade comercial
+- Regras de etapa em `lib/opportunities/rules.ts`: perda exige motivo (422); so gestor ou administrador reabre negociacao encerrada (403); probabilidade definida pela etapa (10, 25, 50, 75, 100 e 0).
+- Criado `OpportunityStageHistory`: toda criacao e mudanca de etapa registra origem, destino, responsavel, data e motivo da perda. Substitui o registro de mudanca de etapa no `AuditLog`.
+- `Opportunity` ganha `wonAt`, `lostAt` e `stageChangedAt`. O dashboard passa a medir ganhos e perdas do mes pela data real, e nao por `updatedAt`.
+- Mudancas simultaneas na mesma oportunidade: a segunda recebe 409, e o historico fica sempre encadeado.
+- Contato de outra empresa e rejeitado; sem empresa informada, a oportunidade herda a do contato.
+- `Opportunity.value` passa a `Decimal(14,2)`; a API continua devolvendo numero.
+- Diagnostico para oportunidade: id deterministico e criacao em transacao, sem duplicar em pedidos simultaneos.
+- IA SDR: lead e oportunidade criados na mesma transacao; uma falha nao impede mais a nova tentativa.
+- Pipeline: perda pede o motivo antes de enviar, exibe o motivo no card e mostra o erro devolvido pela API.
+- Criados `tests/opportunity-rules.test.mjs` (12), `tests/commercial.integration.mjs` (10) e `tests/support.mjs`, compartilhado com a suite de permissoes.
+
+**Migration:** `20261031220000_opportunity_integrity`. Preserva os registros: preenche as datas de fechamento e `stageChangedAt` com `updatedAt` e reconstitui o historico sem responsavel. Aplicada apenas no banco de desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/lib/opportunities/rules.ts`
+- `apps/web/lib/opportunities/create.ts`
+- `apps/web/tests/opportunity-rules.test.mjs`
+- `apps/web/tests/commercial.integration.mjs`
+- `apps/web/tests/support.mjs`
+
+**Arquivos alterados:**
+- `apps/web/app/api/opportunities/route.ts` e `[id]/route.ts`
+- `apps/web/app/api/diagnosticos/[id]/oportunidade/route.ts`
+- `apps/web/app/api/sdr/[organizationId]/conversations/[conversationId]/messages/route.ts`
+- `apps/web/app/(app)/pipeline/page.tsx` e `opportunity-card.tsx`
+- `apps/web/lib/dashboard/kpis.ts`, `lib/authz/permissions.ts`, `lib/audit/record.ts`
+- `apps/web/lib/validations/opportunity.ts`, `lib/diagnostico/opportunity-marker.ts`
+- `apps/web/prisma/schema.prisma`, `apps/web/package.json`, `apps/web/tests/authz.integration.mjs`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
+## [V.1.16.0] — 2026-10-31 (publicada em producao, imagem `salesos-web:5`)
 
 ### Etapa Zero do Prompt Mestre V2
 - Criado `docs/AUDITORIA_V2.md`: linha de base, estado por modulo, seguranca, SALEIA, conflitos, rollback e diferenca para o Prompt Mestre.

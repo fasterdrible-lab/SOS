@@ -111,23 +111,23 @@ export async function getExecutiveKpis(
     prisma.opportunity.count({ where: { ...opportunityWhere, stage: "CLOSED_WON" } }),
     prisma.opportunity.count({ where: { ...opportunityWhere, stage: "CLOSED_LOST" } }),
     prisma.opportunity.count({
-      where: { ...opportunityWhere, stage: "CLOSED_WON", updatedAt: { gte: current.start } },
+      where: { ...opportunityWhere, stage: "CLOSED_WON", wonAt: { gte: current.start } },
     }),
     prisma.opportunity.count({
-      where: { ...opportunityWhere, stage: "CLOSED_LOST", updatedAt: { gte: current.start } },
+      where: { ...opportunityWhere, stage: "CLOSED_LOST", lostAt: { gte: current.start } },
     }),
     prisma.opportunity.count({
       where: {
         ...opportunityWhere,
         stage: "CLOSED_WON",
-        updatedAt: { gte: previous.start, lt: previous.end },
+        wonAt: { gte: previous.start, lt: previous.end },
       },
     }),
     prisma.opportunity.count({
       where: {
         ...opportunityWhere,
         stage: "CLOSED_LOST",
-        updatedAt: { gte: previous.start, lt: previous.end },
+        lostAt: { gte: previous.start, lt: previous.end },
       },
     }),
   ])
@@ -143,10 +143,10 @@ export async function getExecutiveKpis(
   )
 
   return {
-    pipelineTotal: openPipeline._sum.value ?? 0,
+    pipelineTotal: Number(openPipeline._sum.value ?? 0),
     pipelineChangePct: percentChange(
-      pipelineCurrentMonth._sum.value ?? 0,
-      pipelinePreviousMonth._sum.value ?? 0
+      Number(pipelineCurrentMonth._sum.value ?? 0),
+      Number(pipelinePreviousMonth._sum.value ?? 0)
     ),
     activeLeads,
     leadsChangePct: percentChange(leadsCurrentMonth, leadsPreviousMonth),

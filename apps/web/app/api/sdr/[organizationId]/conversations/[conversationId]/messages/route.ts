@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 
 import { AnthropicApiError, generateSdrReply } from "@/lib/ai/anthropic-client"
 import { prisma } from "@/lib/db"
+import { createOpportunity } from "@/lib/opportunities/create"
 import { decryptSecret } from "@/lib/security/crypto"
 import { sdrLeadId, sdrOpportunityId } from "@/lib/sdr/lead-id"
 import { getSdrUsageLimitError } from "@/lib/sdr/usage-limits"
@@ -13,31 +14,43 @@ async function qualifyLead(
   lead: { leadName: string | null; leadEmail: string | null; leadPhone: string | null }
 ) {
   const leadId = sdrLeadId(conversationId)
+  const opportunityId = sdrOpportunityId(conversationId)
 
-  const existingLead = await prisma.lead.findUnique({ where: { id: leadId } })
-  if (existingLead) return
+  // Lead e oportunidade juntos: se a transacao falhar, a proxima mensagem HOT
+  // tenta de novo, sem deixar lead orfao.
+  await prisma.$transaction(async (tx) => {
+    const existingOpportunity = await tx.opportunity.findUnique({
+      where: { id: opportunityId },
+      select: { id: true },
+    })
+    if (existingOpportunity) return
 
-  const createdLead = await prisma.lead.create({
-    data: {
-      id: leadId,
-      organizationId,
-      name: lead.leadName ?? "Lead do IA SDR",
-      email: lead.leadEmail,
-      phone: lead.leadPhone,
-      source: "IA SDR",
-      status: "QUALIFIED",
-      score: 80,
-    },
-  })
+    const qualifiedLead = await tx.lead.upsert({
+      where: { id: leadId },
+      create: {
+        id: leadId,
+        organizationId,
+        name: lead.leadName ?? "Lead do IA SDR",
+        email: lead.leadEmail,
+        phone: lead.leadPhone,
+        source: "IA SDR",
+        status: "QUALIFIED",
+        score: 80,
+      },
+      update: {},
+    })
 
-  await prisma.opportunity.create({
-    data: {
-      id: sdrOpportunityId(conversationId),
-      organizationId,
-      leadId: createdLead.id,
-      title: `Oportunidade - ${createdLead.name}`,
-      notes: `Gerada automaticamente pelo IA SDR (conversa ${conversationId}).`,
-    },
+    await createOpportunity(
+      tx,
+      {
+        id: opportunityId,
+        organizationId,
+        leadId: qualifiedLead.id,
+        title: `Oportunidade - ${qualifiedLead.name}`,
+        notes: `Gerada automaticamente pelo IA SDR (conversa ${conversationId}).`,
+      },
+      null
+    )
   })
 }
 

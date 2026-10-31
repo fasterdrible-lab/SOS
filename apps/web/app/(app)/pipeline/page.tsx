@@ -60,7 +60,8 @@ export default async function PipelinePage() {
       .map((opportunity) => ({
         id: opportunity.id,
         title: opportunity.title,
-        value: opportunity.value,
+        value: Number(opportunity.value),
+        lostReason: opportunity.lostReason,
         stage: opportunity.stage,
         companyName: opportunity.company?.name ?? null,
         contactName: opportunity.contact?.name ?? null,

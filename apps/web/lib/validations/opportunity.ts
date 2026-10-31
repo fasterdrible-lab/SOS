@@ -38,4 +38,5 @@ export type OpportunityInput = z.infer<typeof opportunityInputSchema>
 
 export const opportunityStageUpdateSchema = z.object({
   stage: z.enum(OPPORTUNITY_STAGES),
+  lostReason: optionalText(500),
 })

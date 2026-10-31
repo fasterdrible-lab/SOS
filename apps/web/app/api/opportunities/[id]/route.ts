@@ -2,10 +2,13 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
-import { recordAudit } from "@/lib/audit/record"
-import { opportunityScope } from "@/lib/authz/permissions"
+import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
+import { serializeOpportunity } from "@/lib/opportunities/create"
+import { planStageTransition } from "@/lib/opportunities/rules"
 import { opportunityStageUpdateSchema } from "@/lib/validations/opportunity"
+
+class StaleStageError extends Error {}
 
 export async function PATCH(
   request: Request,
@@ -52,7 +55,6 @@ export async function PATCH(
       organizationId,
       ...opportunityScope(session.user.role, session.user.id),
     },
-    select: { id: true, stage: true },
   })
 
   if (!existing) {
@@ -62,32 +64,59 @@ export async function PATCH(
     )
   }
 
+  const transition = planStageTransition({
+    from: existing.stage,
+    to: parsed.data.stage,
+    lostReason: parsed.data.lostReason,
+    canReopen: hasPermission(session.user.role, "opportunities:reopen"),
+    now: new Date(),
+  })
+
+  if (!transition.ok) {
+    return NextResponse.json({ error: transition.error }, { status: transition.status })
+  }
+
+  if (transition.unchanged) {
+    return NextResponse.json({ opportunity: serializeOpportunity(existing) })
+  }
+
+  const change = transition.data
+
   try {
     const opportunity = await prisma.$transaction(async (tx) => {
-      const updated = await tx.opportunity.update({
-        where: { id },
-        data: { stage: parsed.data.stage },
+      // So aplica se a etapa ainda for a que foi lida: duas mudancas simultaneas
+      // nao podem gerar historico com origem errada.
+      const { count } = await tx.opportunity.updateMany({
+        where: { id, organizationId, stage: existing.stage },
+        data: change,
       })
 
-      if (existing.stage !== updated.stage) {
-        await recordAudit(
-          {
-            organizationId,
-            actorUserId: session.user.id,
-            action: "opportunity.stage-changed",
-            entityType: "Opportunity",
-            entityId: id,
-            metadata: { from: existing.stage, to: updated.stage },
-          },
-          tx
-        )
-      }
+      if (count === 0) throw new StaleStageError()
 
-      return updated
+      await tx.opportunityStageHistory.create({
+        data: {
+          organizationId,
+          opportunityId: id,
+          fromStage: existing.stage,
+          toStage: change.stage,
+          changedById: session.user.id,
+          lostReason: change.lostReason,
+          changedAt: change.stageChangedAt,
+        },
+      })
+
+      return tx.opportunity.findUniqueOrThrow({ where: { id } })
     })
 
-    return NextResponse.json({ opportunity })
-  } catch {
+    return NextResponse.json({ opportunity: serializeOpportunity(opportunity) })
+  } catch (error) {
+    if (error instanceof StaleStageError) {
+      return NextResponse.json(
+        { error: "A oportunidade foi alterada por outra pessoa. Atualize a pagina." },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json(
       { error: "Nao foi possivel atualizar a oportunidade." },
       { status: 500 }

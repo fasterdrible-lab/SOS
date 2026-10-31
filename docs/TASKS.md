@@ -7,9 +7,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | # | Tarefa | Status |
 |---|--------|--------|
 | V2-0 | Etapa Zero: auditoria e preservacao | done |
-| V2-1.1 | Autenticacao e permissoes | done (nao publicada) |
-| V2-1.2 | Integridade comercial | proxima |
-| V2-1.3 | Qualidade tecnica (lint, testes das regras comerciais, erros padronizados) | todo |
+| V2-1.1 | Autenticacao e permissoes | done (em producao desde 2026-10-31, `salesos-web:5`) |
+| V2-1.2 | Integridade comercial | done (nao publicada) |
+| V2-1.3 | Qualidade tecnica (lint, erros padronizados) | proxima |
 | V2-2 | Meu Dia | todo |
 | V2-3 | Dashboard Executivo | todo |
 | V2-4 | Kanban de Negociacoes | todo |
@@ -21,15 +21,31 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-10 | Homologacao final | todo |
 
 ### Pendencias de seguranca identificadas na auditoria
-- Publicar as atualizacoes de `next` e `next-auth` em producao: requer autorizacao de deploy.
+- ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-1.2 - Integridade comercial
+
+### Resultado
+- Regras, historico, datas de fechamento, vinculos, `Decimal` e criacao idempotente (ver `CHANGELOG.md` V.1.16.1).
+- Testes: `npm test` (23) e, com o app em `localhost:3100`, `npm run test:integration` (33, das duas suites).
+- Concorrencia medida a parte: em 15 rodadas de 5 mudancas simultaneas, 58 de 75 pedidos receberam 409 e o historico ficou encadeado em todas.
+- Migration conferida no banco de desenvolvimento: as 2 oportunidades existentes mantiveram valores e receberam a entrada inicial do historico.
+
+### Limitacoes conhecidas
+- Nao ha edicao de valor, empresa ou contato de uma oportunidade: os vinculos so sao validados na criacao. A edicao entra na FASE V2-4.
+- Ganhar uma oportunidade com valor zero ainda e permitido (as do IA SDR nascem com zero). A obrigatoriedade de campos por etapa fica para a V2-4.3.
+- Historico reconstituido pela migration tem responsavel nulo e uma unica passagem direta ate a etapa atual.
+- `Company.revenue` e `Diagnostic.averageTicket` seguem em `Float`: sao dados descritivos, nao entram em somas de faturamento.
+- A criacao do IA SDR em transacao foi verificada por tipos e leitura de codigo; o fluxo real depende da tarefa 9.2.
+- O formulario de motivo da perda nao foi testado em navegador.
 
 ## Tarefa: V2-1.1 - Autenticacao e permissoes
 
 ### Resultado
 - Papeis, matriz de permissoes, dono da oportunidade, revalidacao da sessao e `AuditLog` (ver `CHANGELOG.md` V.1.16.0).
-- Testes: `npm test` e, com o app em `localhost:3100`, `npm run test:authz`. A suite de integracao recusa rodar fora de localhost e remove seus dados ao final.
+- Testes: `npm test` e, com o app em `localhost:3100`, `npm run test:integration`. A suite de integracao recusa rodar fora de localhost e remove seus dados ao final.
 - Controle negativo: com as protecoes desligadas em uma compilacao temporaria, 10 dos 23 testes de integracao falharam.
 
 ### Limitacoes conhecidas

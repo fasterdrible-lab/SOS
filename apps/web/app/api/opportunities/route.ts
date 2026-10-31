@@ -4,6 +4,8 @@ import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
 import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
+import { createOpportunity, serializeOpportunity } from "@/lib/opportunities/create"
+import { resolveOpportunityLinks } from "@/lib/opportunities/rules"
 import { opportunityInputSchema } from "@/lib/validations/opportunity"
 
 export async function GET() {
@@ -32,7 +34,7 @@ export async function GET() {
     orderBy: { createdAt: "desc" },
   })
 
-  return NextResponse.json({ opportunities })
+  return NextResponse.json({ opportunities: opportunities.map(serializeOpportunity) })
 }
 
 export async function POST(request: Request) {
@@ -82,30 +84,43 @@ export async function POST(request: Request) {
     }
   }
 
-  if (contactId) {
-    const contact = await prisma.contact.findFirst({
-      where: { id: contactId, organizationId },
-      select: { id: true },
-    })
+  const contact = contactId
+    ? await prisma.contact.findFirst({
+        where: { id: contactId, organizationId },
+        select: { companyId: true },
+      })
+    : null
 
-    if (!contact) {
-      return NextResponse.json({ error: "Contato invalido." }, { status: 400 })
-    }
+  if (contactId && !contact) {
+    return NextResponse.json({ error: "Contato invalido." }, { status: 400 })
+  }
+
+  const links = resolveOpportunityLinks({ companyId: companyId ?? null, contact })
+
+  if (!links.ok) {
+    return NextResponse.json({ error: links.error }, { status: 400 })
   }
 
   try {
-    const opportunity = await prisma.opportunity.create({
-      data: {
-        organizationId,
-        ownerId: session.user.id,
-        companyId: companyId ?? null,
-        contactId: contactId ?? null,
-        expectedClose: expectedClose ? new Date(expectedClose) : null,
-        ...rest,
-      },
-    })
+    const opportunity = await prisma.$transaction((tx) =>
+      createOpportunity(
+        tx,
+        {
+          organizationId,
+          ownerId: session.user.id,
+          companyId: links.companyId,
+          contactId: contactId ?? null,
+          expectedClose: expectedClose ? new Date(expectedClose) : null,
+          ...rest,
+        },
+        session.user.id
+      )
+    )
 
-    return NextResponse.json({ opportunity }, { status: 201 })
+    return NextResponse.json(
+      { opportunity: serializeOpportunity(opportunity) },
+      { status: 201 }
+    )
   } catch {
     return NextResponse.json(
       { error: "Nao foi possivel salvar a oportunidade." },

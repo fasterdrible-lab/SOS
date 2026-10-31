@@ -18,6 +18,7 @@ const PERMISSIONS = {
   "crm:write": EVERYONE,
   "opportunities:read": EVERYONE,
   "opportunities:write": EVERYONE,
+  "opportunities:reopen": MANAGERS,
   "diagnostics:write": EVERYONE,
   "action-plans:read": EVERYONE,
   "action-plans:write": MANAGERS,
