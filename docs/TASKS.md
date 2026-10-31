@@ -8,8 +8,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 |---|--------|--------|
 | V2-0 | Etapa Zero: auditoria e preservacao | done |
 | V2-1.1 | Autenticacao e permissoes | done (em producao desde 2026-10-31, `salesos-web:5`) |
-| V2-1.2 | Integridade comercial | done (nao publicada) |
-| V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (nao publicada) |
+| V2-1.2 | Integridade comercial | done (em producao desde 2026-10-31, `salesos-web:6`) |
+| V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-2 | Meu Dia | proxima |
 | V2-3 | Dashboard Executivo | todo |
 | V2-4 | Kanban de Negociacoes | todo |

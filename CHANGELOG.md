@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.16.2] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+## [V.1.16.2] — 2026-10-31 (publicada em producao com a V.1.16.1, imagem `salesos-web:6`)
 
 ### Tarefa V2-1.3 — Qualidade tecnica
 - Lint zerado: os 4 erros antigos corrigidos (`<a>` interno no dashboard, aspas na tela de login e `useIsMobile` reescrito com `useSyncExternalStore`).
@@ -24,7 +24,7 @@
 - `apps/web/tests/support.mjs`, `apps/web/package.json`
 - `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
 
-## [V.1.16.1] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+## [V.1.16.1] — 2026-10-31 (publicada em producao, imagem `salesos-web:6`)
 
 ### Tarefa V2-1.2 — Integridade comercial
 - Regras de etapa em `lib/opportunities/rules.ts`: perda exige motivo (422); so gestor ou administrador reabre negociacao encerrada (403); probabilidade definida pela etapa (10, 25, 50, 75, 100 e 0).
