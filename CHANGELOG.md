@@ -1,5 +1,16 @@
 # CHANGELOG — SalesOS
 
+## [V.1.15.5] — 2026-10-30
+
+### Correcao — primeiro acesso sem organizacao ativa
+- **Bug: usuario sem organizacao recebia "Usuario sem permissao para criar empresa."** ao salvar dados, sem nenhuma orientacao. A causa nao era permissao: toda escrita exige uma organizacao ativa, e um banco novo comeca sem nenhuma.
+- O layout autenticado passa a exibir um aviso com link para `/clientes` enquanto nao houver organizacao ativa.
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/layout.tsx`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
 ## [V.1.15.4] — 2026-10-30
 
 ### Fase 10.7 — Backup do banco de producao

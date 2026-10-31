@@ -1,6 +1,6 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.15.4  
+**Versao atual:** V.1.15.5  
 **Data:** 2026-10-30  
 **Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado (falta `www`)
 
