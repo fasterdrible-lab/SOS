@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.17.0] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+## [V.1.17.0] — 2026-10-31 (publicada em producao, imagem `salesos-web:7`)
 
 ### Tarefa V2-2.1 — Meu Dia, cabecalho global e metas
 - Nova tela **Meu Dia** (`/meu-dia`), agora a pagina inicial apos o login: meta do mes com barra de progresso, ideal de hoje, projecao e ritmo por dia util; conversao, ticket medio e vendas de hoje; propostas aguardando resposta, negociacoes esfriando (mais de 14 dias na etapa), fechamento previsto vencido, tarefas atrasadas e de hoje dos planos de acao e leads quentes do IA SDR.

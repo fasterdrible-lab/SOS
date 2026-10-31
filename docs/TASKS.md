@@ -10,7 +10,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-1.1 | Autenticacao e permissoes | done (em producao desde 2026-10-31, `salesos-web:5`) |
 | V2-1.2 | Integridade comercial | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (em producao desde 2026-10-31, `salesos-web:6`) |
-| V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (nao publicada) |
+| V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (em producao desde 2026-10-31, `salesos-web:7`) |
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | proxima |
 | V2-3 | Dashboard Executivo | todo |
 | V2-4 | Kanban de Negociacoes | todo |

@@ -1,15 +1,15 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.16.2 em producao (`salesos-web:6`); V.1.17.0 na branch `feat/saleos-v2`, nao publicada  
+**Versao atual:** V.1.17.0 em producao (`salesos-web:7`), branch `feat/saleos-v2`  
 **Data:** 2026-10-31  
 **Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado e `www` ativo (falta trocar a chave do Backblaze)
 
 ## Estado Atual
-Prompt Mestre V2 em andamento na branch `feat/saleos-v2` (`docs/AUDITORIA_V2.md`). Etapa Zero e Tarefa V2-1.1 publicadas em 2026-10-31: `next` 16.4.3, `next-auth` beta.32, papeis e auditoria. Backup feito antes (`salesos-20261031-210133`); a imagem `salesos-web:4` segue na VPS para reverter. Tarefas V2-1.2 (integridade comercial) e V2-1.3 (lint, erros padronizados, logs e CI) publicadas em 2026-10-31, com backup antes (`salesos-20261031-214249`). A imagem `salesos-web:5` segue na VPS para reverter; a 4 foi removida. FASE V2-1 concluida. Tarefa V2-2.1 (Meu Dia, cabecalho global, menu e metas) concluida, ainda nao publicada.
+Prompt Mestre V2 em andamento na branch `feat/saleos-v2` (`docs/AUDITORIA_V2.md`). Etapa Zero e Tarefa V2-1.1 publicadas em 2026-10-31: `next` 16.4.3, `next-auth` beta.32, papeis e auditoria. Backup feito antes (`salesos-20261031-210133`); a imagem `salesos-web:4` segue na VPS para reverter. Tarefas V2-1.2 (integridade comercial) e V2-1.3 (lint, erros padronizados, logs e CI) publicadas em 2026-10-31, com backup antes (`salesos-20261031-214249`). A imagem `salesos-web:5` segue na VPS para reverter; a 4 foi removida. FASE V2-1 concluida. Tarefa V2-2.1 (Meu Dia, cabecalho global, menu e metas) publicada em 2026-10-31, com backup antes (`salesos-20261031-222533`). A imagem `salesos-web:6` segue na VPS para reverter.
 
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao completa em `docs/DEPLOY.md`.
 
-- Producao em uso: o admin ja entrou pelo navegador e existem 1 cliente e 1 empresa cadastrados. Imagem atual: `salesos-web:6`.
+- Producao em uso: o admin ja entrou pelo navegador e existem 1 cliente e 1 empresa cadastrados. Imagem atual: `salesos-web:7`.
 - Protecoes ativas: limite de uso do IA SDR (conversa, organizacao e IP) e backup diario, local e criptografado no Backblaze B2.
 - `main` e `feat/fases-4-8` foram alinhadas no GitHub em 2026-10-30, no commit `96005f4`.
 - `www.saleos.tech` resolve no DNS, tem certificado proprio e redireciona para `https://saleos.tech` (tarefa 10.6).
@@ -193,6 +193,6 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
-Autorizar o deploy da V2-2.1 (migration so cria a tabela `sales_goals`). Depois, Tarefa V2-2.2: busca global, notificacoes e tema claro.
+Tarefa V2-2.2: busca global, notificacoes e tema claro.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
