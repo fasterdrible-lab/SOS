@@ -22,7 +22,8 @@ const ROLE_LABELS: Record<string, string> = {
   OWNER: "Owner",
   ADMIN: "Admin",
   CONSULTANT: "Consultor",
-  MEMBER: "Membro",
+  MANAGER: "Gestor",
+  MEMBER: "Vendedor",
 }
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {

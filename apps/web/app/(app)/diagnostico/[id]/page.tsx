@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { AlertTriangle, ArrowUpRight, Lightbulb } from "lucide-react"
 
 import { auth } from "@/lib/auth"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { diagnosticActionPlanId } from "@/lib/diagnostico/action-plan-id"
 import { diagnosticOpportunityMarker } from "@/lib/diagnostico/opportunity-marker"
@@ -54,6 +55,7 @@ export default async function DiagnosticoResultadoPage({
     where: {
       organizationId,
       notes: { contains: diagnosticOpportunityMarker(diagnostic.id) },
+      ...opportunityScope(session?.user?.role, session?.user?.id ?? ""),
     },
     select: { id: true },
   })

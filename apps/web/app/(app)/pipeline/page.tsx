@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -30,7 +31,10 @@ export default async function PipelinePage() {
   const [opportunities, companies, contacts] = organizationId
     ? await Promise.all([
         prisma.opportunity.findMany({
-          where: { organizationId },
+          where: {
+            organizationId,
+            ...opportunityScope(session?.user?.role, session?.user?.id ?? ""),
+          },
           include: {
             company: { select: { id: true, name: true } },
             contact: { select: { id: true, name: true } },

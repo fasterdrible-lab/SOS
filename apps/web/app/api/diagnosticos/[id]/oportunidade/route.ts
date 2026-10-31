@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
+import { getAccessLevel } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { diagnosticOpportunityMarker } from "@/lib/diagnostico/opportunity-marker"
 
@@ -17,6 +19,9 @@ export async function POST(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "opportunities:write")
+  if (denied) return denied
 
   const { id } = await params
 
@@ -38,6 +43,16 @@ export async function POST(
   })
 
   if (existingOpportunity) {
+    if (
+      getAccessLevel(session.user.role) === "SELLER" &&
+      existingOpportunity.ownerId !== session.user.id
+    ) {
+      return NextResponse.json(
+        { error: "A oportunidade deste diagnostico pertence a outro vendedor." },
+        { status: 409 }
+      )
+    }
+
     return NextResponse.json({ opportunity: existingOpportunity })
   }
 
@@ -60,6 +75,7 @@ export async function POST(
     const opportunity = await prisma.opportunity.create({
       data: {
         organizationId,
+        ownerId: session.user.id,
         companyId: company.id,
         title: `Oportunidade - ${diagnostic.companyName}`,
         value: diagnostic.averageTicket,

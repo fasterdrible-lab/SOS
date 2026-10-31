@@ -1,5 +1,50 @@
 # CHANGELOG — SalesOS
 
+## [V.1.16.0] — 2026-10-31 (branch `feat/saleos-v2`, nao publicada)
+
+### Etapa Zero do Prompt Mestre V2
+- Criado `docs/AUDITORIA_V2.md`: linha de base, estado por modulo, seguranca, SALEIA, conflitos, rollback e diferenca para o Prompt Mestre.
+
+### Tarefa V2-1.1 — Autenticacao e permissoes
+- Papeis passam a valer no backend: administrador (`OWNER`, `ADMIN`, `CONSULTANT`), gestor (`MANAGER`, novo) e vendedor (`MEMBER`). Matriz em `lib/authz/permissions.ts`; acoes negadas respondem 403.
+- `Opportunity.ownerId`: vendedor ve e altera apenas as proprias oportunidades, em API, pipeline, dashboard e "Meus Clientes".
+- A sessao revalida vinculo e papel no banco a cada leitura: remover um membro ou mudar o papel vale na hora, e usuario excluido perde a sessao.
+- Criado `AuditLog`: registra integracao salva e removida, organizacao criada, troca de organizacao ativa e mudanca de etapa, sem segredos.
+- Atualizados `next` 16.4.3, `next-auth` 5.0.0-beta.32 e `@auth/prisma-adapter` 2.11.3, por falhas criticas publicadas nas versoes anteriores. Alertas criticos de 5 para 1.
+- Criados testes com `node:test`, sem dependencia nova: `npm test` (11) e `npm run test:authz` (23).
+
+**Migration:** `20261031190000_add_rbac_owner_audit` (aditiva). Aplicada apenas no banco de desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/lib/authz/permissions.ts`
+- `apps/web/lib/authz/guard.ts`
+- `apps/web/lib/audit/record.ts`
+- `apps/web/components/access-denied.tsx`
+- `apps/web/tests/permissions.test.mjs`
+- `apps/web/tests/authz.integration.mjs`
+- `docs/AUDITORIA_V2.md`
+
+**Arquivos alterados:**
+- `apps/web/lib/auth.ts`, `lib/dashboard/kpis.ts`, `lib/organizations/client-summary.ts`
+- Todas as rotas autenticadas em `apps/web/app/api`
+- Paginas `clientes`, `configuracoes`, `consultor`, `dashboard`, `diagnostico/[id]`, `pipeline`, `planos`, `sdr` e o layout autenticado
+- `apps/web/prisma/schema.prisma`, `apps/web/package.json`, `apps/web/package-lock.json`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
+## [V.1.15.7] — 2026-10-31
+
+### Fase 10.6 — Dominio `www`
+- `CNAME www` restaurado pelo usuario na Hostinger.
+- Certificado `saleos.tech` expandido para `www.saleos.tech`; o `www` redireciona para `https://saleos.tech`.
+- Nenhum codigo foi alterado. A configuracao do nginx foi atualizada na VPS pelo certbot.
+
+**Arquivos alterados:**
+- `CLAUDE.md`
+- `docs/DEPLOY.md`
+- `docs/TASKS.md`
+- `docs/CURRENT_STATE.md`
+- `CHANGELOG.md`
+
 ## [V.1.15.6] — 2026-10-30
 
 ### Documentacao

@@ -46,8 +46,12 @@ function rate(numerator: number, denominator: number): number {
   return (numerator / denominator) * 100
 }
 
-export async function getExecutiveKpis(organizationId: string): Promise<ExecutiveKpis> {
+export async function getExecutiveKpis(
+  organizationId: string,
+  scope: { ownerId?: string } = {}
+): Promise<ExecutiveKpis> {
   const { current, previous } = getMonthWindows()
+  const opportunityWhere = { organizationId, ...scope }
 
   const [
     openPipeline,
@@ -67,12 +71,12 @@ export async function getExecutiveKpis(organizationId: string): Promise<Executiv
     closedLostPreviousMonth,
   ] = await Promise.all([
     prisma.opportunity.aggregate({
-      where: { organizationId, stage: { in: [...OPEN_OPPORTUNITY_STAGES] } },
+      where: { ...opportunityWhere, stage: { in: [...OPEN_OPPORTUNITY_STAGES] } },
       _sum: { value: true },
     }),
     prisma.opportunity.aggregate({
       where: {
-        organizationId,
+        ...opportunityWhere,
         stage: { in: [...OPEN_OPPORTUNITY_STAGES] },
         createdAt: { gte: current.start },
       },
@@ -80,7 +84,7 @@ export async function getExecutiveKpis(organizationId: string): Promise<Executiv
     }),
     prisma.opportunity.aggregate({
       where: {
-        organizationId,
+        ...opportunityWhere,
         stage: { in: [...OPEN_OPPORTUNITY_STAGES] },
         createdAt: { gte: previous.start, lt: previous.end },
       },
@@ -96,32 +100,32 @@ export async function getExecutiveKpis(organizationId: string): Promise<Executiv
       where: { organizationId, createdAt: { gte: previous.start, lt: previous.end } },
     }),
     prisma.opportunity.count({
-      where: { organizationId, stage: { in: [...OPEN_OPPORTUNITY_STAGES] } },
+      where: { ...opportunityWhere, stage: { in: [...OPEN_OPPORTUNITY_STAGES] } },
     }),
     prisma.opportunity.count({
-      where: { organizationId, createdAt: { gte: current.start } },
+      where: { ...opportunityWhere, createdAt: { gte: current.start } },
     }),
     prisma.opportunity.count({
-      where: { organizationId, createdAt: { gte: previous.start, lt: previous.end } },
+      where: { ...opportunityWhere, createdAt: { gte: previous.start, lt: previous.end } },
     }),
-    prisma.opportunity.count({ where: { organizationId, stage: "CLOSED_WON" } }),
-    prisma.opportunity.count({ where: { organizationId, stage: "CLOSED_LOST" } }),
+    prisma.opportunity.count({ where: { ...opportunityWhere, stage: "CLOSED_WON" } }),
+    prisma.opportunity.count({ where: { ...opportunityWhere, stage: "CLOSED_LOST" } }),
     prisma.opportunity.count({
-      where: { organizationId, stage: "CLOSED_WON", updatedAt: { gte: current.start } },
+      where: { ...opportunityWhere, stage: "CLOSED_WON", updatedAt: { gte: current.start } },
     }),
     prisma.opportunity.count({
-      where: { organizationId, stage: "CLOSED_LOST", updatedAt: { gte: current.start } },
+      where: { ...opportunityWhere, stage: "CLOSED_LOST", updatedAt: { gte: current.start } },
     }),
     prisma.opportunity.count({
       where: {
-        organizationId,
+        ...opportunityWhere,
         stage: "CLOSED_WON",
         updatedAt: { gte: previous.start, lt: previous.end },
       },
     }),
     prisma.opportunity.count({
       where: {
-        organizationId,
+        ...opportunityWhere,
         stage: "CLOSED_LOST",
         updatedAt: { gte: previous.start, lt: previous.end },
       },

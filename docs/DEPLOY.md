@@ -13,7 +13,7 @@ Guia para quem opera o ambiente de produção. Nenhum segredo fica neste reposit
 | App | Container `salesos-web-1`, em `127.0.0.1:3010` |
 | Banco | Container `salesos-db-1`, PostgreSQL 16, sem porta publicada (volume `salesos_db_data`) |
 | Proxy e HTTPS | nginx (`/etc/nginx/sites-available/saleos`) e certbot, com renovação automática |
-| DNS | Hostinger: `A @` → `200.141.20.162` |
+| DNS | Hostinger: `A @` → `200.141.20.162` e `CNAME www` → `saleos.tech` |
 | Backups | `/var/backups/salesos` e bucket `SALEOS` no Backblaze B2 |
 
 **Cuidado com o SALE-IA:** ele usa o mesmo nginx e a mesma máquina (`/opt/saleia`, `api.saleia.app.br`). Sempre rode `nginx -t` antes de recarregar, use `reload` em vez de `restart` e não gere o build na VPS.

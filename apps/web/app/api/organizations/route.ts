@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
+import { recordAudit } from "@/lib/audit/record"
 import { auth } from "@/lib/auth"
+import { canCreateOrganization } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { slugifyOrganizationName } from "@/lib/organizations/slug"
 import { organizationInputSchema } from "@/lib/validations/organization"
@@ -29,6 +31,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nao autorizado." }, { status: 401 })
   }
 
+  const memberships = await prisma.organizationMember.findMany({
+    where: { userId: session.user.id },
+    select: { role: true },
+  })
+
+  if (!canCreateOrganization(memberships.map((member) => member.role))) {
+    return NextResponse.json(
+      { error: "Seu perfil nao tem permissao para esta acao." },
+      { status: 403 }
+    )
+  }
+
   const body = await request.json().catch(() => null)
   const parsed = organizationInputSchema.safeParse(body)
 
@@ -41,18 +55,33 @@ export async function POST(request: Request) {
 
   const slug = await generateUniqueSlug(parsed.data.name)
 
-  const organization = await prisma.organization.create({
-    data: {
-      name: parsed.data.name,
-      slug,
-      members: {
-        create: {
-          userId: session.user.id,
-          role: "CONSULTANT",
+  const organization = await prisma.$transaction(async (tx) => {
+    const created = await tx.organization.create({
+      data: {
+        name: parsed.data.name,
+        slug,
+        members: {
+          create: {
+            userId: session.user.id,
+            role: "CONSULTANT",
+          },
         },
       },
-    },
-    select: { id: true, name: true, slug: true },
+      select: { id: true, name: true, slug: true },
+    })
+
+    await recordAudit(
+      {
+        organizationId: created.id,
+        actorUserId: session.user.id,
+        action: "organization.created",
+        entityType: "Organization",
+        entityId: created.id,
+      },
+      tx
+    )
+
+    return created
   })
 
   return NextResponse.json(organization, { status: 201 })

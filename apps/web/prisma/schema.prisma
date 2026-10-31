@@ -28,6 +28,7 @@ model Organization {
   apiIntegrations ApiIntegration[]
   sdrConversations SdrConversation[]
   consultantConversation ConsultantConversation?
+  auditLogs       AuditLog[]
 
   @@map("organizations")
 }
@@ -61,6 +62,8 @@ model User {
   accounts Account[]
   sessions Session[]
   members  OrganizationMember[]
+  ownedOpportunities Opportunity[]
+  auditLogs AuditLog[]
 
   @@map("users")
 }
@@ -180,6 +183,7 @@ model Opportunity {
   companyId      String?
   contactId      String?
   leadId         String?
+  ownerId        String?
   title          String
   value          Float            @default(0)
   stage          OpportunityStage @default(PROSPECTING)
@@ -194,9 +198,11 @@ model Opportunity {
   company      Company?     @relation(fields: [companyId], references: [id])
   contact      Contact?     @relation(fields: [contactId], references: [id])
   lead         Lead?        @relation(fields: [leadId], references: [id])
+  owner        User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   activities   Activity[]
 
   @@index([organizationId])
+  @@index([organizationId, ownerId])
   @@map("opportunities")
 }
 
@@ -360,6 +366,25 @@ model ConsultantMessage {
   @@map("consultant_messages")
 }
 
+// ─── AUDITORIA ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorUserId    String?
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@map("audit_logs")
+}
+
 // ─── ENUMS ───────────────────────────────────────────────────────────────────
 
 enum Plan {
@@ -373,6 +398,7 @@ enum Role {
   OWNER
   ADMIN
   CONSULTANT
+  MANAGER
   MEMBER
 }
 

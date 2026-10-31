@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import type { Prisma } from "@/lib/generated/prisma/client"
 import { generateBottlenecks, generateRecommendations } from "@/lib/scoring/insights"
@@ -17,6 +18,9 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "diagnostics:write")
+  if (denied) return denied
 
   let body: unknown
 

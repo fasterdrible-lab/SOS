@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -97,7 +98,9 @@ export default async function PlanoDetalhePage({
 
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-white">Tarefas</h2>
-            <TaskFormDialog actionPlanId={actionPlan.id} />
+            {hasPermission(session?.user?.role, "action-plans:write") && (
+              <TaskFormDialog actionPlanId={actionPlan.id} />
+            )}
           </div>
 
           <Card className="border-white/5 bg-card">

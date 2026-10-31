@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
+import { recordAudit } from "@/lib/audit/record"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { opportunityStageUpdateSchema } from "@/lib/validations/opportunity"
 
@@ -17,6 +20,9 @@ export async function PATCH(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "opportunities:write")
+  if (denied) return denied
 
   const { id } = await params
 
@@ -41,8 +47,12 @@ export async function PATCH(
   }
 
   const existing = await prisma.opportunity.findFirst({
-    where: { id, organizationId },
-    select: { id: true },
+    where: {
+      id,
+      organizationId,
+      ...opportunityScope(session.user.role, session.user.id),
+    },
+    select: { id: true, stage: true },
   })
 
   if (!existing) {
@@ -53,9 +63,27 @@ export async function PATCH(
   }
 
   try {
-    const opportunity = await prisma.opportunity.update({
-      where: { id },
-      data: { stage: parsed.data.stage },
+    const opportunity = await prisma.$transaction(async (tx) => {
+      const updated = await tx.opportunity.update({
+        where: { id },
+        data: { stage: parsed.data.stage },
+      })
+
+      if (existing.stage !== updated.stage) {
+        await recordAudit(
+          {
+            organizationId,
+            actorUserId: session.user.id,
+            action: "opportunity.stage-changed",
+            entityType: "Opportunity",
+            entityId: id,
+            metadata: { from: existing.stage, to: updated.stage },
+          },
+          tx
+        )
+      }
+
+      return updated
     })
 
     return NextResponse.json({ opportunity })

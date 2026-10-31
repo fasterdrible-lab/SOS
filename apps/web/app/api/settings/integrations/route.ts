@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
+import { recordAudit } from "@/lib/audit/record"
 import { prisma } from "@/lib/db"
 import { decryptSecret, encryptSecret, maskSecret } from "@/lib/security/crypto"
 import { apiIntegrationInputSchema } from "@/lib/validations/api-integration"
@@ -15,6 +17,9 @@ export async function GET() {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "integrations:manage")
+  if (denied) return denied
 
   const integrations = await prisma.apiIntegration.findMany({
     where: { organizationId },
@@ -41,6 +46,9 @@ export async function POST(request: Request) {
     )
   }
 
+  const denied = denyUnless(session.user.role, "integrations:manage")
+  if (denied) return denied
+
   let body: unknown
 
   try {
@@ -64,16 +72,32 @@ export async function POST(request: Request) {
   const { provider, apiKey } = parsed.data
 
   try {
-    const integration = await prisma.apiIntegration.upsert({
-      where: { organizationId_provider: { organizationId, provider } },
-      create: {
-        organizationId,
-        provider,
-        apiKeyEncrypted: encryptSecret(apiKey),
-      },
-      update: {
-        apiKeyEncrypted: encryptSecret(apiKey),
-      },
+    const integration = await prisma.$transaction(async (tx) => {
+      const saved = await tx.apiIntegration.upsert({
+        where: { organizationId_provider: { organizationId, provider } },
+        create: {
+          organizationId,
+          provider,
+          apiKeyEncrypted: encryptSecret(apiKey),
+        },
+        update: {
+          apiKeyEncrypted: encryptSecret(apiKey),
+        },
+      })
+
+      await recordAudit(
+        {
+          organizationId,
+          actorUserId: session.user.id,
+          action: "integration.saved",
+          entityType: "ApiIntegration",
+          entityId: saved.id,
+          metadata: { provider },
+        },
+        tx
+      )
+
+      return saved
     })
 
     return NextResponse.json({

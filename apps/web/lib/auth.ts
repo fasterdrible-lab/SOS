@@ -62,6 +62,38 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         token.role = member?.role ?? null
       }
 
+      // Revalida vinculo e papel a cada leitura da sessao: remover um membro ou
+      // mudar o papel precisa valer na hora, nao quando o JWT expirar.
+      if (!user && token.id) {
+        const userId = token.id as string
+        const organizationId = token.organizationId as string | null | undefined
+
+        const member =
+          (organizationId
+            ? await prisma.organizationMember.findUnique({
+                where: { organizationId_userId: { organizationId, userId } },
+                select: { organizationId: true, role: true },
+              })
+            : null) ??
+          (await prisma.organizationMember.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "asc" },
+            select: { organizationId: true, role: true },
+          }))
+
+        if (!member) {
+          const existingUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true },
+          })
+
+          if (!existingUser) return null
+        }
+
+        token.organizationId = member?.organizationId ?? null
+        token.role = member?.role ?? null
+      }
+
       if (trigger === "update" && token.id) {
         const requestedOrganizationId = (
           session as { user?: { organizationId?: string } } | null | undefined

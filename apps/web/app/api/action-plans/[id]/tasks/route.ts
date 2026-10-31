@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { actionTaskInputSchema } from "@/lib/validations/action-task"
 
@@ -17,6 +18,9 @@ export async function GET(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-plans:read")
+  if (denied) return denied
 
   const { id } = await params
 
@@ -53,6 +57,9 @@ export async function POST(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-plans:write")
+  if (denied) return denied
 
   const { id } = await params
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { actionPlanInputSchema } from "@/lib/validations/action-plan"
 
@@ -14,6 +15,9 @@ export async function GET() {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-plans:read")
+  if (denied) return denied
 
   const actionPlans = await prisma.actionPlan.findMany({
     where: { organizationId },
@@ -34,6 +38,9 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-plans:write")
+  if (denied) return denied
 
   let body: unknown
 

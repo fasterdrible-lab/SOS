@@ -71,6 +71,7 @@ Organization (tenant)
   └── Diagnostic
   └── ApiIntegration (chave de API por provedor de IA, criptografada)
   └── SdrConversation (conversa do IA SDR com um lead, N:N via SdrMessage)
+  └── AuditLog (operacoes sensiveis, sem segredos)
 ```
 
 ## Fluxos Principais
@@ -87,6 +88,15 @@ Consultor cria Organization em /clientes → vira OrganizationMember (CONSULTANT
 Convite de membros por email: planejado, ainda não implementado
 Usuários são criados por script (npm run create-admin): não há cadastro público
 Todas queries: WHERE organization_id = session.organizationId
+```
+
+### Permissoes
+```
+OWNER, ADMIN, CONSULTANT -> administrador | MANAGER -> gestor | MEMBER -> vendedor
+A sessao le vinculo e papel do banco a cada auth(); o JWT nao e fonte de autorizacao
+Rotas: denyUnless(role, permissao) -> 403. Matriz em lib/authz/permissions.ts
+Vendedor: oportunidades filtradas por ownerId (opportunityScope)
+Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
 ```
 
 ### IA SDR

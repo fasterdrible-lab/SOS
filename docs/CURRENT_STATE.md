@@ -1,16 +1,18 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.15.6  
-**Data:** 2026-10-30  
-**Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado (falta `www`)
+**Versao atual:** V.1.15.7 em producao; V.1.16.0 na branch `feat/saleos-v2`, nao publicada  
+**Data:** 2026-10-31  
+**Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado e `www` ativo (falta trocar a chave do Backblaze)
 
 ## Estado Atual
+Prompt Mestre V2 em andamento: Etapa Zero e Tarefa V2-1.1 concluidas na branch `feat/saleos-v2` (`docs/AUDITORIA_V2.md`). **A producao continua em `salesos-web:4`, com `next` 16.2.6 e `next-auth` beta.31, que tem falhas criticas publicadas, ate um deploy ser autorizado.**
+
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao completa em `docs/DEPLOY.md`.
 
 - Producao em uso: o admin ja entrou pelo navegador e existem 1 cliente e 1 empresa cadastrados. Imagem atual: `salesos-web:4`.
 - Protecoes ativas: limite de uso do IA SDR (conversa, organizacao e IP) e backup diario, local e criptografado no Backblaze B2.
 - `main` e `feat/fases-4-8` foram alinhadas no GitHub em 2026-10-30, no commit `96005f4`.
-- `www.saleos.tech` nao resolve no DNS e o certificado cobre apenas o dominio principal (tarefa 10.6).
+- `www.saleos.tech` resolve no DNS, tem certificado proprio e redireciona para `https://saleos.tech` (tarefa 10.6).
 - Nenhuma chave de IA esta cadastrada em producao: IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 Antes disso, a Tarefa 9.1 foi concluida: o app foi exercitado contra o banco real de desenvolvimento (container Docker `salesos-postgres`, porta 5437, migrations ja aplicadas e sem desvio em relacao ao schema) com um roteiro HTTP de 47 verificacoes, todas aprovadas, sem alteracao de codigo. As respostas reais da IA continuam sem validacao (tarefa 9.2), por falta de uma chave Anthropic valida.
@@ -145,7 +147,8 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
-- `npm.cmd run lint` falha em arquivos pre-existentes fora do escopo:
+- `npm.cmd run lint` falha em arquivos pre-existentes (tarefa V2-1.3):
+  - `apps/web/app/(app)/dashboard/page.tsx`
   - `apps/web/app/(auth)/login/page.tsx`
   - `apps/web/hooks/use-mobile.ts`
 - Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 2 migrations estao aplicadas e `prisma migrate diff` nao aponta desvio.
@@ -160,6 +163,10 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-1.1** - Papeis, dono da oportunidade, sessao revalidada, auditoria e atualizacao de `next` e `next-auth`, com 34 testes automatizados.
+
+**Tarefa 10.6** - `CNAME www` restaurado e certificado expandido para `www.saleos.tech`.
+
 **Tarefa 10.8** - Copia externa criptografada dos backups no Backblaze B2 (bucket `SALEOS`).
 
 **Tarefa 10.7** - Backup diario do banco de producao na VPS, com restauracao testada.
@@ -178,9 +185,11 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 - Corrigir lint pre-existente em tarefa separada, se desejado.
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste manual completo das demais telas em navegador.
-- Restaurar o `CNAME www` (tarefa 10.6) e trocar a chave do Backblaze (tarefa 10.9).
+- Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
 
 ## Proxima Tarefa Recomendada
-Tarefa 10.6: restaurar o `CNAME www`. Antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat (tarefa 10.9). Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
+Autorizar o deploy das correcoes de seguranca. No desenvolvimento, seguir para a Tarefa V2-1.2 (integridade comercial).
+
+Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.

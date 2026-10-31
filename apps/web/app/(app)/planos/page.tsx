@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ClipboardList } from "lucide-react"
 
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -65,7 +66,9 @@ export default async function PlanosPage() {
                 Planos de crescimento da sua organizacao.
               </p>
             </div>
-            <ActionPlanFormDialog />
+            {hasPermission(session?.user?.role, "action-plans:write") && (
+              <ActionPlanFormDialog />
+            )}
           </div>
 
           <Card className="border-white/5 bg-card">

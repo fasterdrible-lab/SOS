@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { opportunityInputSchema } from "@/lib/validations/opportunity"
 
@@ -15,8 +17,14 @@ export async function GET() {
     )
   }
 
+  const denied = denyUnless(session.user.role, "opportunities:read")
+  if (denied) return denied
+
   const opportunities = await prisma.opportunity.findMany({
-    where: { organizationId },
+    where: {
+      organizationId,
+      ...opportunityScope(session.user.role, session.user.id),
+    },
     include: {
       company: { select: { id: true, name: true } },
       contact: { select: { id: true, name: true } },
@@ -37,6 +45,9 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "opportunities:write")
+  if (denied) return denied
 
   let body: unknown
 
@@ -86,6 +97,7 @@ export async function POST(request: Request) {
     const opportunity = await prisma.opportunity.create({
       data: {
         organizationId,
+        ownerId: session.user.id,
         companyId: companyId ?? null,
         contactId: contactId ?? null,
         expectedClose: expectedClose ? new Date(expectedClose) : null,

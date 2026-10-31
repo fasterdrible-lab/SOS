@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 
 import { auth } from "@/lib/auth"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { getExecutiveKpis, type ExecutiveKpis } from "@/lib/dashboard/kpis"
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
@@ -84,7 +85,10 @@ export default async function DashboardPage() {
   const organizationId = session?.user?.organizationId
 
   const kpis = organizationId
-    ? await getExecutiveKpis(organizationId)
+    ? await getExecutiveKpis(
+        organizationId,
+        opportunityScope(session?.user?.role, session?.user?.id ?? "")
+      )
     : emptyKpis
 
   const kpiCards = buildKpiCards(kpis)

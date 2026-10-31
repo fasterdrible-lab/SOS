@@ -1,6 +1,8 @@
 import { Zap } from "lucide-react"
 
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
+import { AccessDenied } from "@/components/access-denied"
 import { prisma } from "@/lib/db"
 import { markQualifiedLeadsSeen } from "@/lib/sdr/notifications"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +33,10 @@ const CLASSIFICATION_CLASS: Record<string, string> = {
 export default async function SdrConsolePage() {
   const session = await auth()
   const organizationId = session?.user?.organizationId
+
+  if (organizationId && !hasPermission(session?.user?.role, "sdr:read")) {
+    return <AccessDenied />
+  }
 
   const conversations = organizationId
     ? await prisma.sdrConversation.findMany({

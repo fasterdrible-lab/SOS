@@ -1,5 +1,45 @@
 # TASKS.md - SalesOS
 
+## Prompt Mestre V2
+
+Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Prompt reutilizam numeros de fases antigas, por isso levam o prefixo V2. Auditoria e decisoes em `docs/AUDITORIA_V2.md`. Uma tarefa por vez, sem deploy sem autorizacao.
+
+| # | Tarefa | Status |
+|---|--------|--------|
+| V2-0 | Etapa Zero: auditoria e preservacao | done |
+| V2-1.1 | Autenticacao e permissoes | done (nao publicada) |
+| V2-1.2 | Integridade comercial | proxima |
+| V2-1.3 | Qualidade tecnica (lint, testes das regras comerciais, erros padronizados) | todo |
+| V2-2 | Meu Dia | todo |
+| V2-3 | Dashboard Executivo | todo |
+| V2-4 | Kanban de Negociacoes | todo |
+| V2-5 | Clientes 360 | todo |
+| V2-6 | Atividades e follow-ups | todo |
+| V2-7 | Integracao SALEIA | todo |
+| V2-8 | Report Diario | todo |
+| V2-9 | Configuracoes e administracao | todo |
+| V2-10 | Homologacao final | todo |
+
+### Pendencias de seguranca identificadas na auditoria
+- Publicar as atualizacoes de `next` e `next-auth` em producao: requer autorizacao de deploy.
+- Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
+- Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-1.1 - Autenticacao e permissoes
+
+### Resultado
+- Papeis, matriz de permissoes, dono da oportunidade, revalidacao da sessao e `AuditLog` (ver `CHANGELOG.md` V.1.16.0).
+- Testes: `npm test` e, com o app em `localhost:3100`, `npm run test:authz`. A suite de integracao recusa rodar fora de localhost e remove seus dados ao final.
+- Controle negativo: com as protecoes desligadas em uma compilacao temporaria, 10 dos 23 testes de integracao falharam.
+
+### Limitacoes conhecidas
+- Nao ha interface para atribuir papeis ou donos (V2-9). Oportunidades antigas e as criadas pelo IA SDR ficam sem dono, visiveis para gestor e administrador.
+- Empresas, contatos, diagnosticos e planos seguem visiveis para toda a organizacao. A contagem de leads no dashboard do vendedor tambem, pois `Lead` nao tem dono.
+- Sem equipes, o gestor ve toda a organizacao (V2-9).
+- A sidebar ainda mostra ao vendedor os itens restritos, que abrem a tela "Acesso restrito" (V2-2 reorganiza o menu).
+- Tentativas negadas nao entram no `AuditLog`, e nao ha tela de consulta (V2-9).
+- A interface nao foi testada em navegador com cada papel.
+
 ## FASE 1 - Estrutura + Projeto Base concluida
 
 | # | Tarefa | Status |
@@ -183,7 +223,7 @@ Solicitado pelo usuario em 2026-10-30. Destino definido pelo usuario: VPS `200.1
 | 10.2 | Subir app e banco na VPS (Docker em `/opt/salesos`, nginx, migrations) | done |
 | 10.3 | Apontar `saleos.tech` para a VPS no DNS da Hostinger e emitir o certificado | done |
 | 10.5 | Criar o admin de producao | done |
-| 10.6 | Restaurar o `CNAME www` (depois expandir o certificado com `certbot --nginx -d saleos.tech -d www.saleos.tech --cert-name saleos.tech --expand`) | blocked: requer acao do usuario |
+| 10.6 | Restaurar o `CNAME www` e expandir o certificado para `www.saleos.tech` | done |
 | 10.4 | Limitar o uso da rota publica do IA SDR antes de divulgar o widget | done |
 | 10.7 | Backup diario do banco de producao na VPS, com restauracao testada | done |
 | 10.8 | Copiar os backups para fora da VPS (Backblaze B2, bucket `SALEOS`) | done: upload real concluido pelo rclone; conferencia no painel pendente com o usuario |

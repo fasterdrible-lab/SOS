@@ -1,4 +1,6 @@
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
+import { AccessDenied } from "@/components/access-denied"
 import { prisma } from "@/lib/db"
 import { decryptSecret, maskSecret } from "@/lib/security/crypto"
 import { Badge } from "@/components/ui/badge"
@@ -26,6 +28,10 @@ const PROVIDER_INFO: Record<
 export default async function ConfiguracoesPage() {
   const session = await auth()
   const organizationId = session?.user?.organizationId
+
+  if (organizationId && !hasPermission(session?.user?.role, "integrations:manage")) {
+    return <AccessDenied />
+  }
 
   const integrations = organizationId
     ? await prisma.apiIntegration.findMany({ where: { organizationId } })

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
+import { recordAudit } from "@/lib/audit/record"
 import { prisma } from "@/lib/db"
 import { apiIntegrationDeleteSchema } from "@/lib/validations/api-integration"
 
@@ -17,6 +19,9 @@ export async function DELETE(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "integrations:manage")
+  if (denied) return denied
 
   const { provider: rawProvider } = await params
   const parsed = apiIntegrationDeleteSchema.safeParse({ provider: rawProvider })
@@ -43,7 +48,21 @@ export async function DELETE(
   }
 
   try {
-    await prisma.apiIntegration.delete({ where: { id: existing.id } })
+    await prisma.$transaction(async (tx) => {
+      await tx.apiIntegration.delete({ where: { id: existing.id } })
+
+      await recordAudit(
+        {
+          organizationId,
+          actorUserId: session.user.id,
+          action: "integration.removed",
+          entityType: "ApiIntegration",
+          entityId: existing.id,
+          metadata: { provider: parsed.data.provider },
+        },
+        tx
+      )
+    })
 
     return NextResponse.json({ success: true })
   } catch {

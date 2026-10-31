@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { actionTaskStatusUpdateSchema } from "@/lib/validations/action-task"
 
@@ -17,6 +18,9 @@ export async function PATCH(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-tasks:update-status")
+  if (denied) return denied
 
   const { id, taskId } = await params
 

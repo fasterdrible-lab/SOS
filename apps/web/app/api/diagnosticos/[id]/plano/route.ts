@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { diagnosticActionPlanId } from "@/lib/diagnostico/action-plan-id"
 import type { DiagnosticInsight } from "@/lib/scoring/insights"
@@ -18,6 +19,9 @@ export async function POST(
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "action-plans:write")
+  if (denied) return denied
 
   const { id } = await params
 

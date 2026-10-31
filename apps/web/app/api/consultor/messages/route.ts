@@ -5,6 +5,7 @@ import {
   generateConsultantReply,
 } from "@/lib/ai/anthropic-client"
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { getExecutiveKpis } from "@/lib/dashboard/kpis"
 import { decryptSecret } from "@/lib/security/crypto"
@@ -39,6 +40,9 @@ export async function GET() {
     )
   }
 
+  const denied = denyUnless(session.user.role, "consultant:use")
+  if (denied) return denied
+
   const conversation = await prisma.consultantConversation.findUnique({
     where: { organizationId },
     include: { messages: { orderBy: { createdAt: "asc" } } },
@@ -57,6 +61,9 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "consultant:use")
+  if (denied) return denied
 
   let body: unknown
 

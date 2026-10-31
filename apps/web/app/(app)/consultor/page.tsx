@@ -1,4 +1,6 @@
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
+import { AccessDenied } from "@/components/access-denied"
 import { prisma } from "@/lib/db"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -9,6 +11,10 @@ import { ConsultantChat } from "./consultant-chat"
 export default async function ConsultorPage() {
   const session = await auth()
   const organizationId = session?.user?.organizationId
+
+  if (organizationId && !hasPermission(session?.user?.role, "consultant:use")) {
+    return <AccessDenied />
+  }
 
   const [conversation, integration] = organizationId
     ? await Promise.all([

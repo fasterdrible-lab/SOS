@@ -3,6 +3,7 @@ import Link from "next/link"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
 
 export default async function AppLayout({
@@ -13,7 +14,7 @@ export default async function AppLayout({
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
-  const qualifiedLeadsCount = organizationId
+  const qualifiedLeadsCount = organizationId && hasPermission(session?.user?.role, "sdr:read")
     ? await getUnseenQualifiedLeadsCount(organizationId)
     : 0
 

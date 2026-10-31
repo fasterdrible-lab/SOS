@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+import { recordAudit } from "@/lib/audit/record"
 import { auth, unstable_update } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { sessionOrganizationInputSchema } from "@/lib/validations/session-organization"
@@ -36,6 +37,16 @@ export async function POST(request: Request) {
   }
 
   await unstable_update({ user: { organizationId: member.organizationId } })
+
+  if (session.user.organizationId !== member.organizationId) {
+    await recordAudit({
+      organizationId: member.organizationId,
+      actorUserId: session.user.id,
+      action: "session.organization-switched",
+      entityType: "Organization",
+      entityId: member.organizationId,
+    })
+  }
 
   return NextResponse.json({ organizationId: member.organizationId, role: member.role })
 }

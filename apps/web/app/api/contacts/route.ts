@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { denyUnless } from "@/lib/authz/guard"
 import { prisma } from "@/lib/db"
 import { contactInputSchema } from "@/lib/validations/contact"
 
@@ -14,6 +15,9 @@ export async function GET() {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "crm:read")
+  if (denied) return denied
 
   const contacts = await prisma.contact.findMany({
     where: { organizationId },
@@ -34,6 +38,9 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const denied = denyUnless(session.user.role, "crm:write")
+  if (denied) return denied
 
   let body: unknown
 

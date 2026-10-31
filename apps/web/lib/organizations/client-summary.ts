@@ -1,3 +1,4 @@
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { getExecutiveKpis } from "@/lib/dashboard/kpis"
 
@@ -23,7 +24,7 @@ export async function getConsultantClients(userId: string): Promise<ClientSummar
       const organizationId = membership.organization.id
 
       const [kpis, lastDiagnostic, tasksTotal, tasksDone] = await Promise.all([
-        getExecutiveKpis(organizationId),
+        getExecutiveKpis(organizationId, opportunityScope(membership.role, userId)),
         prisma.diagnostic.findFirst({
           where: { organizationId },
           orderBy: { createdAt: "desc" },
