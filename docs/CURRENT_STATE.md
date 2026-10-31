@@ -1,19 +1,25 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.17.0 em producao (`salesos-web:7`), branch `feat/saleos-v2`  
-**Data:** 2026-10-31  
-**Fase:** FASE 10 em andamento - `https://saleos.tech` no ar, com admin criado e `www` ativo (falta trocar a chave do Backblaze)
+**Versao atual:** V.1.17.0 em producao (`salesos-web:7`); documentacao em V.1.17.1
+**Data:** 2026-10-31
+**Fase:** Prompt Mestre V2 - FASE V2-1 concluida e V2-2.1 publicadas; proxima: V2-2.2
 
 ## Estado Atual
-Prompt Mestre V2 em andamento na branch `feat/saleos-v2` (`docs/AUDITORIA_V2.md`). Etapa Zero e Tarefa V2-1.1 publicadas em 2026-10-31: `next` 16.4.3, `next-auth` beta.32, papeis e auditoria. Backup feito antes (`salesos-20261031-210133`); a imagem `salesos-web:4` segue na VPS para reverter. Tarefas V2-1.2 (integridade comercial) e V2-1.3 (lint, erros padronizados, logs e CI) publicadas em 2026-10-31, com backup antes (`salesos-20261031-214249`). A imagem `salesos-web:5` segue na VPS para reverter; a 4 foi removida. FASE V2-1 concluida. Tarefa V2-2.1 (Meu Dia, cabecalho global, menu e metas) publicada em 2026-10-31, com backup antes (`salesos-20261031-222533`). A imagem `salesos-web:6` segue na VPS para reverter.
+`https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-`https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao completa em `docs/DEPLOY.md`.
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Producao:** imagem `salesos-web:7`, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:6` mantida na VPS para reverter. 5 migrations aplicadas.
+- **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
+- **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
+  - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
+  - V2-1.2: historico de etapas, datas reais de ganho e perda, motivo de perda, reabertura restrita, valores em `Decimal`, criacao idempotente.
+  - V2-1.3: lint zerado, erros da API padronizados, logs seguros e CI no GitHub Actions.
+  - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
+- **Testes:** 41 unitarios e 54 de integracao; o CI roda todos a cada push.
+- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261031-222533`), `www.saleos.tech` com certificado.
+- **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
-- Producao em uso: o admin ja entrou pelo navegador e existem 1 cliente e 1 empresa cadastrados. Imagem atual: `salesos-web:7`.
-- Protecoes ativas: limite de uso do IA SDR (conversa, organizacao e IP) e backup diario, local e criptografado no Backblaze B2.
-- `main` e `feat/fases-4-8` foram alinhadas no GitHub em 2026-10-30, no commit `96005f4`.
-- `www.saleos.tech` resolve no DNS, tem certificado proprio e redireciona para `https://saleos.tech` (tarefa 10.6).
-- Nenhuma chave de IA esta cadastrada em producao: IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
+## Historico anterior ao Prompt Mestre V2
 
 Antes disso, a Tarefa 9.1 foi concluida: o app foi exercitado contra o banco real de desenvolvimento (container Docker `salesos-postgres`, porta 5437, migrations ja aplicadas e sem desvio em relacao ao schema) com um roteiro HTTP de 47 verificacoes, todas aprovadas, sem alteracao de codigo. As respostas reais da IA continuam sem validacao (tarefa 9.2), por falta de uma chave Anthropic valida.
 
@@ -81,8 +87,8 @@ apps/web/app/sdr/[organizationId]/chat-widget.tsx -> janela de chat client-side 
 apps/web/lib/sdr/lead-id.ts                       -> ids deterministicos de idempotencia conversa IA SDR -> Lead/Oportunidade
 apps/web/lib/sdr/notifications.ts                 -> contagem/marcacao de leads qualificados vistos pelo consultor
 apps/web/app/(app)/sdr/page.tsx                   -> console autenticado de conversas do IA SDR (consultor)
-apps/web/app/(app)/layout.tsx                     -> layout autenticado (agora assincrono: busca contagem de leads qualificados)
-apps/web/components/app-sidebar.tsx               -> sidebar com badge de leads qualificados no item "IA SDR"
+apps/web/app/(app)/layout.tsx                     -> layout autenticado: sidebar, cabecalho global, cliente ativo e aviso sem cliente
+apps/web/components/app-sidebar.tsx               -> menu lateral filtrado pelo papel, com badge de leads qualificados no item "IA SDR"
 apps/web/lib/validations/consultant-message.ts    -> schema Zod compartilhado (mensagem do Consultor Digital)
 apps/web/app/api/consultor/messages/route.ts      -> historico/envio de mensagem do Consultor Digital (autenticado, contextualizado)
 apps/web/app/(app)/consultor/page.tsx             -> pagina autenticada de chat do Consultor Digital
@@ -106,6 +112,31 @@ deploy/nginx-saleos.conf                          -> site saleos.tech + limite p
 deploy/backup.sh                                  -> backup diario, local e no Backblaze B2
 deploy/setup-offsite.sh                           -> configura ou troca a chave do Backblaze
 deploy/salesos-backup.service, .timer             -> agendamento do backup
+README.md                                         -> indice da documentacao
+docs/GUIA_DE_USO.md                               -> uso das telas, papeis e metas (para usuarios)
+docs/AUDITORIA_V2.md                              -> Etapa Zero do Prompt Mestre V2
+.github/workflows/ci.yml                          -> CI: lint, tipos, testes, migrations, build e integracao
+apps/web/lib/authz/permissions.ts                 -> papeis, matriz de permissoes e escopo de oportunidades do vendedor
+apps/web/lib/authz/guard.ts                       -> denyUnless: 403 padronizado nas rotas
+apps/web/lib/audit/record.ts                      -> gravacao no AuditLog
+apps/web/components/access-denied.tsx             -> tela "Acesso restrito"
+apps/web/lib/api/errors.ts                        -> erros padronizados { error, code, fields? } e log seguro
+apps/web/lib/api/handler.ts                       -> withApiErrors: 500 em JSON para erro inesperado
+apps/web/lib/opportunities/rules.ts               -> regras de etapa, probabilidade e vinculo contato-empresa
+apps/web/lib/opportunities/create.ts              -> criacao de oportunidade com historico; serializacao do Decimal
+apps/web/lib/time/business-calendar.ts            -> dia, mes e dias uteis no fuso de Brasilia
+apps/web/lib/meu-dia/goal-progress.ts             -> calculo da meta, ideal, projecao, conversao e ticket
+apps/web/lib/meu-dia/summary.ts                   -> indicadores do Meu Dia por papel
+apps/web/lib/navigation.ts                        -> itens do menu e titulos do cabecalho
+apps/web/lib/validations/goal.ts                  -> schema Zod das metas
+apps/web/components/app-header.tsx                -> cabecalho global com menu do usuario (Trocar de cliente, Sair)
+apps/web/app/(app)/meu-dia/page.tsx               -> pagina Meu Dia
+apps/web/app/(app)/meu-dia/goal-dialog.tsx        -> dialogo de metas da equipe e por vendedor
+apps/web/app/api/meu-dia/route.ts                 -> indicadores do Meu Dia em JSON
+apps/web/app/api/goals/route.ts                   -> grava e remove metas (auditado)
+apps/web/tests/support.mjs                        -> cliente HTTP e travas de ambiente dos testes de integracao
+apps/web/tests/*.test.mjs                         -> testes unitarios (permissoes, etapas, erros, calendario, metas)
+apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, regras comerciais, erros, Meu Dia)
 ```
 
 ## Funcionalidades Concluidas
@@ -144,14 +175,27 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 - [x] Publicacao em `https://saleos.tech` (VPS, Docker, nginx, HTTPS)
 - [x] Limite de uso da rota publica do IA SDR
 - [x] Backup diario local e externo criptografado
+- [x] `www.saleos.tech` com certificado e redirecionamento
+- [x] Papeis administrador, gestor e vendedor verificados no backend (V2-1.1)
+- [x] Vendedor limitado as proprias oportunidades (V2-1.1)
+- [x] Sessao revalidada no banco e `AuditLog` (V2-1.1)
+- [x] Historico de etapas, datas reais de ganho e perda, motivo de perda e reabertura restrita (V2-1.2)
+- [x] Valores em `Decimal` e criacao idempotente de oportunidades (V2-1.2)
+- [x] Erros da API padronizados, logs seguros, lint zerado e CI (V2-1.3)
+- [x] Meu Dia como pagina inicial, com indicadores reais por papel (V2-2.1)
+- [x] Metas mensais da equipe e por vendedor (V2-2.1)
+- [x] Cabecalho global com Sair e menu filtrado pelo papel (V2-2.1)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
 - `npm run lint` sem erros desde a V2-1.3.
-- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 2 migrations estao aplicadas e `prisma migrate diff` nao aponta desvio.
-- Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a integracao Anthropic salva na organizacao demo resulta em 502 (causa exata nao investigada, a rota nao expoe o erro do provedor) e a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`.
+- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 5 migrations estao aplicadas.
+- Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`. Desde a V2-1.3, a recusa do provedor aparece no log com o status HTTP.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
-- A validacao automatizada foi por HTTP. O usuario ja usou login, criacao de cliente e cadastro de empresa em navegador; as demais telas nao passaram por teste completo de interface. Login Google nao foi testado e depende de credenciais reais.
+- A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
+- Nao ha tela para convidar usuarios nem atribuir papeis: e feito por SQL (`docs/DEPLOY.md`). O `create-admin` cria todos com o nome "Admin".
+- O `/dashboard` ainda calcula o mes em UTC (FASE V2-3).
+- `npm audit --omit=dev`: 1 alerta critico, em dependencia da CLI do `shadcn`, que nao roda no app.
 - Backup externo: a conferencia do arquivo no bucket depende do painel do Backblaze, e baixar e restaurar um arquivo do bucket real ainda nao foi testado (a restauracao foi simulada com destino local).
 - A chave Backblaze `...0004`, em uso, foi enviada pelo chat (tarefa 10.9) e tem permissao de apagar arquivos do bucket. O Object Lock esta desativado.
 - Nao ha alerta de falha do backup nem de indisponibilidade do site.
@@ -185,14 +229,14 @@ deploy/salesos-backup.service, .timer             -> agendamento do backup
 **Tarefa 9.1** - Validacao de ponta a ponta contra o banco real: 47 verificacoes aprovadas cobrindo login, multi-organizacao, isolamento entre organizacoes, CRM, diagnostico, integracoes e tratamento de erro da IA. Dados de teste removidos ao final.
 
 ## O Que Falta
-- Corrigir lint pre-existente em tarefa separada, se desejado.
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
-- Fazer um teste manual completo das demais telas em navegador.
+- Fazer um teste completo das telas em navegador com a conta real e com cada papel.
+- Seguir as FASES V2-2.2 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
-- Planejar o proximo modulo do produto (Modulo 8 — Academia Comercial, `docs/ARCHITECTURE.md`, item de sidebar "Academia" ja linkado para `/academia` mas sem pagina de destino), quando desejado.
+- Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
 Tarefa V2-2.2: busca global, notificacoes e tema claro.
 
-Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`. Depois disso, planejar o Modulo 8 (Academia Comercial), o unico modulo do `docs/ARCHITECTURE.md` ainda nao construido.
+Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

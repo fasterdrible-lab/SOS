@@ -20,6 +20,7 @@ Conecta CRM + IA + Consultoria + Processos + Indicadores + Automação em uma ú
 /apps/web/prisma/   → Schema e migrations
 /deploy/            → Arquivos de produção (compose, nginx, backup)
 /docs/              → Documentação do projeto
+/.github/workflows/ → CI (lint, tipos, testes, build)
 CLAUDE.md           → Este arquivo
 CHANGELOG.md        → Histórico de versões
 ```
@@ -42,7 +43,7 @@ CHANGELOG.md        → Histórico de versões
 - A VPS é compartilhada com o SALE-IA: nunca interromper o serviço dele nem gerar o build lá
 
 ## Versão Atual
-**V.1.17.0** em produção (imagem `salesos-web:7`), branch `feat/saleos-v2` (Prompt Mestre V2) (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
+**V.1.17.0** em produção (imagem `salesos-web:7`); documentação V.1.17.1. Branch `feat/saleos-v2`, alinhada com `main` (Prompt Mestre V2) (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
 
 ## Admin do Sistema
 - Email: fasterdrible@gmail.com
@@ -51,3 +52,5 @@ CHANGELOG.md        → Histórico de versões
 - Ver [CHANGELOG.md](./CHANGELOG.md) para histórico completo
 - Ver [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md) para estado atual
 - Ver [docs/TASKS.md](./docs/TASKS.md) para próximas tarefas
+- Ver [docs/GUIA_DE_USO.md](./docs/GUIA_DE_USO.md) para uso das telas e papéis
+- Ver [docs/AUDITORIA_V2.md](./docs/AUDITORIA_V2.md) para a auditoria do Prompt Mestre V2

@@ -761,3 +761,75 @@ Pagina autenticada `/consultor` (ja linkada na sidebar, ate entao sem destino): 
 
 ### Impacto no frontend
 - Nova pagina `/consultor` e novo componente `consultant-chat.tsx`.
+
+## Funcionalidade: Papeis e Permissoes (V2-1.1)
+
+### Descricao geral
+Cada membro de uma organizacao tem um papel, verificado no backend em toda rota e pagina. Substitui o modelo anterior, em que qualquer membro fazia tudo.
+
+### Regras de negocio
+- Niveis: administrador (`OWNER`, `ADMIN`, `CONSULTANT`), gestor (`MANAGER`) e vendedor (`MEMBER`). Papel desconhecido ou ausente nao tem permissao alguma.
+- Matriz em `lib/authz/permissions.ts`; o resumo para usuarios esta em `docs/GUIA_DE_USO.md`.
+- Vendedor ve e altera apenas oportunidades com `ownerId` igual ao seu. Oportunidades sem dono (antigas e do IA SDR) ficam visiveis apenas para gestor e administrador.
+- Quem cria uma oportunidade vira o dono; o payload nao escolhe dono, papel nem organizacao.
+- Criar organizacao: permitido a quem nao tem nenhum vinculo (primeiro acesso) ou administra alguma organizacao.
+- A sessao relê vinculo e papel do banco a cada leitura: remover membro, trocar papel ou excluir usuario vale na hora.
+
+### Permissoes
+- Acao negada: 403 `{ code: "FORBIDDEN" }`. Pagina negada: tela "Acesso restrito". Itens negados nao aparecem no menu.
+
+### Impacto no banco
+- Valor `MANAGER` no enum `Role`, coluna `Opportunity.ownerId` e tabela `AuditLog` (migration `20261031190000_add_rbac_owner_audit`).
+
+## Funcionalidade: Integridade Comercial das Oportunidades (V2-1.2)
+
+### Regras de negocio
+- Toda oportunidade nasce em `PROSPECTING`, com a primeira entrada em `OpportunityStageHistory`.
+- Probabilidade definida pela etapa: 10, 25, 50, 75, 100 (ganha) e 0 (perdida).
+- Perder exige motivo com pelo menos 3 caracteres (422 sem ele).
+- Reabrir uma oportunidade ganha ou perdida, ou trocar uma pela outra, exige gestor ou administrador (403).
+- `wonAt`/`lostAt` recebem a data da mudanca e sao limpos ao reabrir; `stageChangedAt` marca a ultima mudanca de etapa.
+- Mesma etapa: nada muda e nao gera historico.
+- Mudanca simultanea: a segunda recebe 409; o historico fica sempre encadeado.
+- Contato vinculado a outra empresa: 400. Sem empresa informada, a oportunidade herda a do contato.
+- Valores em `Decimal(14,2)`; a API devolve numero.
+- Diagnostico para oportunidade e IA SDR para lead e oportunidade: id deterministico e transacao, sem duplicar.
+
+### Impacto no banco
+- Colunas `wonAt`, `lostAt`, `stageChangedAt`, `value` em `Decimal(14,2)` e tabela `OpportunityStageHistory` (migration `20261031220000_opportunity_integrity`, com preenchimento dos registros existentes).
+
+## Funcionalidade: Erros da API (V2-1.3)
+
+### Regras de negocio
+- Corpo unico: `{ error, code, fields? }`. Codigos: `BAD_REQUEST` 400, `UNAUTHENTICATED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404, `CONFLICT` 409, `UNPROCESSABLE` 422, `RATE_LIMITED` 429, `INTERNAL` 500, `UPSTREAM_FAILED` 502.
+- Erro inesperado: 500 `{ error: "Erro inesperado. Tente novamente.", code: "INTERNAL" }` e uma linha JSON no log com rota e tipo do erro.
+- O log oculta chaves, tokens, e-mails e URLs com credencial; de erros do Prisma registra apenas tipo e codigo.
+
+## Funcionalidade: Meu Dia e Metas (V2-2.1)
+
+### Descricao geral
+Pagina inicial apos o login (`/meu-dia`): central diaria com a meta do mes e as pendencias comerciais, sempre com dados reais.
+
+### Paginas envolvidas
+- `/meu-dia`; `GET /api/meu-dia` devolve os mesmos indicadores; `PUT /api/goals` grava metas.
+
+### Regras de negocio
+- Datas no fuso `America/Sao_Paulo`: o mes e o dia sao os de Brasilia. Dias uteis: segunda a sexta, sem feriados.
+- Vendedor: proprias oportunidades e meta individual. Gestor e administrador: organizacao inteira e meta da equipe.
+- Faturamento: soma de `value` das ganhas com `wonAt` no mes. Conversao: ganhas ÷ (ganhas + perdidas) no mes, por `wonAt`/`lostAt`. Ticket: faturamento ÷ ganhas.
+- Ideal de hoje: meta × dias uteis decorridos (incluindo hoje) ÷ dias uteis do mes. Projecao: faturamento ÷ dias uteis decorridos × total. Por dia util: restante ÷ dias uteis restantes (incluindo hoje).
+- Esfriando: aberta com `stageChangedAt` ha mais de 14 dias. Fechamento vencido: aberta com `expectedClose` antes de hoje.
+- Tarefas: dos planos de acao, pendentes ou em andamento, com vencimento ate hoje.
+- Blocos sem modulo pronto (reunioes, follow-ups, fechamento do dia, SALEIA) mostram "em breve", nunca dados ficticios.
+
+### Metas
+- `SalesGoal`: uma por organizacao, mes (`AAAA-MM`) e escopo (`ORG` ou id do vendedor).
+- Gestor ou administrador define pelo dialogo do Meu Dia; valor vazio remove. Vendedor recebe 403.
+- Meta individual so para membro da organizacao (404 caso contrario). Mes invalido ou valor menor que 0,01: 400.
+- Salvar e remover gravam `goal.saved`/`goal.removed` no `AuditLog`.
+
+### Impacto no banco
+- Tabela `sales_goals` (migration `20261101000000_sales_goals`).
+
+### Impacto no frontend
+- Cabecalho global com titulo, cliente ativo e menu do usuario (Sair); menu lateral reorganizado e filtrado pelo papel (`lib/navigation.ts`).

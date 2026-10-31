@@ -1,5 +1,27 @@
 # CHANGELOG — SalesOS
 
+## [V.1.17.1] — 2026-10-31
+
+### Documentacao
+- Criado `docs/GUIA_DE_USO.md`: papeis e permissoes, Meu Dia (com a formula de cada indicador), metas e regras das negociacoes, para quem usa o sistema.
+- Criado `README.md` na raiz: indice da documentacao.
+- `apps/web/README.md` reescrito: telas atuais, seguranca, estrutura, comandos e testes.
+- `docs/DEPLOY.md`: checklist antes e depois de publicar, imagem anterior mantida para reverter, SQL testado para vincular usuario a um cliente com papel, erros no log.
+- `docs/ARCHITECTURE.md`: rotas reais dos modulos, testes e CI, novas decisoes tecnicas.
+- `docs/SPEC.md`: regras de papeis, integridade comercial, erros da API, Meu Dia e metas.
+- `docs/CURRENT_STATE.md`: retrato atual da producao e do codigo, estrutura e pendencias revisadas.
+- `main` alinhada com `feat/saleos-v2`, o codigo em producao.
+- Nenhum codigo foi alterado.
+
+**Arquivos criados:**
+- `README.md`
+- `docs/GUIA_DE_USO.md`
+
+**Arquivos alterados:**
+- `apps/web/README.md`
+- `docs/DEPLOY.md`, `docs/ARCHITECTURE.md`, `docs/SPEC.md`, `docs/CURRENT_STATE.md`
+- `CLAUDE.md`, `CHANGELOG.md`
+
 ## [V.1.17.0] — 2026-10-31 (publicada em producao, imagem `salesos-web:7`)
 
 ### Tarefa V2-2.1 — Meu Dia, cabecalho global e metas

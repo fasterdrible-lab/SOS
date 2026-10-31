@@ -16,9 +16,11 @@ SalesOS
 │   ├── lib/           → Utilitários, auth, db client
 │   ├── hooks/         → React hooks
 │   ├── scripts/       → Scripts operacionais (create-admin)
+│   ├── tests/         → Testes unitários (*.test.mjs) e de integração (*.integration.mjs)
 │   └── prisma/
 │       ├── schema.prisma  → Schema do banco
 │       └── migrations/    → Migrations
+├── .github/workflows/ → CI (lint, tipos, testes, build)
 ├── deploy/            → Compose, nginx e backup de produção
 └── docs/              → Documentação
 ```
@@ -29,26 +31,31 @@ SalesOS
 |--------|-----------|
 | Framework | Next.js 16 (App Router) |
 | Linguagem | TypeScript |
-| Estilização | Tailwind CSS + Shadcn UI |
+| Estilização | Tailwind CSS v4 + Shadcn UI (base-ui) |
 | Banco | PostgreSQL 15+ |
 | ORM | Prisma 7 |
 | Vetores | pgvector (planejado; ainda não usado nem instalado em produção) |
-| Auth | NextAuth v5 (Auth.js) |
+| Auth | NextAuth v5 (Auth.js), sessão JWT revalidada no banco |
+| Validação | Zod |
+| Testes | `node:test` (sem dependência extra) e GitHub Actions |
 | IA | Anthropic Claude API |
 | Deploy | VPS 200.141.20.162: Docker (app + PostgreSQL) atrás do nginx, em `/opt/salesos` |
 
 ## Estrutura de Módulos
 
 ```
-Módulo 1 — Diagnóstico Comercial    → /app/(app)/diagnostico
-Módulo 2 — CRM Inteligente          → /app/(app)/crm
-Módulo 3 — IA SDR                   → /app/(app)/sdr
-Módulo 4 — Consultor Digital        → /app/(app)/consultor
-Módulo 5 — Plano de Ação            → /app/(app)/planos
-Módulo 6 — Dashboard Executivo      → /app/(app)/dashboard
-Módulo 7 — Dashboard Consultoria    → /app/(app)/clientes
-Módulo 8 — Academia Comercial       → /app/(app)/academia
+Meu Dia (página inicial)            → /meu-dia
+Módulo 1 — Diagnóstico Comercial    → /diagnostico
+Módulo 2 — CRM Inteligente          → /empresas, /contatos, /pipeline (Negociações)
+Módulo 3 — IA SDR                   → /sdr (console) e /sdr/[organizationId] (widget público)
+Módulo 4 — Consultor Digital        → /consultor
+Módulo 5 — Plano de Ação            → /planos
+Módulo 6 — Dashboard Executivo      → /dashboard
+Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
+Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
+
+Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): Clientes 360°, Atividades, SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -142,6 +149,14 @@ App: 30 mensagens do lead por conversa e 300 por organização em 24h
 Acima disso: 429, sem chamar a IA
 ```
 
+### Testes e CI
+```
+npm run check             -> lint + tsc + testes unitarios (regras puras: permissoes, etapas, calendario, metas, erros)
+npm run test:integration  -> HTTP contra o app em localhost:3100 e o banco local; recusa rodar fora de localhost
+Cada suite cria registros com prefixo proprio e os apaga ao final
+GitHub Actions: os dois, mais migrations e build, em PostgreSQL temporario, a cada push
+```
+
 ### Backup
 ```
 Timer diário → pg_dump validado → 14 dias em /var/backups/salesos
@@ -165,3 +180,7 @@ Consultor pertence a N organizações (OrganizationMember, N:N)
 | Prisma | DX superior, type-safe, migrations simples |
 | VPS própria para app e PostgreSQL | Definido pelo usuário em 2026-10-30; compartilhada com o SALE-IA |
 | Tailwind + Shadcn | Velocidade de desenvolvimento, customizável |
+| Papéis no banco, não no JWT | Remover membro ou trocar papel vale na hora (V2-1.1) |
+| `Decimal(14,2)` em valores de oportunidade e meta | Somas de faturamento sem erro de arredondamento (V2-1.2) |
+| Fuso `America/Sao_Paulo` nas datas de negócio | O servidor roda em UTC; "hoje" e "este mês" são do cliente (V2-2.1) |
+| `node:test` em vez de Jest/Vitest | Nenhuma dependência nova; tipos removidos pelo próprio Node 24 (V2-1.3) |

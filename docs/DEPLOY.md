@@ -10,7 +10,7 @@ Guia para quem opera o ambiente de produção. Nenhum segredo fica neste reposit
 | Servidor | VPS `200.141.20.162`, Ubuntu, compartilhada com a produção do SALE-IA |
 | Acesso | `ssh -i ~/.ssh/saleia_vps root@200.141.20.162` |
 | Pasta | `/opt/salesos` |
-| App | Container `salesos-web-1`, em `127.0.0.1:3010` |
+| App | Container `salesos-web-1`, em `127.0.0.1:3010`. Versão em uso: `WEB_TAG` em `/opt/salesos/.env` (ver `docs/CURRENT_STATE.md`) |
 | Banco | Container `salesos-db-1`, PostgreSQL 16, sem porta publicada (volume `salesos_db_data`) |
 | Proxy e HTTPS | nginx (`/etc/nginx/sites-available/saleos`) e certbot, com renovação automática |
 | DNS | Hostinger: `A @` → `200.141.20.162` e `CNAME www` → `saleos.tech` |
@@ -32,6 +32,21 @@ Existem só na VPS, com permissão 600: `.env` (segredos do app), `offsite.env` 
 
 ## Publicar uma nova versão
 
+Publicar exige autorização explícita do usuário a cada vez.
+
+### Antes
+
+1. O CI do commit está verde no GitHub (Actions): lint, tipos, testes unitários, build e testes de integração.
+2. Veja se há migration nova em `apps/web/prisma/migrations` e se ela altera dados existentes.
+3. Faça um backup na VPS e confira o resultado:
+
+```bash
+systemctl start salesos-backup.service
+journalctl -u salesos-backup.service -n 4 --no-pager    # "Backup concluido" e "Copia externa concluida"
+```
+
+### Gerar e enviar a imagem
+
 Na máquina de desenvolvimento, com `<N>` igual à versão atual (`WEB_TAG` em `/opt/salesos/.env`) mais 1:
 
 ```bash
@@ -48,12 +63,20 @@ sed -i 's/^WEB_TAG=.*/WEB_TAG=<N>/' .env
 # Somente se houver migration nova:
 docker compose run --rm --no-deps web npx prisma migrate deploy </dev/null
 docker compose up -d web
-docker rmi salesos-web:<N-1>
+# Mantenha <N-1> para reverter; remova a anterior a ela:
+docker rmi salesos-web:<N-2>
 ```
+
+### Depois
+
+- `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3010/login` responde 200 e `docker compose logs web --tail 5` mostra `Ready`.
+- `https://saleos.tech/meu-dia` sem sessão redireciona para o login, e `https://www.saleos.tech` para o domínio principal.
+- O SALE-IA continua respondendo: `curl -s -A Mozilla https://api.saleia.app.br/health`.
+- Registre a versão publicada em `docs/CURRENT_STATE.md`, `docs/TASKS.md` e `CHANGELOG.md`.
 
 Em scripts, use `</dev/null` nos comandos `docker compose run` e `exec`: sem isso, eles consomem a entrada padrão e os comandos seguintes não rodam.
 
-**Reverter:** mantenha a imagem anterior antes do `docker rmi`, volte `WEB_TAG` e rode `docker compose up -d web`. Se a versão tiver aplicado migration, confira a compatibilidade do banco antes.
+**Reverter:** volte `WEB_TAG` para `<N-1>` e rode `docker compose up -d web`. As migrations do Prompt Mestre V2 só acrescentam estruturas, então a versão anterior roda no banco novo. Se uma migration futura remover ou alterar dados, restaure o backup feito antes da publicação.
 
 ## Usuários
 
@@ -63,7 +86,37 @@ O app não tem cadastro público. Para criar um usuário ou redefinir a senha, r
 ssh -t -i ~/.ssh/saleia_vps root@200.141.20.162 'cd /opt/salesos; read -rp Senha: P; docker compose run --rm --no-deps -e ADMIN_EMAIL=email@exemplo.com -e ADMIN_PASSWORD=$P web node scripts/create-admin.mjs'
 ```
 
-Um usuário novo começa sem organização. Ele precisa criar um cliente em `/clientes`; até lá, o app mostra um aviso e recusa cadastros.
+O script cria o usuário com o nome "Admin" e sem vínculo com nenhum cliente. Sem vínculo, ele pode criar o próprio cliente em `/clientes` e vira administrador dele; até lá, o app mostra um aviso e recusa cadastros.
+
+### Colocar um usuário em um cliente, com papel
+
+Ainda não há tela de convite (Tarefa V2-9.1). Até lá, depois de criar o usuário com o comando acima, abra o banco:
+
+```powershell
+ssh -t -i ~/.ssh/saleia_vps root@200.141.20.162 'cd /opt/salesos; docker compose exec db psql -U salesos -d salesos'
+```
+
+```sql
+-- Clientes existentes
+SELECT name, slug FROM organizations ORDER BY name;
+
+-- Nome exibido no cabecalho
+UPDATE users SET name = 'Nome Sobrenome' WHERE email = 'email@exemplo.com';
+
+-- Vincula ou troca o papel: CONSULTANT ou ADMIN (administrador), MANAGER (gestor), MEMBER (vendedor)
+INSERT INTO organization_members (id, "organizationId", "userId", role)
+SELECT gen_random_uuid()::text, o.id, u.id, 'MEMBER'
+FROM organizations o, users u
+WHERE o.slug = 'slug-do-cliente' AND u.email = 'email@exemplo.com'
+ON CONFLICT ("organizationId", "userId") DO UPDATE SET role = EXCLUDED.role;
+
+-- Remove o acesso a um cliente
+DELETE FROM organization_members m USING organizations o, users u
+WHERE m."organizationId" = o.id AND m."userId" = u.id
+  AND o.slug = 'slug-do-cliente' AND u.email = 'email@exemplo.com';
+```
+
+A sessão relê vínculo e papel do banco a cada requisição: as mudanças valem na hora, sem novo login. O que cada papel pode fazer está em `docs/GUIA_DE_USO.md`.
 
 ## Backups
 
@@ -112,6 +165,7 @@ Esse caminho completo ainda não foi executado. A restauração de um arquivo cr
 cd /opt/salesos
 docker compose ps
 docker compose logs web --tail 50
+docker compose logs web --since 24h | grep '"level":"error"'   # erros registrados pela API
 nginx -t
 tail -50 /var/log/nginx/access.log
 certbot certificates
@@ -121,5 +175,6 @@ certbot certificates
 |---|---|
 | "Usuario sem permissao" ao cadastrar | Sessão sem cliente ativo: crie ou acesse um em `/clientes` |
 | 429 no widget do IA SDR | Limite de 30 mensagens por conversa, 300 por organização em 24h, ou 12 requisições por minuto por IP (rajada de 10) |
-| 502 no IA SDR ou no Consultor | A Anthropic recusou a chamada: confira a chave em `/configuracoes` |
-| 404 em `/academia` | Módulo 8 ainda não construído |
+| 502 no IA SDR ou no Consultor | A Anthropic recusou a chamada: o log mostra o status (`Anthropic API respondeu 401`); confira a chave em `/configuracoes` |
+| "Acesso restrito" ou 403 | O papel do usuário não tem a permissão (ver `docs/GUIA_DE_USO.md`) |
+| Erro 500 com `code: INTERNAL` | Procure a linha com `"level":"error"` no log: ela traz a rota (`scope`) e o tipo do erro |

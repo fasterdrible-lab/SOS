@@ -1,0 +1,73 @@
+# Guia de uso do SalesOS
+
+Para quem usa o sistema no dia a dia: consultores, gestores e vendedores. A operação do servidor está em `DEPLOY.md`.
+
+Endereço: https://saleos.tech
+
+## Primeiro acesso
+
+1. O administrador cria o seu usuário (não há cadastro público).
+2. Depois de entrar, você cai no **Meu Dia**.
+3. Se aparecer o aviso "Nenhum cliente ativo", crie um cliente em **Meus Clientes**. Todo dado (empresas, negociações, metas) pertence a um cliente.
+
+Para sair, clique no seu nome no canto superior direito e escolha **Sair**. No mesmo menu, **Trocar de cliente** leva a Meus Clientes.
+
+## Papéis
+
+Cada pessoa tem um papel em cada cliente. Uma mudança de papel vale na hora, sem precisar entrar de novo.
+
+| O que | Administrador | Gestor | Vendedor |
+|---|:-:|:-:|:-:|
+| Meu Dia, Dashboard, Empresas, Contatos, Diagnóstico | ✓ | ✓ | ✓ |
+| Negociações | todas | todas | só as próprias |
+| Criar e mover negociações | ✓ | ✓ | só as próprias |
+| Reabrir negociação ganha ou perdida | ✓ | ✓ | — |
+| Definir metas | ✓ | ✓ | — |
+| Criar planos de ação e tarefas | ✓ | ✓ | — |
+| Atualizar status de tarefas | ✓ | ✓ | ✓ |
+| IA SDR e Consultor Digital | ✓ | ✓ | — |
+| Configurações (chaves de IA) | ✓ | — | — |
+| Criar novos clientes | ✓ | — | — |
+
+Quem cria um cliente vira administrador dele. Itens que o seu papel não pode abrir não aparecem no menu.
+
+Por enquanto, colocar outra pessoa em um cliente ou mudar o papel dela é feito pelo responsável técnico (`DEPLOY.md`, "Colocar um usuário em um cliente"). A tela de convites vem na fase de Configurações.
+
+## Meu Dia
+
+Mostra o mês corrente no horário de Brasília. O vendedor vê os próprios números e a própria meta; gestor e administrador veem o cliente inteiro e a meta da equipe.
+
+| Bloco | O que mostra |
+|---|---|
+| Meta do mês | Faturado no mês (negociações ganhas) comparado com a meta, com a barra de progresso e a marca do ideal de hoje |
+| Ideal hoje | Meta proporcional aos dias úteis já passados (segunda a sexta, sem feriados) |
+| Projeção | Faturado ÷ dias úteis passados × dias úteis do mês |
+| Por dia útil para bater | O que falta ÷ dias úteis restantes, contando hoje |
+| Conversão no mês | Ganhas ÷ (ganhas + perdidas) no mês |
+| Ticket médio | Faturado no mês ÷ número de vendas |
+| Vendas de hoje | Negociações ganhas hoje |
+| Propostas aguardando resposta | Negociações na etapa Proposta, das mais antigas para as mais novas |
+| Negociações esfriando | Abertas há mais de 14 dias sem mudar de etapa |
+| Fechamento previsto vencido | Abertas com data prevista de fechamento já passada |
+| Tarefas atrasadas e de hoje | Tarefas pendentes dos planos de ação |
+| Leads quentes do IA SDR | Conversas qualificadas ainda não vistas (gestor e administrador) |
+
+Reuniões, follow-ups, fechamento do dia e recomendações da SALEIA aparecem como "em breve" até os módulos correspondentes ficarem prontos. Nenhum número é inventado.
+
+### Definir metas
+
+Gestor ou administrador: no Meu Dia, clique em **Definir metas** (ou **Editar metas**) no cartão da meta. Informe a meta da equipe e, se quiser, a de cada pessoa. Deixar um campo em branco remove a meta. Toda alteração fica registrada.
+
+## Negociações
+
+- Mude a etapa pelo seletor do cartão.
+- Para marcar como **Perdida**, o sistema pede o motivo antes de salvar. O motivo aparece no cartão e fica no histórico.
+- A data do ganho ou da perda é registrada no momento da mudança e é usada pelo Meu Dia e pelo Dashboard.
+- Reabrir uma negociação ganha ou perdida é permitido só para gestor e administrador.
+- Toda mudança de etapa fica no histórico, com quem mudou e quando.
+- Se duas pessoas mudarem a mesma negociação ao mesmo tempo, a segunda recebe o aviso para atualizar a página.
+- Ao escolher um contato ligado a uma empresa, a negociação fica nessa empresa. Um contato de outra empresa é recusado.
+
+## O que ainda não existe
+
+Busca global, notificações e tema claro (próxima tarefa); Clientes 360°; Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.
