@@ -60,8 +60,6 @@ Gestor ou administrador: no Meu Dia, clique em **Definir metas** (ou **Editar me
 
 ## Dashboard
 
-A partir da versão 1.19.0 (ainda não publicada em https://saleos.tech).
-
 No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este ano). Gestor e administrador também escolhem um vendedor; o vendedor vê só os próprios números. Cada indicador é comparado ao período anterior do mesmo tamanho: em "este mês", com os mesmos dias do mês passado.
 
 | Bloco | O que mostra |

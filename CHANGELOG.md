@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.19.0] — 2026-11-02 (nao publicada)
+## [V.1.19.0] — 2026-11-02 (publicada em producao, imagem `salesos-web:9`)
 
 ### Tarefa V2-3 — Dashboard Executivo
 - `/dashboard` reescrito: faturamento com grafico diario, "no ritmo, o mes fecha" (contra a media dos 3 meses anteriores), vendas ganhas, ticket medio e taxa de ganho, cada um com a variacao sobre o periodo anterior equivalente.

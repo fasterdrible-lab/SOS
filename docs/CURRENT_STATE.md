@@ -1,14 +1,14 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.18.0 em producao (`salesos-web:8`)
+**Versao atual:** V.1.19.0 em producao (`salesos-web:9`)
 **Data:** 2026-11-02
-**Fase:** Prompt Mestre V2 - FASES V2-1 e V2-2 publicadas; V2-3 concluida no codigo (V.1.19.0, nao publicada); proxima: V2-4
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 publicadas; proxima: V2-4
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`. A producao roda o codigo ate a V.1.18.0; a V2-3 (V.1.19.0) ainda nao foi commitada nem publicada.
-- **Producao:** imagem `salesos-web:8` desde 2026-11-02, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:7` mantida na VPS para reverter. 5 migrations aplicadas (a V2-2.2 nao tem migration).
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Producao:** imagem `salesos-web:9` desde 2026-11-02, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:8` mantida na VPS para reverter. 5 migrations aplicadas (V2-2.2 e V2-3 nao tem migration).
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -16,9 +16,9 @@
   - V2-1.3: lint zerado, erros da API padronizados, logs seguros e CI no GitHub Actions.
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
-  - V2-3 (nao publicada): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+  - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
 - **Testes:** 62 unitarios e 77 de integracao; o CI roda todos a cada push.
-- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261102-172520`, antes da publicacao da V2-2.2), `www.saleos.tech` com certificado.
+- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261102-180843`, antes da publicacao da V2-3), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 ## Historico anterior ao Prompt Mestre V2
@@ -224,7 +224,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-3** - Dashboard Executivo: filtros de periodo e vendedor, faturamento, ritmo do mes, funil, saude do pipeline, metas, time, origem e motivos de perda. 139 testes automatizados. Nao publicada.
+**Tarefa V2-3** - Dashboard Executivo: filtros de periodo e vendedor, faturamento, ritmo do mes, funil, saude do pipeline, metas, time, origem e motivos de perda. 139 testes automatizados. Publicada em 2026-11-02 (`salesos-web:9`).
 
 **Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Publicada em 2026-11-02 (`salesos-web:8`).
 
@@ -255,7 +255,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Publicar a V2-3, com autorizacao (`docs/DEPLOY.md`).
 - Seguir as FASES V2-4 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
