@@ -37,7 +37,7 @@ export default async function ConsultorPage() {
       <main className="flex-1 p-6">
         <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-3xl flex-col space-y-4">
           <div>
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold text-foreground">
               Consultor Digital
             </h1>
             <p className="text-sm text-muted-foreground">

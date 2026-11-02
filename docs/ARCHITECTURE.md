@@ -118,6 +118,17 @@ Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias ut
 Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /api/goals
 ```
 
+### Cabecalho: busca, notificacoes e tema
+```
+Busca: GET /api/search?q= -> globalSearch (lib/search) por permissao do papel
+  negociacoes (opportunityScope), empresas, contatos, planos | 5 por grupo, contains sem maiusculas
+Notificacoes: GET /api/notifications -> getHeaderNotifications (lib/notifications)
+  contagens com os criterios do Meu Dia; sem tabela, somem quando a pendencia e resolvida
+  o layout entrega a primeira contagem; o sino atualiza ao trocar de pagina e no foco da janela
+Tema: cookie salesos-theme lido no layout raiz -> classe .dark no <html> (padrao: escuro)
+  :root = claro, .dark = escuro (globals.css); paginas usam tokens, nunca cores fixas de um tema
+```
+
 ### Erros da API
 ```
 Handler exportado = withApiErrors("METODO /caminho", handler)
@@ -184,3 +195,5 @@ Consultor pertence a N organizações (OrganizationMember, N:N)
 | `Decimal(14,2)` em valores de oportunidade e meta | Somas de faturamento sem erro de arredondamento (V2-1.2) |
 | Fuso `America/Sao_Paulo` nas datas de negócio | O servidor roda em UTC; "hoje" e "este mês" são do cliente (V2-2.1) |
 | `node:test` em vez de Jest/Vitest | Nenhuma dependência nova; tipos removidos pelo próprio Node 24 (V2-1.3) |
+| Tema por cookie lido no servidor, sem `next-themes` | Página chega no tema certo, sem piscar e sem dependência nova (V2-2.2) |
+| Notificações derivadas, sem tabela | Nunca ficam desatualizadas em relação ao dado; "marcar como lida" fica para quando houver eventos (V2-2.2) |

@@ -121,8 +121,8 @@ export default async function MeuDiaPage() {
 
   return (
     <main className="flex-1 space-y-4 p-4 sm:p-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-white/5 bg-card px-4 py-3">
-        <p className="text-sm text-white">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-xl border border-foreground/5 bg-card px-4 py-3">
+        <p className="text-sm text-foreground">
           <span className="font-semibold">Ações do dia</span>
           <span className="ml-2 text-muted-foreground">{longDate.format(now)}</span>
         </p>
@@ -132,10 +132,10 @@ export default async function MeuDiaPage() {
       </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5" aria-label="Indicadores do mês">
-        <Card className="border-white/5 bg-card py-0 md:col-span-2">
+        <Card className="border-foreground/5 bg-card py-0 md:col-span-2">
           <CardContent className="space-y-3 p-5">
             <div className="flex items-start justify-between gap-3">
-              <p className="text-[11px] font-medium uppercase tracking-widest text-[#D4A64F]">
+              <p className="text-[11px] font-medium uppercase tracking-widest text-gold-fg">
                 {summary.scope === "OWN" ? "Sua meta de " : "Meta de "}
                 {month}
               </p>
@@ -150,7 +150,7 @@ export default async function MeuDiaPage() {
             </div>
 
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-              <span className="text-3xl font-semibold tracking-tight text-white">
+              <span className="text-3xl font-semibold tracking-tight text-foreground">
                 {brl.format(goal.revenue)}
               </span>
               <span className="text-sm text-muted-foreground">
@@ -251,15 +251,15 @@ export default async function MeuDiaPage() {
           {summary.tasks.items.length === 0 ? (
             <EmptyLine>Nada vencido nem vencendo hoje.</EmptyLine>
           ) : (
-            <ul className="divide-y divide-white/5">
+            <ul className="divide-y divide-foreground/5">
               {summary.tasks.items.map((task) => (
                 <li key={task.id}>
                   <Link
                     href={`/planos/${task.planId}`}
-                    className="flex items-start justify-between gap-3 py-2.5 hover:text-white"
+                    className="flex items-start justify-between gap-3 py-2.5 hover:text-foreground"
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-sm text-white">{task.title}</span>
+                      <span className="block truncate text-sm text-foreground">{task.title}</span>
                       <span className="block truncate text-xs text-muted-foreground">
                         {task.planTitle}
                       </span>
@@ -267,7 +267,7 @@ export default async function MeuDiaPage() {
                     <span
                       className={cn(
                         "shrink-0 text-xs",
-                        task.overdue ? "text-red-300" : "text-[#D4A64F]"
+                        task.overdue ? "text-red-700 dark:text-red-300" : "text-gold-fg"
                       )}
                     >
                       {task.overdue
@@ -286,7 +286,7 @@ export default async function MeuDiaPage() {
             {summary.hotLeads === 0 ? (
               <EmptyLine>Nenhum lead qualificado novo.</EmptyLine>
             ) : (
-              <Link href="/sdr" className="block py-1 text-sm text-white hover:text-[#D4A64F]">
+              <Link href="/sdr" className="block py-1 text-sm text-foreground hover:text-gold-fg">
                 {summary.hotLeads === 1
                   ? "1 lead qualificado ainda não visto"
                   : `${summary.hotLeads} leads qualificados ainda não vistos`}{" "}
@@ -314,11 +314,11 @@ export default async function MeuDiaPage() {
       </section>
 
       <section aria-label="Inteligência SALEIA">
-        <Card className="border-dashed border-white/10 bg-transparent py-0">
+        <Card className="border-dashed border-foreground/10 bg-transparent py-0">
           <CardContent className="flex items-start gap-3 p-5">
-            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[#D4A64F]" />
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-gold-fg" />
             <div className="space-y-1">
-              <p className="text-sm font-medium text-white">Recomendações da SALEIA</p>
+              <p className="text-sm font-medium text-foreground">Recomendações da SALEIA</p>
               <p className="text-sm text-muted-foreground">
                 A integração com a SALEIA ainda não está conectada. Quando estiver, as
                 recomendações das reuniões aparecem aqui com origem, data e evidência.
@@ -336,7 +336,7 @@ function GoalBar({ percent: value, idealPercent }: { percent: number; idealPerce
 
   return (
     <div
-      className="relative h-2 w-full rounded-full bg-white/10"
+      className="relative h-2 w-full rounded-full bg-foreground/10"
       role="progressbar"
       aria-label="Progresso da meta"
       aria-valuemin={0}
@@ -349,7 +349,7 @@ function GoalBar({ percent: value, idealPercent }: { percent: number; idealPerce
       />
       {idealPercent !== null && (
         <div
-          className="absolute -top-1 h-4 w-0.5 rounded bg-white/70"
+          className="absolute -top-1 h-4 w-0.5 rounded bg-foreground/70"
           style={{ left: `calc(${clamp(idealPercent)}% - 1px)` }}
           title="Ideal para hoje"
           aria-hidden
@@ -363,13 +363,13 @@ function GoalStatus({ gap }: { gap: number | null }) {
   if (gap === null) return null
   if (gap > 0) {
     return (
-      <p className="text-sm font-medium text-red-300">
+      <p className="text-sm font-medium text-red-700 dark:text-red-300">
         Faltam {brl.format(gap)} para o ideal de hoje
       </p>
     )
   }
   return (
-    <p className="text-sm font-medium text-emerald-300">
+    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
       {gap === 0 ? "No ritmo ideal de hoje" : `${brl.format(-gap)} acima do ideal de hoje`}
     </p>
   )
@@ -377,12 +377,12 @@ function GoalStatus({ gap }: { gap: number | null }) {
 
 function StatCard({ title, value, detail }: { title: string; value: string; detail: string }) {
   return (
-    <Card className="border-white/5 bg-card py-0">
+    <Card className="border-foreground/5 bg-card py-0">
       <CardContent className="space-y-2 p-5">
         <p className="text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
           {title}
         </p>
-        <p className="text-2xl font-semibold tracking-tight text-white">{value}</p>
+        <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
         <p className="text-xs text-muted-foreground">{detail}</p>
       </CardContent>
     </Card>
@@ -401,11 +401,11 @@ function PanelCard({
   children: React.ReactNode
 }) {
   return (
-    <Card className="border-white/5 bg-card py-0">
+    <Card className="border-foreground/5 bg-card py-0">
       <CardContent className="space-y-2 p-5">
         <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-[#D4A64F]" />
-          <h2 className="text-sm font-semibold text-white">{title}</h2>
+          <Icon className="h-4 w-4 text-gold-fg" />
+          <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         </div>
         {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
         {children}
@@ -440,25 +440,25 @@ function OpportunityCard({
       {list.items.length === 0 ? (
         <EmptyLine>{empty}</EmptyLine>
       ) : (
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-foreground/5">
           {list.items.map((item) => (
             <li key={item.id}>
               <Link
                 href="/pipeline"
-                className="flex items-start justify-between gap-3 py-2.5 hover:text-white"
+                className="flex items-start justify-between gap-3 py-2.5 hover:text-foreground"
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm text-white">{item.title}</span>
+                  <span className="block truncate text-sm text-foreground">{item.title}</span>
                   <span
                     className={cn(
                       "block truncate text-xs",
-                      tone === "alert" ? "text-red-300" : "text-muted-foreground"
+                      tone === "alert" ? "text-red-700 dark:text-red-300" : "text-muted-foreground"
                     )}
                   >
                     {[item.companyName, describe(item)].filter(Boolean).join(" · ")}
                   </span>
                 </span>
-                <span className="shrink-0 text-sm font-medium text-[#D4A64F]">
+                <span className="shrink-0 text-sm font-medium text-gold-fg">
                   {brlShort.format(item.value)}
                 </span>
               </Link>
@@ -467,7 +467,7 @@ function OpportunityCard({
         </ul>
       )}
       {list.total > list.items.length && (
-        <Link href="/pipeline" className="block pt-1 text-xs text-[#D4A64F] hover:underline">
+        <Link href="/pipeline" className="block pt-1 text-xs text-gold-fg hover:underline">
           Ver todas as {list.total} no pipeline
         </Link>
       )}
@@ -477,7 +477,7 @@ function OpportunityCard({
 
 function UpcomingCard({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
   return (
-    <Card className="border-dashed border-white/10 bg-transparent py-0">
+    <Card className="border-dashed border-foreground/10 bg-transparent py-0">
       <CardContent className="space-y-1 p-5">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-muted-foreground" />

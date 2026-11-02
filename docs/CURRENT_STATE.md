@@ -1,13 +1,13 @@
 # CURRENT_STATE.md - SalesOS
 
 **Versao atual:** V.1.17.0 em producao (`salesos-web:7`); documentacao em V.1.17.1
-**Data:** 2026-10-31
-**Fase:** Prompt Mestre V2 - FASE V2-1 concluida e V2-2.1 publicadas; proxima: V2-2.2
+**Data:** 2026-11-02
+**Fase:** Prompt Mestre V2 - FASE V2-1 e V2-2.1 publicadas; V2-2.2 concluida no codigo (V.1.18.0, nao publicada); proxima: V2-3
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Codigo:** branch `feat/saleos-v2`. A producao roda o codigo ate a V.1.17.1; a V2-2.2 (V.1.18.0) ainda nao foi publicada nem enviada ao GitHub.
 - **Producao:** imagem `salesos-web:7`, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:6` mantida na VPS para reverter. 5 migrations aplicadas.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
@@ -15,7 +15,8 @@
   - V2-1.2: historico de etapas, datas reais de ganho e perda, motivo de perda, reabertura restrita, valores em `Decimal`, criacao idempotente.
   - V2-1.3: lint zerado, erros da API padronizados, logs seguros e CI no GitHub Actions.
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
-- **Testes:** 41 unitarios e 54 de integracao; o CI roda todos a cada push.
+  - V2-2.2 (nao publicada): busca global, notificacoes e tema claro no cabecalho.
+- **Testes:** 49 unitarios e 66 de integracao; o CI roda todos a cada push.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261031-222533`), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -134,6 +135,16 @@ apps/web/app/(app)/meu-dia/page.tsx               -> pagina Meu Dia
 apps/web/app/(app)/meu-dia/goal-dialog.tsx        -> dialogo de metas da equipe e por vendedor
 apps/web/app/api/meu-dia/route.ts                 -> indicadores do Meu Dia em JSON
 apps/web/app/api/goals/route.ts                   -> grava e remove metas (auditado)
+apps/web/lib/theme.ts                             -> tema claro/escuro (cookie `salesos-theme`, escuro por padrao)
+apps/web/components/theme-toggle.tsx              -> botao de tema do cabecalho
+apps/web/lib/notifications/build.ts               -> lista de notificacoes a partir das contagens (regra pura)
+apps/web/lib/notifications/summary.ts             -> contagens das notificacoes por papel
+apps/web/components/notifications-menu.tsx        -> sino com contador no cabecalho
+apps/web/app/api/notifications/route.ts           -> notificacoes em JSON
+apps/web/lib/search/query.ts                      -> normalizacao e limites do termo de busca
+apps/web/lib/search/global-search.ts              -> busca por papel em negociacoes, empresas, contatos e planos
+apps/web/components/global-search.tsx             -> dialogo de busca (Ctrl+K)
+apps/web/app/api/search/route.ts                  -> busca global em JSON
 apps/web/tests/support.mjs                        -> cliente HTTP e travas de ambiente dos testes de integracao
 apps/web/tests/*.test.mjs                         -> testes unitarios (permissoes, etapas, erros, calendario, metas)
 apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, regras comerciais, erros, Meu Dia)
@@ -185,6 +196,9 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Meu Dia como pagina inicial, com indicadores reais por papel (V2-2.1)
 - [x] Metas mensais da equipe e por vendedor (V2-2.1)
 - [x] Cabecalho global com Sair e menu filtrado pelo papel (V2-2.1)
+- [x] Busca global no cabecalho, respeitando o papel (V2-2.2)
+- [x] Notificacoes derivadas no cabecalho (V2-2.2)
+- [x] Tema claro, escolhido pelo usuario (V2-2.2)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -204,6 +218,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Nao publicada.
+
 **Tarefa V2-2.1** - Tela Meu Dia como pagina inicial, cabecalho global com Sair, menu reorganizado por papel e metas mensais. 95 testes automatizados.
 
 **Tarefa V2-1.3** - Lint zerado, erros da API padronizados, logs seguros, CI no GitHub Actions. 69 testes automatizados.
@@ -231,12 +247,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir as FASES V2-2.2 a V2-10 (`docs/TASKS.md`).
+- Publicar a V2-2.2, com autorizacao (`docs/DEPLOY.md`).
+- Seguir as FASES V2-3 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-2.2: busca global, notificacoes e tema claro.
+Tarefa V2-3: Dashboard Executivo (inclui alinhar o mes do `/dashboard` ao fuso de Brasilia).
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

@@ -1,5 +1,27 @@
 # CHANGELOG — SalesOS
 
+## [V.1.18.0] — 2026-11-02 (nao publicada)
+
+### Tarefa V2-2.2 — Busca global, notificacoes e tema claro
+- **Busca global** no cabecalho, aberta tambem por `Ctrl+K`, `Cmd+K` ou `/`: negociacoes, empresas, contatos e planos de acao da organizacao ativa, navegavel pelo teclado. `GET /api/search?q=` exige 2 caracteres. Vendedor so encontra as proprias negociacoes.
+- **Notificacoes** no cabecalho: leads qualificados nao vistos (gestor e administrador), tarefas atrasadas, fechamentos vencidos e negociacoes esfriando, com os criterios do Meu Dia. Derivadas do estado atual, sem tabela nova. `GET /api/notifications`.
+- **Tema claro**: botao no cabecalho, preferencia guardada no cookie `salesos-theme` e aplicada pelo servidor, sem piscar. O escuro continua o padrao. Sem dependencia nova.
+- Cores fixas do tema escuro trocadas por tokens em 33 arquivos (`text-white` -> `text-foreground`, `border-white/N` -> `border-foreground/N`, dourado de texto -> `text-gold-fg`). Textos verdes, vermelhos e ambar ficam mais escuros no tema claro. No tema escuro, a aparencia nao muda.
+- Testes: `header-rules.test.mjs` (8) e `header.integration.mjs` (12).
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/lib/theme.ts`, `lib/notifications/build.ts`, `lib/notifications/summary.ts`, `lib/search/query.ts`, `lib/search/global-search.ts`
+- `apps/web/components/theme-toggle.tsx`, `components/notifications-menu.tsx`, `components/global-search.tsx`
+- `apps/web/app/api/notifications/route.ts`, `app/api/search/route.ts`
+- `apps/web/tests/header-rules.test.mjs`, `apps/web/tests/header.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/app/globals.css`, `app/layout.tsx`, `app/(app)/layout.tsx`, `components/app-header.tsx`, `lib/meu-dia/summary.ts` (exporta `OPEN_STAGES`)
+- Cores das paginas e componentes em `apps/web/app` e `apps/web/components` (apenas classes)
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.17.1] — 2026-10-31
 
 ### Documentacao

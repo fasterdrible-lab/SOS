@@ -21,7 +21,7 @@ export default async function SdrWidgetPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#1E1B3A] p-4">
+    <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <SdrChatWidget
         organizationId={organization.id}
         organizationName={organization.name}

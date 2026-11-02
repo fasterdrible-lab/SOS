@@ -78,16 +78,16 @@ export function IntegrationCard({
   }
 
   return (
-    <Card className="border-white/5 bg-card">
+    <Card className="border-foreground/5 bg-card">
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base text-white">{label}</CardTitle>
+          <CardTitle className="text-base text-foreground">{label}</CardTitle>
           <Badge
             variant="outline"
             className={
               maskedKey
-                ? "border-emerald-400/30 bg-emerald-400/10 text-[10px] text-emerald-400"
-                : "border-white/10 text-[10px] text-muted-foreground"
+                ? "border-emerald-400/30 bg-emerald-400/10 text-[10px] text-emerald-700 dark:text-emerald-400"
+                : "border-foreground/10 text-[10px] text-muted-foreground"
             }
           >
             {maskedKey ? "Configurado" : "Nao configurado"}
@@ -98,8 +98,8 @@ export function IntegrationCard({
         <p className="text-sm text-muted-foreground">{description}</p>
 
         {maskedKey ? (
-          <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
-            <p className="font-mono text-sm text-white">{maskedKey}</p>
+          <div className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3">
+            <p className="font-mono text-sm text-foreground">{maskedKey}</p>
             {updatedAt && (
               <p className="mt-1 text-xs text-muted-foreground">
                 Atualizada em{" "}
@@ -150,7 +150,7 @@ export function IntegrationCard({
                 </div>
 
                 {error && (
-                  <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+                  <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                     {error}
                   </div>
                 )}
@@ -182,7 +182,7 @@ export function IntegrationCard({
             <Button
               type="button"
               variant="ghost"
-              className="text-red-300 hover:text-red-200"
+              className="text-red-700 dark:text-red-300 hover:text-red-200"
               onClick={handleRemove}
               disabled={isRemoving}
             >

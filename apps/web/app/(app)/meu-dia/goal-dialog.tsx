@@ -110,7 +110,7 @@ export function GoalDialog({
           <Button
             variant="outline"
             size="sm"
-            className="border-[#D4A64F]/40 text-[#D4A64F] hover:bg-[#D4A64F]/10"
+            className="border-[#D4A64F]/40 text-gold-fg hover:bg-[#D4A64F]/10"
           />
         }
       >
@@ -152,7 +152,7 @@ export function GoalDialog({
             {members.map((member) => (
               <div key={member.userId} className="grid grid-cols-[1fr_9rem] items-center gap-3">
                 <Label htmlFor={`meta-${member.userId}`} className="flex flex-col items-start gap-0">
-                  <span className="truncate text-sm text-white">{member.name}</span>
+                  <span className="truncate text-sm text-foreground">{member.name}</span>
                   <span className="text-[11px] font-normal text-muted-foreground">
                     {member.roleLabel}
                   </span>
@@ -170,7 +170,7 @@ export function GoalDialog({
             ))}
           </div>
 
-          {error && <p className="text-sm text-red-300">{error}</p>}
+          {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
 
           <DialogFooter>
             <Button

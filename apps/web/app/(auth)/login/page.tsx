@@ -43,16 +43,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left — Brand panel */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-[#1A1735] p-12 border-r border-white/5">
+      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-sidebar p-12 border-r border-foreground/5">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-[#D4A64F] flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-[#1E1B3A]" />
           </div>
-          <span className="font-semibold text-white text-lg tracking-tight">SalesOS</span>
+          <span className="font-semibold text-foreground text-lg tracking-tight">SalesOS</span>
         </div>
 
         <div>
-          <blockquote className="text-2xl font-light text-white/90 leading-relaxed mb-6">
+          <blockquote className="text-2xl font-light text-foreground/90 leading-relaxed mb-6">
             &ldquo;Transformamos conhecimento de consultoria em software escalável.&rdquo;
           </blockquote>
           <div className="flex gap-8">
@@ -62,7 +62,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-white/30 text-sm">
+        <p className="text-foreground/30 text-sm">
           The Operating System for Revenue Growth
         </p>
       </div>
@@ -75,10 +75,10 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-[#D4A64F] flex items-center justify-center">
               <TrendingUp className="w-4 h-4 text-[#1E1B3A]" />
             </div>
-            <span className="font-semibold text-white">SalesOS</span>
+            <span className="font-semibold text-foreground">SalesOS</span>
           </div>
 
-          <h1 className="text-2xl font-semibold text-white mb-1">Entrar na plataforma</h1>
+          <h1 className="text-2xl font-semibold text-foreground mb-1">Entrar na plataforma</h1>
           <p className="text-muted-foreground text-sm mb-8">
             Acesse sua conta para continuar
           </p>
@@ -94,7 +94,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#D4A64F]"
+                className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-foreground/30 focus-visible:ring-[#D4A64F]"
               />
             </div>
 
@@ -108,12 +108,12 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus-visible:ring-[#D4A64F]"
+                className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-foreground/30 focus-visible:ring-[#D4A64F]"
               />
             </div>
 
             {error && (
-              <p className="text-sm text-red-400 bg-red-400/10 rounded-md px-3 py-2">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-400/10 rounded-md px-3 py-2">{error}</p>
             )}
 
             <Button
@@ -127,7 +127,7 @@ export default function LoginPage() {
 
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
+              <div className="w-full border-t border-foreground/10" />
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-background px-2 text-muted-foreground">ou continue com</span>
@@ -137,7 +137,7 @@ export default function LoginPage() {
           <Button
             variant="outline"
             onClick={handleGoogle}
-            className="w-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+            className="w-full border-foreground/10 bg-foreground/5 text-foreground hover:bg-foreground/10 hover:text-foreground"
           >
             <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -160,8 +160,8 @@ export default function LoginPage() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="text-2xl font-bold text-[#D4A64F]">{value}</p>
-      <p className="text-white/50 text-xs">{label}</p>
+      <p className="text-2xl font-bold text-gold-fg">{value}</p>
+      <p className="text-foreground/50 text-xs">{label}</p>
     </div>
   )
 }

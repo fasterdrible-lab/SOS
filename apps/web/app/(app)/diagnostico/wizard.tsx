@@ -152,12 +152,12 @@ export function DiagnosticWizard() {
 
   if (savedId) {
     return (
-      <Card className="mx-auto max-w-3xl border-white/5 bg-card">
+      <Card className="mx-auto max-w-3xl border-foreground/5 bg-card">
         <CardContent className="flex flex-col items-center py-16 text-center">
           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-400/10">
-            <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+            <CheckCircle2 className="h-8 w-8 text-emerald-700 dark:text-emerald-400" />
           </div>
-          <h1 className="text-2xl font-semibold text-white">
+          <h1 className="text-2xl font-semibold text-foreground">
             Diagnostico salvo
           </h1>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
@@ -179,21 +179,21 @@ export function DiagnosticWizard() {
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-6">
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <Card className="border-white/5 bg-card">
+        <Card className="border-foreground/5 bg-card">
           <CardHeader className="space-y-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[#D4A64F]/10">
-                  <ClipboardList className="h-5 w-5 text-[#D4A64F]" />
+                  <ClipboardList className="h-5 w-5 text-gold-fg" />
                 </div>
-                <CardTitle className="text-2xl text-white">
+                <CardTitle className="text-2xl text-foreground">
                   Diagnostico Comercial
                 </CardTitle>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {steps[step].description}
                 </p>
               </div>
-              <div className="rounded-full border border-white/10 px-3 py-1 text-xs text-muted-foreground">
+              <div className="rounded-full border border-foreground/10 px-3 py-1 text-xs text-muted-foreground">
                 Etapa {step + 1} de {steps.length}
               </div>
             </div>
@@ -323,12 +323,12 @@ export function DiagnosticWizard() {
             {step === 3 && <Review form={form} />}
 
             {error && (
-              <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-300">
+              <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
                 {error}
               </div>
             )}
 
-            <div className="flex items-center justify-between border-t border-white/5 pt-4">
+            <div className="flex items-center justify-between border-t border-foreground/5 pt-4">
               <Button
                 type="button"
                 variant="outline"
@@ -367,9 +367,9 @@ export function DiagnosticWizard() {
           </CardContent>
         </Card>
 
-        <Card className="h-fit border-white/5 bg-card">
+        <Card className="h-fit border-foreground/5 bg-card">
           <CardHeader>
-            <CardTitle className="text-base text-white">Etapas</CardTitle>
+            <CardTitle className="text-base text-foreground">Etapas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {steps.map((item, index) => (
@@ -380,10 +380,10 @@ export function DiagnosticWizard() {
                 className={`w-full rounded-lg border px-3 py-3 text-left transition-colors ${
                   index === step
                     ? "border-[#D4A64F]/40 bg-[#D4A64F]/10"
-                    : "border-white/5 bg-white/[0.02] hover:bg-white/5"
+                    : "border-foreground/5 bg-foreground/[0.02] hover:bg-foreground/5"
                 }`}
               >
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-foreground">
                   {item.title}
                 </span>
                 <span className="mt-1 block text-xs text-muted-foreground">
@@ -430,13 +430,13 @@ function NativeSelect({
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-white outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
     >
-      <option value="" className="bg-[#1E1B3A]">
+      <option value="" className="bg-background">
         {placeholder}
       </option>
       {options.map((option) => (
-        <option key={option} value={option} className="bg-[#1E1B3A]">
+        <option key={option} value={option} className="bg-background">
           {option}
         </option>
       ))}
@@ -460,27 +460,27 @@ function Review({ form }: { form: DiagnosticForm }) {
     <div className="space-y-5">
       <div className="grid gap-3 md:grid-cols-2">
         {items.map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+          <div key={label} className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3">
             <span className="text-xs uppercase tracking-wide text-muted-foreground">
               {label}
             </span>
-            <p className="mt-1 text-sm font-medium text-white">{value}</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{value}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+      <div className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3">
         <span className="text-xs uppercase tracking-wide text-muted-foreground">
           Processo comercial
         </span>
-        <p className="mt-1 text-sm text-white">{form.commercialProcess}</p>
+        <p className="mt-1 text-sm text-foreground">{form.commercialProcess}</p>
       </div>
 
-      <div className="rounded-lg border border-white/5 bg-white/[0.02] p-3">
+      <div className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3">
         <span className="text-xs uppercase tracking-wide text-muted-foreground">
           Dores principais
         </span>
-        <p className="mt-1 text-sm text-white">{form.painPoints}</p>
+        <p className="mt-1 text-sm text-foreground">{form.painPoints}</p>
       </div>
     </div>
   )

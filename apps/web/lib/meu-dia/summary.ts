@@ -21,7 +21,7 @@ export const COOLING_AFTER_DAYS = 14
 const LIST_LIMIT = 5
 const DAY_MS = 24 * 60 * 60 * 1000
 
-const OPEN_STAGES: OpportunityStage[] = ["PROSPECTING", "QUALIFICATION", "PROPOSAL", "NEGOTIATION"]
+export const OPEN_STAGES: OpportunityStage[] = ["PROSPECTING", "QUALIFICATION", "PROPOSAL", "NEGOTIATION"]
 
 export interface OpportunityItem {
   id: string

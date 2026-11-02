@@ -66,9 +66,9 @@ export default async function DiagnosticoResultadoPage({
     <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-4xl space-y-6">
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardHeader>
-              <CardTitle className="text-white">
+              <CardTitle className="text-foreground">
                 {diagnostic.companyName}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ export default async function DiagnosticoResultadoPage({
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-baseline gap-3">
-                <span className="text-5xl font-bold text-white">
+                <span className="text-5xl font-bold text-foreground">
                   {diagnostic.maturityScore}
                 </span>
                 <span className="text-sm text-muted-foreground">/ 100</span>
@@ -92,13 +92,13 @@ export default async function DiagnosticoResultadoPage({
             </CardContent>
           </Card>
 
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-400/10">
-                  <AlertTriangle className="h-4 w-4 text-amber-400" />
+                  <AlertTriangle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                 </div>
-                <CardTitle className="text-base text-white">
+                <CardTitle className="text-base text-foreground">
                   Gargalos identificados
                 </CardTitle>
               </div>
@@ -112,9 +112,9 @@ export default async function DiagnosticoResultadoPage({
                 bottlenecks.map((item) => (
                   <div
                     key={item.title}
-                    className="rounded-lg border border-white/5 bg-white/[0.02] p-3"
+                    className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3"
                   >
-                    <p className="text-sm font-medium text-white">
+                    <p className="text-sm font-medium text-foreground">
                       {item.title}
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -126,13 +126,13 @@ export default async function DiagnosticoResultadoPage({
             </CardContent>
           </Card>
 
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#D4A64F]/10">
-                  <Lightbulb className="h-4 w-4 text-[#D4A64F]" />
+                  <Lightbulb className="h-4 w-4 text-gold-fg" />
                 </div>
-                <CardTitle className="text-base text-white">
+                <CardTitle className="text-base text-foreground">
                   Recomendacoes
                 </CardTitle>
               </div>
@@ -141,9 +141,9 @@ export default async function DiagnosticoResultadoPage({
               {recommendations.map((item) => (
                 <div
                   key={item.title}
-                  className="rounded-lg border border-white/5 bg-white/[0.02] p-3"
+                  className="rounded-lg border border-foreground/5 bg-foreground/[0.02] p-3"
                 >
-                  <p className="text-sm font-medium text-white">
+                  <p className="text-sm font-medium text-foreground">
                     {item.title}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -167,7 +167,7 @@ export default async function DiagnosticoResultadoPage({
 
             <Link
               href="/diagnostico"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#D4A64F] hover:text-[#E0B85A]"
+              className="inline-flex items-center gap-2 text-sm font-medium text-gold-fg hover:text-gold-fg/80"
             >
               Novo diagnostico
               <ArrowUpRight className="h-4 w-4" />

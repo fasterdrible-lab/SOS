@@ -23,7 +23,7 @@ export function CreateOpportunityButton({
     return (
       <Link
         href="/pipeline"
-        className="inline-flex items-center gap-2 text-sm font-medium text-[#D4A64F] hover:text-[#E0B85A]"
+        className="inline-flex items-center gap-2 text-sm font-medium text-gold-fg hover:text-gold-fg/80"
       >
         Ver oportunidade no pipeline
         <ArrowUpRight className="h-4 w-4" />
@@ -66,7 +66,7 @@ export function CreateOpportunityButton({
         )}
         {isSubmitting ? "Criando..." : "Criar oportunidade no CRM"}
       </Button>
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
     </div>
   )
 }

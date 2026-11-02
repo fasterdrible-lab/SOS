@@ -39,12 +39,12 @@ export function ClientAccessButton({ organizationId }: { organizationId: string 
         variant="outline"
         onClick={handleAccess}
         disabled={isSwitching}
-        className="border-white/10 text-white hover:bg-white/5"
+        className="border-foreground/10 text-foreground hover:bg-foreground/5"
       >
         {isSwitching && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {isSwitching ? "Acessando..." : "Acessar"}
       </Button>
-      {error && <span className="text-xs text-red-300">{error}</span>}
+      {error && <span className="text-xs text-red-700 dark:text-red-300">{error}</span>}
     </div>
   )
 }

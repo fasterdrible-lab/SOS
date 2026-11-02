@@ -68,6 +68,14 @@ Gestor ou administrador: no Meu Dia, clique em **Definir metas** (ou **Editar me
 - Se duas pessoas mudarem a mesma negociação ao mesmo tempo, a segunda recebe o aviso para atualizar a página.
 - Ao escolher um contato ligado a uma empresa, a negociação fica nessa empresa. Um contato de outra empresa é recusado.
 
+## Busca, notificações e tema
+
+A partir da versão 1.18.0 (ainda não publicada em https://saleos.tech):
+
+- **Busca:** clique em **Buscar...** no topo ou tecle `Ctrl+K` (`Cmd+K` no Mac) ou `/`. Procura negociações, empresas, contatos e planos de ação do cliente ativo, a partir de 2 letras. Use as setas e `Enter` para abrir. O vendedor encontra só as próprias negociações. Os acentos precisam coincidir.
+- **Notificações:** o sino mostra quantas pendências existem: leads qualificados ainda não vistos (gestor e administrador), tarefas atrasadas, fechamentos vencidos e negociações esfriando. Elas somem sozinhas quando a pendência é resolvida.
+- **Tema:** o botão do sol (ou da lua) alterna entre escuro e claro. A escolha fica salva no navegador.
+
 ## O que ainda não existe
 
-Busca global, notificações e tema claro (próxima tarefa); Clientes 360°; Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.
+Clientes 360°; Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.

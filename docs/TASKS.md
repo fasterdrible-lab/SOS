@@ -11,8 +11,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-1.2 | Integridade comercial | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (em producao desde 2026-10-31, `salesos-web:7`) |
-| V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | proxima |
-| V2-3 | Dashboard Executivo | todo |
+| V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (nao publicada) |
+| V2-3 | Dashboard Executivo | proxima |
 | V2-4 | Kanban de Negociacoes | todo |
 | V2-5 | Clientes 360 | todo |
 | V2-6 | Atividades e follow-ups | todo |
@@ -26,6 +26,22 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
 
+## Tarefa: V2-2.2 - Busca global, notificacoes e tema claro
+
+### Resultado
+- Busca global no cabecalho (`Ctrl+K`, `Cmd+K` ou `/`): negociacoes, empresas, contatos e planos de acao da organizacao ativa, 5 por grupo, sem diferenciar maiusculas (`GET /api/search?q=`, `lib/search/*`). Vendedor so encontra as proprias negociacoes; grupo sem permissao nao e consultado.
+- Notificacoes no cabecalho (sino com contador): leads qualificados nao vistos (gestor e administrador), tarefas atrasadas, fechamentos vencidos e negociacoes esfriando, com os criterios do Meu Dia (`GET /api/notifications`, `lib/notifications/*`). Sem tabela nova: sao derivadas e somem quando a pendencia e resolvida. Atualizam a cada troca de pagina e quando a janela volta ao foco.
+- Tema claro: botao no cabecalho grava o cookie `salesos-theme`, lido no layout raiz, sem dependencia nova e sem piscar no carregamento. Escuro continua o padrao. As cores fixas de 33 arquivos viraram tokens (`text-foreground`, `border-foreground/N`, `text-gold-fg`); verde, vermelho e ambar ganham tom escuro no tema claro.
+- Testes: `npm run check` (49 unitarios) e `npm run test:integration` (66, em 5 suites; nova `header.integration.mjs`, 12).
+- Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: Meu Dia claro e escuro, notificacoes, busca, pipeline, diagnostico e celular 390 px.
+
+### Limitacoes conhecidas
+- Empresa, contato e negociacao encontrados levam a listagem, pois ainda nao ha pagina de detalhe (V2-4 e V2-5). Plano de acao leva ao detalhe.
+- A busca usa `contains` sem indice de texto: suficiente para o volume atual; acentos precisam coincidir ("negociacao" nao acha "negociação").
+- Notificacoes nao tem "marcar como lida": so o lead qualificado sai ao abrir `/sdr`. Nao ha e-mail nem push.
+- O widget publico do IA SDR segue o cookie do tema; dentro de um iframe de outro site o cookie nao e enviado e ele fica escuro.
+- No tema claro foram conferidas visualmente Meu Dia, Dashboard, Negociacoes e Diagnostico. Resultado do diagnostico, planos, contatos, empresas, IA SDR, Consultor, Configuracoes, login e widget so passaram pela troca automatica de cores.
+
 ## Tarefa: V2-2.1 - Meu Dia, cabecalho global e metas
 
 ### Decisao (usuario, 2026-10-31)
@@ -37,7 +53,7 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 - Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: desktop (gestor), celular 390 px (vendedor), menu do usuario, dialogo de metas e pipeline.
 
 ### Limitacoes conhecidas
-- O cabecalho ainda nao tem busca global, notificacoes nem alternancia de tema (V2-2.2).
+- ~~O cabecalho ainda nao tem busca global, notificacoes nem alternancia de tema~~: feito na V2-2.2.
 - Feriados nao entram na conta de dias uteis.
 - O limite de 14 dias para "esfriando" e fixo ate as configuracoes comerciais (V2-9).
 - Reunioes, follow-ups e fechamento do dia dependem das FASES V2-6 e V2-8; recomendacoes, da V2-7.

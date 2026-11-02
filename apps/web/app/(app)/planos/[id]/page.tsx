@@ -57,11 +57,11 @@ export default async function PlanoDetalhePage({
     <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-5xl space-y-6">
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <CardTitle className="text-white">
+                  <CardTitle className="text-foreground">
                     {actionPlan.title}
                   </CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -70,7 +70,7 @@ export default async function PlanoDetalhePage({
                 </div>
                 <Badge
                   variant="outline"
-                  className="border-white/10 text-xs text-muted-foreground"
+                  className="border-foreground/10 text-xs text-muted-foreground"
                 >
                   {PLAN_STATUS_LABELS[actionPlan.status] ?? actionPlan.status}
                 </Badge>
@@ -79,17 +79,17 @@ export default async function PlanoDetalhePage({
           </Card>
 
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">Tarefas</h2>
+            <h2 className="text-lg font-semibold text-foreground">Tarefas</h2>
             {hasPermission(session?.user?.role, "action-plans:write") && (
               <TaskFormDialog actionPlanId={actionPlan.id} />
             )}
           </div>
 
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardContent className="p-0">
               {actionPlan.tasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <h3 className="mb-2 text-lg font-semibold text-white">
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
                     Nenhuma tarefa cadastrada
                   </h3>
                   <p className="max-w-md text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export default async function PlanoDetalhePage({
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableRow className="border-foreground/5 hover:bg-transparent">
                       <TableHead className="text-muted-foreground">
                         Titulo
                       </TableHead>
@@ -120,8 +120,8 @@ export default async function PlanoDetalhePage({
                   </TableHeader>
                   <TableBody>
                     {actionPlan.tasks.map((task) => (
-                      <TableRow key={task.id} className="border-white/5">
-                        <TableCell className="font-medium text-white">
+                      <TableRow key={task.id} className="border-foreground/5">
+                        <TableCell className="font-medium text-foreground">
                           {task.title}
                         </TableCell>
                         <TableCell className="text-muted-foreground">

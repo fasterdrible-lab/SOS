@@ -92,10 +92,10 @@ export function OpportunityCard({
   }
 
   return (
-    <Card className="border-white/5 bg-white/[0.02]">
+    <Card className="border-foreground/5 bg-foreground/[0.02]">
       <CardContent className="space-y-2 p-3">
-        <p className="text-sm font-medium text-white">{opportunity.title}</p>
-        <p className="text-sm font-semibold text-[#D4A64F]">
+        <p className="text-sm font-medium text-foreground">{opportunity.title}</p>
+        <p className="text-sm font-semibold text-gold-fg">
           {currencyFormatter.format(opportunity.value)}
         </p>
         {opportunity.companyName && (
@@ -178,7 +178,7 @@ export function OpportunityCard({
           </form>
         )}
 
-        {error && <p className="text-xs text-red-300">{error}</p>}
+        {error && <p className="text-xs text-red-700 dark:text-red-300">{error}</p>}
       </CardContent>
     </Card>
   )

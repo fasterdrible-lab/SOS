@@ -99,13 +99,13 @@ export default async function DashboardPage() {
         {/* Welcome */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Bom dia</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Bom dia</h1>
             <p className="text-muted-foreground text-sm mt-0.5">
               Aqui está o resumo da sua operação comercial.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-white/5 rounded-lg px-3 py-2 border border-white/5">
-            <Zap className="w-3.5 h-3.5 text-[#D4A64F]" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground bg-foreground/5 rounded-lg px-3 py-2 border border-foreground/5">
+            <Zap className="w-3.5 h-3.5 text-gold-fg" />
             <span>IA Consultor ativo</span>
           </div>
         </div>
@@ -115,22 +115,22 @@ export default async function DashboardPage() {
           {kpiCards.map((kpi) => (
             <Card
               key={kpi.title}
-              className="bg-card border-white/5 hover:border-white/10 transition-colors"
+              className="bg-card border-foreground/5 hover:border-foreground/10 transition-colors"
             >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   {kpi.title}
                 </CardTitle>
                 <div className="w-8 h-8 rounded-md bg-[#D4A64F]/10 flex items-center justify-center">
-                  <kpi.icon className="w-4 h-4 text-[#D4A64F]" />
+                  <kpi.icon className="w-4 h-4 text-gold-fg" />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-white">{kpi.value}</div>
+                <div className="text-2xl font-bold text-foreground">{kpi.value}</div>
                 <div className="flex items-center gap-1.5 mt-1">
                   <span
                     className={`text-xs font-medium flex items-center gap-0.5 ${
-                      kpi.positive ? "text-emerald-400" : "text-red-400"
+                      kpi.positive ? "text-emerald-700 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
                     }`}
                   >
                     {kpi.positive ? (
@@ -148,12 +148,12 @@ export default async function DashboardPage() {
         </div>
 
         {/* Empty state - Diagnóstico CTA */}
-        <Card className="bg-card border-white/5 border-dashed">
+        <Card className="bg-card border-foreground/5 border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-14 h-14 rounded-2xl bg-[#D4A64F]/10 flex items-center justify-center mb-4">
-              <TrendingUp className="w-7 h-7 text-[#D4A64F]" />
+              <TrendingUp className="w-7 h-7 text-gold-fg" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Comece com um Diagnóstico Comercial
             </h3>
             <p className="text-muted-foreground text-sm max-w-md mb-6">

@@ -75,7 +75,7 @@ export default async function PipelinePage() {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-white">
+              <h1 className="text-2xl font-semibold text-foreground">
                 Pipeline de Oportunidades
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -89,11 +89,11 @@ export default async function PipelinePage() {
             {columns.map((column) => (
               <div
                 key={column.stage}
-                className="w-72 shrink-0 rounded-xl border border-white/5 bg-card"
+                className="w-72 shrink-0 rounded-xl border border-foreground/5 bg-card"
               >
-                <div className="border-b border-white/5 p-3">
+                <div className="border-b border-foreground/5 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-white">
+                    <span className="text-sm font-medium text-foreground">
                       {STAGE_LABELS[column.stage]}
                     </span>
                     <span className="text-xs text-muted-foreground">

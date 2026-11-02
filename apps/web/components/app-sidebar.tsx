@@ -46,7 +46,7 @@ export function AppSidebar({
             <TrendingUp className="w-4 h-4 text-[#1E1B3A]" />
           </div>
           <div className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold text-white text-sm">SalesOS</span>
+            <span className="font-semibold text-foreground text-sm">SalesOS</span>
             <span className="text-[10px] text-muted-foreground">Revenue Growth</span>
           </div>
         </div>
@@ -72,8 +72,8 @@ export function AppSidebar({
                       className={cn(
                         "rounded-md transition-all",
                         isActive
-                          ? "bg-[#D4A64F]/10 text-[#D4A64F] font-medium"
-                          : "text-muted-foreground hover:text-white hover:bg-white/5"
+                          ? "bg-[#D4A64F]/10 text-gold-fg font-medium"
+                          : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
                       )}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
@@ -103,7 +103,7 @@ export function AppSidebar({
                 isActive={isActivePath(pathname, SETTINGS_ITEM.href)}
                 tooltip={SETTINGS_ITEM.title}
                 render={<Link href={SETTINGS_ITEM.href} />}
-                className="text-muted-foreground hover:text-white hover:bg-white/5 rounded-md"
+                className="text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md"
               >
                 <SETTINGS_ITEM.icon className="w-4 h-4" />
                 <span>{SETTINGS_ITEM.title}</span>

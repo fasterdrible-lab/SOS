@@ -29,12 +29,12 @@ export function ConsultantChat({
 
   if (!hasIntegration) {
     return (
-      <Card className="flex flex-1 flex-col items-center justify-center border-white/5 bg-card">
+      <Card className="flex flex-1 flex-col items-center justify-center border-foreground/5 bg-card">
         <CardContent className="flex flex-col items-center py-12 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A64F]/10">
-            <BrainCircuit className="h-6 w-6 text-[#D4A64F]" />
+            <BrainCircuit className="h-6 w-6 text-gold-fg" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-white">
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
             Configure uma chave de IA para comecar
           </h3>
           <p className="max-w-sm text-sm text-muted-foreground">
@@ -90,7 +90,7 @@ export function ConsultantChat({
   }
 
   return (
-    <Card className="flex flex-1 flex-col overflow-hidden border-white/5 bg-card">
+    <Card className="flex flex-1 flex-col overflow-hidden border-foreground/5 bg-card">
       <CardContent className="flex flex-1 flex-col gap-3 overflow-hidden p-4">
         <ScrollArea className="flex-1 pr-2">
           <div className="flex flex-col gap-3">
@@ -105,7 +105,7 @@ export function ConsultantChat({
                 className={`max-w-[85%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
                   message.role === "USER"
                     ? "ml-auto bg-[#D4A64F] text-[#1E1B3A]"
-                    : "bg-white/[0.04] text-white"
+                    : "bg-foreground/[0.04] text-foreground"
                 }`}
               >
                 {message.content}
@@ -115,7 +115,7 @@ export function ConsultantChat({
         </ScrollArea>
 
         {error && (
-          <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+          <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-700 dark:text-red-300">
             {error}
           </div>
         )}

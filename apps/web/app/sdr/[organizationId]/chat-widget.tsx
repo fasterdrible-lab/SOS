@@ -123,12 +123,12 @@ export function SdrChatWidget({
 
   if (unavailable) {
     return (
-      <Card className="w-full max-w-md border-white/5 bg-card">
+      <Card className="w-full max-w-md border-foreground/5 bg-card">
         <CardContent className="flex flex-col items-center py-12 text-center">
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A64F]/10">
-            <MessageCircle className="h-6 w-6 text-[#D4A64F]" />
+            <MessageCircle className="h-6 w-6 text-gold-fg" />
           </div>
-          <h1 className="text-lg font-semibold text-white">
+          <h1 className="text-lg font-semibold text-foreground">
             Atendimento indisponivel
           </h1>
           <p className="mt-2 max-w-xs text-sm text-muted-foreground">
@@ -141,10 +141,10 @@ export function SdrChatWidget({
   }
 
   return (
-    <Card className="flex h-[600px] w-full max-w-md flex-col border-white/5 bg-card">
-      <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-white/5 pb-4">
+    <Card className="flex h-[600px] w-full max-w-md flex-col border-foreground/5 bg-card">
+      <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-foreground/5 pb-4">
         <div>
-          <CardTitle className="text-base text-white">
+          <CardTitle className="text-base text-foreground">
             {organizationName}
           </CardTitle>
           <p className="text-xs text-muted-foreground">
@@ -152,7 +152,7 @@ export function SdrChatWidget({
           </p>
         </div>
         {classification && (
-          <Badge className="bg-[#D4A64F]/10 text-[#D4A64F]">
+          <Badge className="bg-[#D4A64F]/10 text-gold-fg">
             {CLASSIFICATION_LABEL[classification]}
           </Badge>
         )}
@@ -172,7 +172,7 @@ export function SdrChatWidget({
                 className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
                   message.role === "LEAD"
                     ? "ml-auto bg-[#D4A64F] text-[#1E1B3A]"
-                    : "bg-white/[0.04] text-white"
+                    : "bg-foreground/[0.04] text-foreground"
                 }`}
               >
                 {message.content}
@@ -182,7 +182,7 @@ export function SdrChatWidget({
         </ScrollArea>
 
         {error && (
-          <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-300">
+          <div className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-xs text-red-700 dark:text-red-300">
             {error}
           </div>
         )}

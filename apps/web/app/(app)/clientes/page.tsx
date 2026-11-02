@@ -43,7 +43,7 @@ export default async function ClientesPage() {
         <div className="mx-auto max-w-5xl space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-white">
+              <h1 className="text-2xl font-semibold text-foreground">
                 Meus Clientes
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -53,14 +53,14 @@ export default async function ClientesPage() {
             <NewClientDialog />
           </div>
 
-          <Card className="border-white/5 bg-card">
+          <Card className="border-foreground/5 bg-card">
             <CardContent className="p-0">
               {clients.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4A64F]/10">
-                    <Building2 className="h-7 w-7 text-[#D4A64F]" />
+                    <Building2 className="h-7 w-7 text-gold-fg" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-white">
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
                     Nenhum cliente ainda
                   </h3>
                   <p className="max-w-md text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ export default async function ClientesPage() {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-white/5 hover:bg-transparent">
+                    <TableRow className="border-foreground/5 hover:bg-transparent">
                       <TableHead className="text-muted-foreground">
                         Cliente
                       </TableHead>
@@ -100,9 +100,9 @@ export default async function ClientesPage() {
                       return (
                         <TableRow
                           key={client.organizationId}
-                          className="border-white/5"
+                          className="border-foreground/5"
                         >
-                          <TableCell className="font-medium text-white">
+                          <TableCell className="font-medium text-foreground">
                             {client.name}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
@@ -125,7 +125,7 @@ export default async function ClientesPage() {
                             {isActive ? (
                               <Badge
                                 variant="outline"
-                                className="border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                                className="border-emerald-400/30 bg-emerald-400/10 text-emerald-700 dark:text-emerald-300"
                               >
                                 Ativa
                               </Badge>

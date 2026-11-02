@@ -24,7 +24,7 @@ export function CreatePlanButton({
     return (
       <Link
         href={`/planos/${diagnosticActionPlanId(diagnosticId)}`}
-        className="inline-flex items-center gap-2 text-sm font-medium text-[#D4A64F] hover:text-[#E0B85A]"
+        className="inline-flex items-center gap-2 text-sm font-medium text-gold-fg hover:text-gold-fg/80"
       >
         Ver plano de acao
         <ArrowUpRight className="h-4 w-4" />
@@ -66,7 +66,7 @@ export function CreatePlanButton({
         )}
         {isSubmitting ? "Gerando..." : "Gerar plano de acao"}
       </Button>
-      {error && <p className="text-sm text-red-300">{error}</p>}
+      {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
     </div>
   )
 }
