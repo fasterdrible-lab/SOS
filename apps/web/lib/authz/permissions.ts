@@ -16,6 +16,7 @@ const ADMINS: readonly AccessLevel[] = ["ADMIN"]
 const PERMISSIONS = {
   "my-day:read": EVERYONE,
   "goals:manage": MANAGERS,
+  "dashboard:read": EVERYONE,
   "crm:read": EVERYONE,
   "crm:write": EVERYONE,
   "opportunities:read": EVERYONE,

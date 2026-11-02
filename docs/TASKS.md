@@ -12,8 +12,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-1.3 | Qualidade tecnica (lint, erros padronizados) | done (em producao desde 2026-10-31, `salesos-web:6`) |
 | V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (em producao desde 2026-10-31, `salesos-web:7`) |
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
-| V2-3 | Dashboard Executivo | proxima |
-| V2-4 | Kanban de Negociacoes | todo |
+| V2-3 | Dashboard Executivo | done (nao publicada) |
+| V2-4 | Kanban de Negociacoes | proxima |
 | V2-5 | Clientes 360 | todo |
 | V2-6 | Atividades e follow-ups | todo |
 | V2-7 | Integracao SALEIA | todo |
@@ -25,6 +25,31 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-3 - Dashboard Executivo
+
+### Referencia
+Captura local `telas 2 crm.jpeg` (fora do git, contem dados de outra empresa): faturamento, ritmo do mes, vendas, ticket, taxa de ganho, funil, saude do pipeline, metas, time, origem e motivos de perda, com filtros.
+
+### Resultado
+- `/dashboard` reescrito sobre `getExecutiveDashboard` (`lib/dashboard/executive.ts`), tambem em `GET /api/dashboard?periodo=&vendedor=`.
+- Filtros: periodo (este mes, mes anterior, ultimos 90 dias, este ano), sempre no fuso de Brasilia e comparado ao periodo anterior equivalente (`lib/dashboard/period.ts`); vendedor, so para gestor e administrador (404 para quem nao e da organizacao). O vendedor ve apenas os proprios numeros, mesmo pedindo outro.
+- Indicadores: faturamento com grafico diario, "no ritmo, o mes fecha" contra a media dos 3 meses anteriores, vendas ganhas, ticket medio e taxa de ganho, com variacao.
+- Funil pelo `OpportunityStageHistory` do periodo: negociacoes que chegaram a cada etapa ou alem, com % da etapa de cima; leads criados no periodo na visao da organizacao.
+- Saude do pipeline (ciclo medio de venda, pipeline aberto, esfriando, fechamento vencido), metas do mes com marca do ideal, tabela do time, origem da venda (`Lead.source`) e motivos de perda agrupados sem diferenciar maiusculas (`lib/dashboard/metrics.ts`).
+- Corrigido: `getExecutiveKpis` (Consultor Digital e Meus Clientes) passa a calcular o mes no fuso de Brasilia.
+- O CTA do diagnostico so aparece enquanto o cliente nao tem diagnostico.
+- Nova permissao `dashboard:read` (todos os papeis).
+- Testes: `npm run check` (62 unitarios; novo `dashboard-rules.test.mjs`, 13) e `npm run test:integration` (77, em 6 suites; novo `dashboard.integration.mjs`, 11). O teste antigo de autorizacao do dashboard continua valendo sem alteracao.
+- Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: escuro, claro, filtro por vendedor e celular 390 px (corrigida a tabela do time que alargava a pagina no celular).
+
+### Limitacoes conhecidas
+- As abas "Vendas / Pre-venda" e o filtro de funis da referencia nao foram feitos: pre-venda depende de reunioes (V2-6) e funis multiplos do Kanban (V2-4).
+- O funil conta entradas de etapa no periodo; negociacoes antigas sem historico (criadas antes da V2-1.2) so tem a entrada reconstituida pela migration.
+- "Origem da venda" usa a origem do lead, que hoje so existe nas oportunidades do IA SDR; as demais aparecem como "Sem origem" ate haver campanha/origem na negociacao.
+- "No ritmo, o mes fecha" e as metas sao sempre do mes corrente, independente do filtro (indicado na tela). Feriados nao entram nos dias uteis.
+- A variacao do periodo "este mes" compara com os mesmos dias do mes anterior; no inicio do mes a base e pequena.
+- Sem exportacao nem graficos de evolucao alem do faturamento diario.
 
 ## Tarefa: V2-2.2 - Busca global, notificacoes e tema claro
 
@@ -57,7 +82,7 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 - Feriados nao entram na conta de dias uteis.
 - O limite de 14 dias para "esfriando" e fixo ate as configuracoes comerciais (V2-9).
 - Reunioes, follow-ups e fechamento do dia dependem das FASES V2-6 e V2-8; recomendacoes, da V2-7.
-- O `/dashboard` ainda calcula o mes em UTC; sera alinhado ao fuso de Brasilia na FASE V2-3.
+- ~~O `/dashboard` ainda calcula o mes em UTC~~: corrigido na V2-3.
 - Tarefas dos planos de acao nao tem responsavel: aparecem para toda a organizacao.
 - O clique em uma negociacao leva ao pipeline, que ainda nao tem pagina de detalhe.
 

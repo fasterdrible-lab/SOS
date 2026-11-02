@@ -58,6 +58,23 @@ Reuniões, follow-ups, fechamento do dia e recomendações da SALEIA aparecem co
 
 Gestor ou administrador: no Meu Dia, clique em **Definir metas** (ou **Editar metas**) no cartão da meta. Informe a meta da equipe e, se quiser, a de cada pessoa. Deixar um campo em branco remove a meta. Toda alteração fica registrada.
 
+## Dashboard
+
+A partir da versão 1.19.0 (ainda não publicada em https://saleos.tech).
+
+No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este ano). Gestor e administrador também escolhem um vendedor; o vendedor vê só os próprios números. Cada indicador é comparado ao período anterior do mesmo tamanho: em "este mês", com os mesmos dias do mês passado.
+
+| Bloco | O que mostra |
+|---|---|
+| Faturamento | Soma das negociações ganhas no período, com o gráfico por dia |
+| No ritmo, o mês fecha | Projeção do mês corrente, comparada à média dos 3 meses anteriores (não segue o filtro) |
+| Vendas ganhas, ticket médio, taxa de ganho | Ganhas; faturado ÷ vendas; ganhas ÷ (ganhas + perdidas) |
+| Funil do período | Negociações que chegaram a cada etapa, ou além, no período, e o % da etapa de cima |
+| Saúde do pipeline | Dias médios da criação ao ganho; e, agora, pipeline aberto, negociações esfriando e fechamentos vencidos |
+| Metas | Metas do mês corrente, com o traço do ideal de hoje |
+| Time | Vendas, conversão, ticket, faturamento e % da meta por dono da negociação |
+| Origem da venda e motivos de perda | Agrupados pelo texto, sem diferenciar maiúsculas |
+
 ## Negociações
 
 - Mude a etapa pelo seletor do cartão.

@@ -2,12 +2,12 @@
 
 **Versao atual:** V.1.18.0 em producao (`salesos-web:8`)
 **Data:** 2026-11-02
-**Fase:** Prompt Mestre V2 - FASES V2-1 e V2-2 publicadas; proxima: V2-3
+**Fase:** Prompt Mestre V2 - FASES V2-1 e V2-2 publicadas; V2-3 concluida no codigo (V.1.19.0, nao publicada); proxima: V2-4
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Codigo:** branch `feat/saleos-v2`. A producao roda o codigo ate a V.1.18.0; a V2-3 (V.1.19.0) ainda nao foi commitada nem publicada.
 - **Producao:** imagem `salesos-web:8` desde 2026-11-02, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:7` mantida na VPS para reverter. 5 migrations aplicadas (a V2-2.2 nao tem migration).
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
@@ -16,7 +16,8 @@
   - V2-1.3: lint zerado, erros da API padronizados, logs seguros e CI no GitHub Actions.
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
-- **Testes:** 49 unitarios e 66 de integracao; o CI roda todos a cada push.
+  - V2-3 (nao publicada): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+- **Testes:** 62 unitarios e 77 de integracao; o CI roda todos a cada push.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261102-172520`, antes da publicacao da V2-2.2), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -78,7 +79,12 @@ apps/web/lib/security/crypto.ts                   -> criptografia (AES-256-GCM) 
 apps/web/lib/validations/api-integration.ts       -> schema Zod compartilhado (integracao de IA)
 apps/web/lib/scoring/maturity.ts                  -> engine de scoring de maturidade comercial
 apps/web/lib/scoring/insights.ts                  -> geracao de gargalos e recomendacoes
-apps/web/lib/dashboard/kpis.ts                    -> calculo dos KPIs executivos (Lead/Opportunity)
+apps/web/lib/dashboard/kpis.ts                    -> KPIs resumidos (Consultor Digital e Meus Clientes)
+apps/web/lib/dashboard/period.ts                  -> periodos do dashboard e comparacao (regra pura)
+apps/web/lib/dashboard/metrics.ts                 -> funil, time, origens, motivos e ciclo (regra pura)
+apps/web/lib/dashboard/executive.ts               -> consultas do Dashboard Executivo e filtro de vendedor
+apps/web/app/(app)/dashboard/dashboard-filters.tsx -> filtros de periodo e vendedor
+apps/web/app/api/dashboard/route.ts               -> Dashboard Executivo em JSON
 apps/web/lib/ai/anthropic-client.ts               -> cliente fino da Anthropic (chat + classificacao via tool use)
 apps/web/lib/validations/sdr-conversation.ts      -> schema Zod compartilhado (conversa/mensagem do IA SDR)
 apps/web/app/api/sdr/[organizationId]/conversations/route.ts -> inicia conversa do IA SDR (publico)
@@ -199,6 +205,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Busca global no cabecalho, respeitando o papel (V2-2.2)
 - [x] Notificacoes derivadas no cabecalho (V2-2.2)
 - [x] Tema claro, escolhido pelo usuario (V2-2.2)
+- [x] Dashboard Executivo com filtros, funil, metas, time, origem e motivos de perda (V2-3)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -208,7 +215,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
 - Nao ha tela para convidar usuarios nem atribuir papeis: e feito por SQL (`docs/DEPLOY.md`). O `create-admin` cria todos com o nome "Admin".
-- O `/dashboard` ainda calcula o mes em UTC (FASE V2-3).
 - `npm audit --omit=dev`: 1 alerta critico, em dependencia da CLI do `shadcn`, que nao roda no app.
 - Backup externo: a conferencia do arquivo no bucket depende do painel do Backblaze, e baixar e restaurar um arquivo do bucket real ainda nao foi testado (a restauracao foi simulada com destino local).
 - A chave Backblaze `...0004`, em uso, foi enviada pelo chat (tarefa 10.9) e tem permissao de apagar arquivos do bucket. O Object Lock esta desativado.
@@ -218,6 +224,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-3** - Dashboard Executivo: filtros de periodo e vendedor, faturamento, ritmo do mes, funil, saude do pipeline, metas, time, origem e motivos de perda. 139 testes automatizados. Nao publicada.
+
 **Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Publicada em 2026-11-02 (`salesos-web:8`).
 
 **Tarefa V2-2.1** - Tela Meu Dia como pagina inicial, cabecalho global com Sair, menu reorganizado por papel e metas mensais. 95 testes automatizados.
@@ -247,12 +255,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir as FASES V2-3 a V2-10 (`docs/TASKS.md`).
+- Publicar a V2-3, com autorizacao (`docs/DEPLOY.md`).
+- Seguir as FASES V2-4 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-3: Dashboard Executivo (inclui alinhar o mes do `/dashboard` ao fuso de Brasilia).
+Tarefa V2-4: Kanban de Negociacoes (funis e etapas configuraveis, arrastar, filtros e pagina de detalhe da negociacao).
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db"
+import { monthRange } from "@/lib/time/business-calendar"
 
 const OPEN_OPPORTUNITY_STAGES = [
   "PROSPECTING",
@@ -25,14 +26,15 @@ interface MonthWindow {
   end: Date
 }
 
+// Meses no fuso de Brasilia: o servidor roda em UTC.
 function getMonthWindows(): { current: MonthWindow; previous: MonthWindow } {
   const now = new Date()
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const current = monthRange(now)
+  const previous = monthRange(new Date(current.start.getTime() - 1))
 
   return {
-    current: { start: startOfCurrentMonth, end: now },
-    previous: { start: startOfPreviousMonth, end: startOfCurrentMonth },
+    current: { start: current.start, end: now },
+    previous,
   }
 }
 

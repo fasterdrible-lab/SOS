@@ -118,6 +118,17 @@ Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias ut
 Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /api/goals
 ```
 
+### Dashboard Executivo
+```
+/dashboard e GET /api/dashboard?periodo=&vendedor= -> getExecutiveDashboard (lib/dashboard/executive.ts)
+Periodo: lib/dashboard/period.ts, datas de calendario em Brasilia -> instantes em executive.ts
+  comparacao com o periodo anterior equivalente (este mes: mesmos dias do mes anterior)
+Escopo: vendedor = proprias | gestor/admin = organizacao ou um vendedor (resolveSellerFilter)
+Funil: OpportunityStageHistory do periodo, etapa mais alta alcancada por negociacao
+Ritmo e metas: sempre o mes corrente (computeGoalProgress, o mesmo do Meu Dia)
+Agregacoes puras (funil, time, origens, motivos, ciclo): lib/dashboard/metrics.ts
+```
+
 ### Cabecalho: busca, notificacoes e tema
 ```
 Busca: GET /api/search?q= -> globalSearch (lib/search) por permissao do papel

@@ -1,5 +1,28 @@
 # CHANGELOG — SalesOS
 
+## [V.1.19.0] — 2026-11-02 (nao publicada)
+
+### Tarefa V2-3 — Dashboard Executivo
+- `/dashboard` reescrito: faturamento com grafico diario, "no ritmo, o mes fecha" (contra a media dos 3 meses anteriores), vendas ganhas, ticket medio e taxa de ganho, cada um com a variacao sobre o periodo anterior equivalente.
+- Filtros de periodo (este mes, mes anterior, ultimos 90 dias, este ano) e de vendedor (gestor e administrador). O vendedor ve so os proprios numeros.
+- Funil do periodo pelo historico de etapas, saude do pipeline (ciclo de venda, pipeline aberto, esfriando, fechamento vencido), metas do mes com o ideal de hoje, tabela do time, origem da venda e motivos de perda.
+- `GET /api/dashboard?periodo=&vendedor=` devolve os mesmos dados da tela.
+- Corrigido: os KPIs usados pelo Consultor Digital e por Meus Clientes calculavam o mes em UTC; agora usam o fuso de Brasilia.
+- O convite para o Diagnostico Comercial so aparece enquanto o cliente nao tem diagnostico.
+- Nova permissao `dashboard:read`, concedida a todos os papeis.
+- Testes: `dashboard-rules.test.mjs` (13) e `dashboard.integration.mjs` (11).
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/lib/dashboard/period.ts`, `lib/dashboard/metrics.ts`, `lib/dashboard/executive.ts`
+- `apps/web/app/(app)/dashboard/dashboard-filters.tsx`, `apps/web/app/api/dashboard/route.ts`
+- `apps/web/tests/dashboard-rules.test.mjs`, `apps/web/tests/dashboard.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/dashboard/page.tsx`, `lib/dashboard/kpis.ts`, `lib/authz/permissions.ts`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.18.0] — 2026-11-02 (publicada em producao, imagem `salesos-web:8`)
 
 ### Tarefa V2-2.2 — Busca global, notificacoes e tema claro
