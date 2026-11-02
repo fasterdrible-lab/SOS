@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.18.0] — 2026-11-02 (nao publicada)
+## [V.1.18.0] — 2026-11-02 (publicada em producao, imagem `salesos-web:8`)
 
 ### Tarefa V2-2.2 — Busca global, notificacoes e tema claro
 - **Busca global** no cabecalho, aberta tambem por `Ctrl+K`, `Cmd+K` ou `/`: negociacoes, empresas, contatos e planos de acao da organizacao ativa, navegavel pelo teclado. `GET /api/search?q=` exige 2 caracteres. Vendedor so encontra as proprias negociacoes.

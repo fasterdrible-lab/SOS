@@ -70,8 +70,6 @@ Gestor ou administrador: no Meu Dia, clique em **Definir metas** (ou **Editar me
 
 ## Busca, notificações e tema
 
-A partir da versão 1.18.0 (ainda não publicada em https://saleos.tech):
-
 - **Busca:** clique em **Buscar...** no topo ou tecle `Ctrl+K` (`Cmd+K` no Mac) ou `/`. Procura negociações, empresas, contatos e planos de ação do cliente ativo, a partir de 2 letras. Use as setas e `Enter` para abrir. O vendedor encontra só as próprias negociações. Os acentos precisam coincidir.
 - **Notificações:** o sino mostra quantas pendências existem: leads qualificados ainda não vistos (gestor e administrador), tarefas atrasadas, fechamentos vencidos e negociações esfriando. Elas somem sozinhas quando a pendência é resolvida.
 - **Tema:** o botão do sol (ou da lua) alterna entre escuro e claro. A escolha fica salva no navegador.

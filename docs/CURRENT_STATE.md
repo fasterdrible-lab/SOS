@@ -1,23 +1,23 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.17.0 em producao (`salesos-web:7`); documentacao em V.1.17.1
+**Versao atual:** V.1.18.0 em producao (`salesos-web:8`)
 **Data:** 2026-11-02
-**Fase:** Prompt Mestre V2 - FASE V2-1 e V2-2.1 publicadas; V2-2.2 concluida no codigo (V.1.18.0, nao publicada); proxima: V2-3
+**Fase:** Prompt Mestre V2 - FASES V2-1 e V2-2 publicadas; proxima: V2-3
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`. A producao roda o codigo ate a V.1.17.1; a V2-2.2 (V.1.18.0) ainda nao foi publicada nem enviada ao GitHub.
-- **Producao:** imagem `salesos-web:7`, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:6` mantida na VPS para reverter. 5 migrations aplicadas.
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Producao:** imagem `salesos-web:8` desde 2026-11-02, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:7` mantida na VPS para reverter. 5 migrations aplicadas (a V2-2.2 nao tem migration).
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
   - V2-1.2: historico de etapas, datas reais de ganho e perda, motivo de perda, reabertura restrita, valores em `Decimal`, criacao idempotente.
   - V2-1.3: lint zerado, erros da API padronizados, logs seguros e CI no GitHub Actions.
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
-  - V2-2.2 (nao publicada): busca global, notificacoes e tema claro no cabecalho.
+  - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
 - **Testes:** 49 unitarios e 66 de integracao; o CI roda todos a cada push.
-- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261031-222533`), `www.saleos.tech` com certificado.
+- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261102-172520`, antes da publicacao da V2-2.2), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 ## Historico anterior ao Prompt Mestre V2
@@ -218,7 +218,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Nao publicada.
+**Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Publicada em 2026-11-02 (`salesos-web:8`).
 
 **Tarefa V2-2.1** - Tela Meu Dia como pagina inicial, cabecalho global com Sair, menu reorganizado por papel e metas mensais. 95 testes automatizados.
 
@@ -247,7 +247,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Publicar a V2-2.2, com autorizacao (`docs/DEPLOY.md`).
 - Seguir as FASES V2-3 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
