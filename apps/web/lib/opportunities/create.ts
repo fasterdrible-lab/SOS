@@ -1,22 +1,39 @@
 import type { Prisma } from "@/lib/generated/prisma/client"
-import { STAGE_PROBABILITY } from "@/lib/opportunities/rules"
+import type { StageRef } from "@/lib/opportunities/rules"
+import { ensureDefaultPipeline } from "@/lib/pipelines/service"
 
 type OpportunityCreateData = Omit<
   Prisma.OpportunityUncheckedCreateInput,
-  "stage" | "probability" | "wonAt" | "lostAt" | "lostReason" | "stageChangedAt"
+  | "pipelineId"
+  | "stageId"
+  | "status"
+  | "probability"
+  | "wonAt"
+  | "lostAt"
+  | "lostReason"
+  | "stageChangedAt"
 >
 
-/** Toda oportunidade nasce em prospeccao e com a primeira entrada do historico. */
+/**
+ * Toda oportunidade nasce em andamento, com a primeira entrada do historico.
+ * Sem etapa informada (ja validada por quem chama), entra na primeira etapa do
+ * funil padrao.
+ */
 export async function createOpportunity(
   tx: Prisma.TransactionClient,
   data: OpportunityCreateData,
-  changedById: string | null
+  changedById: string | null,
+  stage?: StageRef
 ) {
+  const target = stage ?? (await ensureDefaultPipeline(tx, data.organizationId))
+
   const opportunity = await tx.opportunity.create({
     data: {
       ...data,
-      stage: "PROSPECTING",
-      probability: STAGE_PROBABILITY.PROSPECTING,
+      pipelineId: target.pipelineId,
+      stageId: target.id,
+      status: "OPEN",
+      probability: target.probability,
     },
   })
 
@@ -24,8 +41,10 @@ export async function createOpportunity(
     data: {
       organizationId: opportunity.organizationId,
       opportunityId: opportunity.id,
-      fromStage: null,
-      toStage: opportunity.stage,
+      fromStageId: null,
+      fromStatus: null,
+      toStageId: opportunity.stageId,
+      toStatus: opportunity.status,
       changedById,
     },
   })

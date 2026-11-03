@@ -21,7 +21,6 @@ import {
   type OpportunityItem,
   type OpportunityList,
 } from "@/lib/meu-dia/summary"
-import type { OpportunityStage } from "@/lib/opportunities/rules"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { ORGANIZATION_GOAL_SCOPE } from "@/lib/validations/goal"
 import { Card, CardContent } from "@/components/ui/card"
@@ -48,15 +47,6 @@ const shortDate = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "2-digit",
 })
-
-const STAGE_LABELS: Record<OpportunityStage, string> = {
-  PROSPECTING: "Prospecção",
-  QUALIFICATION: "Qualificação",
-  PROPOSAL: "Proposta",
-  NEGOTIATION: "Negociação",
-  CLOSED_WON: "Ganha",
-  CLOSED_LOST: "Perdida",
-}
 
 const ROLE_LABELS: Record<string, string> = {
   OWNER: "Administrador",
@@ -229,7 +219,7 @@ export default async function MeuDiaPage() {
           hint={`Sem mudar de etapa há mais de ${COOLING_AFTER_DAYS} dias.`}
           list={summary.cooling}
           empty="Nenhuma negociação parada além do prazo."
-          describe={(item) => `${days(item.daysInStage)} em ${STAGE_LABELS[item.stage].toLowerCase()}`}
+          describe={(item) => `${days(item.daysInStage)} em ${item.stageName.toLowerCase()}`}
         />
         <OpportunityCard
           icon={AlertTriangle}

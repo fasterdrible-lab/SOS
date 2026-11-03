@@ -8,6 +8,9 @@ export type AuditAction =
   | "session.organization-switched"
   | "goal.saved"
   | "goal.removed"
+  | "pipeline.created"
+  | "pipeline.updated"
+  | "pipeline.archived"
 
 interface AuditEntry {
   organizationId: string

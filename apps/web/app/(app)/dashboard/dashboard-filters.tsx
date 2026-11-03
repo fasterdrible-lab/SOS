@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname, useRouter } from "next/navigation"
-import { CalendarDays, Users } from "lucide-react"
+import { CalendarDays, KanbanSquare, Users } from "lucide-react"
 
 import type { DashboardMember } from "@/lib/dashboard/executive"
 import { PERIOD_OPTIONS, type PeriodKey } from "@/lib/dashboard/period"
@@ -11,21 +11,27 @@ export function DashboardFilters({
   period,
   sellerId,
   members,
+  pipelineId,
+  pipelines,
 }: {
   period: PeriodKey
   sellerId: string | null
   /** Nulo para o vendedor, que so ve os proprios numeros. */
   members: DashboardMember[] | null
+  pipelineId: string | null
+  pipelines: { id: string; name: string }[]
 }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  function apply(next: { period?: PeriodKey; sellerId?: string | null }) {
+  function apply(next: { period?: PeriodKey; sellerId?: string | null; pipelineId?: string | null }) {
     const params = new URLSearchParams()
     const nextPeriod = next.period ?? period
     const nextSeller = next.sellerId === undefined ? sellerId : next.sellerId
+    const nextPipeline = next.pipelineId === undefined ? pipelineId : next.pipelineId
     if (nextPeriod !== "mes") params.set("periodo", nextPeriod)
     if (nextSeller) params.set("vendedor", nextSeller)
+    if (nextPipeline) params.set("funil", nextPipeline)
     const query = params.toString()
     router.push(query ? `${pathname}?${query}` : pathname)
   }
@@ -52,8 +58,28 @@ export function DashboardFilters({
         ))}
       </div>
 
+      <div className="ml-auto flex flex-wrap items-center gap-2">
+      {pipelines.length > 1 && (
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
+          <KanbanSquare className="h-4 w-4" aria-hidden />
+          <select
+            value={pipelineId ?? ""}
+            onChange={(event) => apply({ pipelineId: event.target.value || null })}
+            aria-label="Funil"
+            className="h-8 rounded-lg border border-foreground/10 bg-card px-2 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-[#D4A64F]"
+          >
+            <option value="">Todos os funis</option>
+            {pipelines.map((pipeline) => (
+              <option key={pipeline.id} value={pipeline.id}>
+                {pipeline.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       {members && (
-        <label className="ml-auto flex items-center gap-2 text-sm text-muted-foreground">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" aria-hidden />
           <span className="sr-only">Vendedor</span>
           <select
@@ -71,6 +97,7 @@ export function DashboardFilters({
           </select>
         </label>
       )}
+      </div>
     </div>
   )
 }

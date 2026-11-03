@@ -6,7 +6,7 @@ import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
 
-import { Client, PASSWORD, createDb } from "./support.mjs"
+import { Client, PASSWORD, changeTo, createDb, ensurePipelines, legacyColumns, legacyName } from "./support.mjs"
 
 const PREFIX = "authz-test-"
 const FAKE_API_KEY = "sk-ant-chave-falsa-de-teste-0123456789"
@@ -57,6 +57,7 @@ before(async () => {
       [id(organization)]
     )
   }
+  await ensurePipelines(db, [id("org-a"), id("org-b")])
 
   for (const [name, [organization, role]] of Object.entries(USERS)) {
     await db.query(
@@ -80,9 +81,9 @@ before(async () => {
   ]
   for (const [name, organization, owner, value = 1000] of opportunities) {
     await db.query(
-      `insert into opportunities (id, "organizationId", "ownerId", title, value, "updatedAt")
-       values ($1, $2, $3, $1, $4, now())`,
-      [id(name), id(organization), owner ? id(owner) : null, value]
+      `insert into opportunities (id, "organizationId", "ownerId", title, value, "pipelineId", "stageId", status, "updatedAt")
+       values ($1, $2, $3, $1, $4, $5, $6, $7, now())`,
+      [id(name), id(organization), owner ? id(owner) : null, value, ...legacyColumns(id(organization), "PROSPECTING")]
     )
   }
 
@@ -146,13 +147,15 @@ describe("isolamento entre organizacoes", () => {
     const admin = await login("admin")
     assert.ok(!(await listIds(admin)).includes(id("opp-b")))
 
-    const patch = await admin.json(`/api/opportunities/${id("opp-b")}`, "PATCH", {
-      stage: "CLOSED_WON",
-    })
+    const patch = await admin.json(
+      `/api/opportunities/${id("opp-b")}`,
+      "PATCH",
+      changeTo(id("org-b"), "CLOSED_WON")
+    )
     assert.equal(patch.status, 404)
 
-    const { rows } = await db.query(`select stage from opportunities where id = $1`, [id("opp-b")])
-    assert.equal(rows[0].stage, "PROSPECTING")
+    const { rows } = await db.query(`select "stageId", status from opportunities where id = $1`, [id("opp-b")])
+    assert.equal(legacyName(rows[0].stageId, rows[0].status), "PROSPECTING")
   })
 
   it("nao troca para organizacao alheia", async () => {
@@ -187,18 +190,22 @@ describe("vendedor", () => {
   it("nao altera oportunidade de colega nem sem dono", async () => {
     const vendedor = await login("vendedor1")
     for (const name of ["opp-v2", "opp-livre"]) {
-      const response = await vendedor.json(`/api/opportunities/${id(name)}`, "PATCH", {
-        stage: "PROPOSAL",
-      })
+      const response = await vendedor.json(
+        `/api/opportunities/${id(name)}`,
+        "PATCH",
+        changeTo(id("org-a"), "PROPOSAL")
+      )
       assert.equal(response.status, 404)
     }
   })
 
   it("altera a propria e cria oportunidade sendo o dono", async () => {
     const vendedor = await login("vendedor1")
-    const patch = await vendedor.json(`/api/opportunities/${id("opp-v1")}`, "PATCH", {
-      stage: "QUALIFICATION",
-    })
+    const patch = await vendedor.json(
+      `/api/opportunities/${id("opp-v1")}`,
+      "PATCH",
+      changeTo(id("org-a"), "QUALIFICATION")
+    )
     assert.equal(patch.status, 200)
 
     const created = await vendedor.json("/api/opportunities", "POST", {
@@ -325,19 +332,26 @@ describe("administrador", () => {
 
   it("registra quem mudou a etapa", async () => {
     const admin = await login("admin")
-    const response = await admin.json(`/api/opportunities/${id("opp-livre")}`, "PATCH", {
-      stage: "NEGOTIATION",
-    })
+    const response = await admin.json(
+      `/api/opportunities/${id("opp-livre")}`,
+      "PATCH",
+      changeTo(id("org-a"), "NEGOTIATION")
+    )
     assert.equal(response.status, 200)
 
     const { rows } = await db.query(
-      `select "changedById", "fromStage", "toStage" from opportunity_stage_history
+      `select "changedById", "fromStageId", "fromStatus", "toStageId", "toStatus" from opportunity_stage_history
        where "opportunityId" = $1`,
       [id("opp-livre")]
     )
-    assert.deepEqual(rows, [
-      { changedById: id("admin"), fromStage: "PROSPECTING", toStage: "NEGOTIATION" },
-    ])
+    assert.deepEqual(
+      rows.map((row) => ({
+        changedById: row.changedById,
+        fromStage: legacyName(row.fromStageId, row.fromStatus),
+        toStage: legacyName(row.toStageId, row.toStatus),
+      })),
+      [{ changedById: id("admin"), fromStage: "PROSPECTING", toStage: "NEGOTIATION" }]
+    )
   })
 
   it("cria e entra em nova organizacao, com auditoria", async () => {

@@ -7,8 +7,9 @@ import { denyUnless } from "@/lib/authz/guard"
 import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { serializeOpportunity } from "@/lib/opportunities/create"
-import { planStageTransition } from "@/lib/opportunities/rules"
-import { opportunityStageUpdateSchema } from "@/lib/validations/opportunity"
+import { planOpportunityChange } from "@/lib/opportunities/rules"
+import { findStage } from "@/lib/pipelines/service"
+import { opportunityChangeSchema } from "@/lib/validations/opportunity"
 
 class StaleStageError extends Error {}
 
@@ -36,7 +37,7 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
     return apiError("BAD_REQUEST", "Payload invalido.")
   }
 
-  const parsed = opportunityStageUpdateSchema.safeParse(body)
+  const parsed = opportunityChangeSchema.safeParse(body)
 
   if (!parsed.success) {
     return validationError(parsed.error)
@@ -48,15 +49,35 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
       organizationId,
       ...opportunityScope(session.user.role, session.user.id),
     },
+    include: { stage: { select: { id: true, pipelineId: true, probability: true, archivedAt: true } } },
   })
 
   if (!existing) {
     return apiError("NOT_FOUND", "Oportunidade nao encontrada.")
   }
 
-  const transition = planStageTransition({
-    from: existing.stage,
-    to: parsed.data.stage,
+  const targetStage = parsed.data.stageId
+    ? await findStage(prisma, organizationId, parsed.data.stageId)
+    : undefined
+
+  if (parsed.data.stageId && !targetStage) {
+    return apiError("BAD_REQUEST", "Etapa invalida.")
+  }
+
+  const { stage: currentStage, ...current } = existing
+
+  const transition = planOpportunityChange({
+    current: {
+      status: current.status,
+      stage: {
+        id: currentStage.id,
+        pipelineId: currentStage.pipelineId,
+        probability: currentStage.probability,
+        archived: currentStage.archivedAt !== null,
+      },
+    },
+    targetStage,
+    targetStatus: parsed.data.status,
     lostReason: parsed.data.lostReason,
     canReopen: hasPermission(session.user.role, "opportunities:reopen"),
     now: new Date(),
@@ -67,17 +88,17 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
   }
 
   if (transition.unchanged) {
-    return NextResponse.json({ opportunity: serializeOpportunity(existing) })
+    return NextResponse.json({ opportunity: serializeOpportunity(current) })
   }
 
   const change = transition.data
 
   try {
     const opportunity = await prisma.$transaction(async (tx) => {
-      // So aplica se a etapa ainda for a que foi lida: duas mudancas simultaneas
+      // So aplica se etapa e status ainda forem os lidos: duas mudancas simultaneas
       // nao podem gerar historico com origem errada.
       const { count } = await tx.opportunity.updateMany({
-        where: { id, organizationId, stage: existing.stage },
+        where: { id, organizationId, stageId: existing.stageId, status: existing.status },
         data: change,
       })
 
@@ -87,8 +108,10 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
         data: {
           organizationId,
           opportunityId: id,
-          fromStage: existing.stage,
-          toStage: change.stage,
+          fromStageId: existing.stageId,
+          fromStatus: existing.status,
+          toStageId: change.stageId,
+          toStatus: change.status,
           changedById: session.user.id,
           lostReason: change.lostReason,
           changedAt: change.stageChangedAt,

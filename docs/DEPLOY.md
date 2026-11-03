@@ -76,7 +76,7 @@ docker rmi salesos-web:<N-2>
 
 Em scripts, use `</dev/null` nos comandos `docker compose run` e `exec`: sem isso, eles consomem a entrada padrão e os comandos seguintes não rodam.
 
-**Reverter:** volte `WEB_TAG` para `<N-1>` e rode `docker compose up -d web`. As migrations do Prompt Mestre V2 só acrescentam estruturas, então a versão anterior roda no banco novo. Se uma migration futura remover ou alterar dados, restaure o backup feito antes da publicação.
+**Reverter:** volte `WEB_TAG` para `<N-1>` e rode `docker compose up -d web`. Isso basta quando as migrations publicadas só acrescentam estruturas. A partir da `20261103000000_pipelines` (V2-4.1), que converte as etapas em funis e remove o enum antigo, uma imagem anterior a ela não roda no banco novo: pare o app, restaure o backup feito antes da publicação (ver "Restaurar na mesma VPS") e então volte `WEB_TAG`. O que foi gravado depois da publicação se perde.
 
 ## Usuários
 

@@ -6,7 +6,14 @@ import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
 
-import { Client, PASSWORD, createDb } from "./support.mjs"
+import {
+  Client,
+  PASSWORD,
+  createDb,
+  ensurePipelines,
+  legacyColumns,
+  stageIdOf,
+} from "./support.mjs"
 
 const PREFIX = "dash-test-"
 
@@ -47,6 +54,7 @@ before(async () => {
       [organization]
     )
   }
+  await ensurePipelines(db, ORGS)
 
   const hash = await bcrypt.hash(PASSWORD, 4)
   for (const [name, organization, role] of [
@@ -88,26 +96,28 @@ before(async () => {
   ]
   for (const [name, organization, owner, value, stage, wonAt = null, lostAt = null, reason = null, leadId = null, stageChangedAt = now, expectedClose = null] of opportunities) {
     await db.query(
-      `insert into opportunities (id, "organizationId", "ownerId", "leadId", title, value, stage, "wonAt", "lostAt",
-         "lostReason", "stageChangedAt", "expectedClose", "updatedAt")
-       values ($1, $2, $3, $4, $1, $5, $6, $7, $8, $9, $10, $11, now())`,
-      [id(name), id(organization), id(owner), leadId, value, stage, utc(wonAt), utc(lostAt), reason,
-        utc(stageChangedAt), utc(expectedClose)]
+      `insert into opportunities (id, "organizationId", "ownerId", "leadId", title, value, "pipelineId", "stageId",
+         status, "wonAt", "lostAt", "lostReason", "stageChangedAt", "expectedClose", "updatedAt")
+       values ($1, $2, $3, $4, $1, $5, $6, $7, $8, $9, $10, $11, $12, $13, now())`,
+      [id(name), id(organization), id(owner), leadId, value, ...legacyColumns(id(organization), stage),
+        utc(wonAt), utc(lostAt), reason, utc(stageChangedAt), utc(expectedClose)]
     )
   }
 
+  // [etapa, status] de cada entrada: ganhar e perder acontecem numa etapa.
   let entry = 0
-  for (const [opportunity, organization, stages] of [
-    ["v1-ganha-hoje", "org", ["PROSPECTING", "PROPOSAL", "CLOSED_WON"]],
-    ["v2-ganha", "org", ["CLOSED_WON"]],
-    ["v1-perdida", "org", ["PROSPECTING", "CLOSED_LOST"]],
-    ["b-ganha", "org-b", ["PROSPECTING", "CLOSED_WON"]],
+  for (const [opportunity, organization, entries] of [
+    ["v1-ganha-hoje", "org", [["PROSPECTING", "OPEN"], ["PROPOSAL", "OPEN"], ["PROPOSAL", "WON"]]],
+    // Ganhou direto da prospeccao.
+    ["v2-ganha", "org", [["PROSPECTING", "WON"]]],
+    ["v1-perdida", "org", [["PROSPECTING", "OPEN"], ["PROSPECTING", "LOST"]]],
+    ["b-ganha", "org-b", [["PROSPECTING", "OPEN"], ["PROSPECTING", "WON"]]],
   ]) {
-    for (const stage of stages) {
+    for (const [stage, status] of entries) {
       await db.query(
-        `insert into opportunity_stage_history (id, "organizationId", "opportunityId", "toStage", "changedAt")
-         values ($1, $2, $3, $4, now())`,
-        [id(`historico-${entry++}`), id(organization), id(opportunity), stage]
+        `insert into opportunity_stage_history (id, "organizationId", "opportunityId", "toStageId", "toStatus", "changedAt")
+         values ($1, $2, $3, $4, $5, now())`,
+        [id(`historico-${entry++}`), id(organization), id(opportunity), stageIdOf(id(organization), stage), status]
       )
     }
   }

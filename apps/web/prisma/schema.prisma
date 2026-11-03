@@ -31,6 +31,8 @@ model Organization {
   auditLogs       AuditLog[]
   opportunityStageHistory OpportunityStageHistory[]
   salesGoals      SalesGoal[]
+  pipelines       Pipeline[]
+  pipelineStages  PipelineStage[]
 
   @@map("organizations")
 }
@@ -189,10 +191,13 @@ model Opportunity {
   contactId      String?
   leadId         String?
   ownerId        String?
+  pipelineId     String
+  stageId        String
   title          String
-  value          Decimal          @default(0) @db.Decimal(14, 2)
-  stage          OpportunityStage @default(PROSPECTING)
-  probability    Int              @default(10)
+  value          Decimal           @default(0) @db.Decimal(14, 2)
+  /// Independente da etapa: ganha ou perdida continua na etapa em que fechou.
+  status         OpportunityStatus @default(OPEN)
+  probability    Int               @default(10)
   expectedClose  DateTime?
   lostReason     String?
   wonAt          DateTime?
@@ -207,12 +212,62 @@ model Opportunity {
   contact      Contact?     @relation(fields: [contactId], references: [id])
   lead         Lead?        @relation(fields: [leadId], references: [id])
   owner        User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  // NoAction (checado ao fim do comando): apagar a organizacao remove tudo em cascata,
+  // mas um funil ou etapa em uso nao pode ser apagado sozinho.
+  pipeline     Pipeline      @relation(fields: [pipelineId], references: [id], onDelete: NoAction)
+  stage        PipelineStage @relation(fields: [stageId], references: [id], onDelete: NoAction)
   activities   Activity[]
   stageHistory OpportunityStageHistory[]
 
   @@index([organizationId])
   @@index([organizationId, ownerId])
+  @@index([pipelineId, stageId])
   @@map("opportunities")
+}
+
+// ─── FUNIS ───────────────────────────────────────────────────────────────────
+
+/// Funil de vendas da organizacao. Toda organizacao tem um padrao.
+model Pipeline {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  position       Int       @default(0)
+  isDefault      Boolean   @default(false)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization  Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  stages        PipelineStage[]
+  opportunities Opportunity[]
+
+  @@index([organizationId])
+  @@map("pipelines")
+}
+
+/// Etapa de um funil. Etapa removida fica arquivada: o historico continua valido.
+model PipelineStage {
+  id             String    @id @default(cuid())
+  organizationId String
+  pipelineId     String
+  name           String
+  position       Int
+  probability    Int
+  /// Etapa de proposta: entra em "Propostas aguardando resposta" no Meu Dia.
+  isProposal     Boolean   @default(false)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization  Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pipeline      Pipeline                  @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  opportunities Opportunity[]
+  historyFrom   OpportunityStageHistory[] @relation("HistoryFromStage")
+  historyTo     OpportunityStageHistory[] @relation("HistoryToStage")
+
+  @@index([pipelineId, position])
+  @@map("pipeline_stages")
 }
 
 model Activity {
@@ -236,19 +291,24 @@ model Activity {
   @@map("activities")
 }
 
+/// Toda mudanca de etapa ou de status. Cada linha guarda o estado antes e depois.
 model OpportunityStageHistory {
-  id             String            @id @default(cuid())
+  id             String             @id @default(cuid())
   organizationId String
   opportunityId  String
-  fromStage      OpportunityStage?
-  toStage        OpportunityStage
+  fromStageId    String?
+  toStageId      String
+  fromStatus     OpportunityStatus?
+  toStatus       OpportunityStatus
   changedById    String?
   lostReason     String?
-  changedAt      DateTime          @default(now())
+  changedAt      DateTime           @default(now())
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  opportunity  Opportunity  @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
-  changedBy    User?        @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  opportunity  Opportunity    @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  changedBy    User?          @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  fromStage    PipelineStage? @relation("HistoryFromStage", fields: [fromStageId], references: [id], onDelete: NoAction)
+  toStage      PipelineStage  @relation("HistoryToStage", fields: [toStageId], references: [id], onDelete: NoAction)
 
   @@index([opportunityId, changedAt])
   @@index([organizationId, changedAt])
@@ -462,13 +522,10 @@ enum LeadStatus {
   CONVERTED
 }
 
-enum OpportunityStage {
-  PROSPECTING
-  QUALIFICATION
-  PROPOSAL
-  NEGOTIATION
-  CLOSED_WON
-  CLOSED_LOST
+enum OpportunityStatus {
+  OPEN
+  WON
+  LOST
 }
 
 enum ActivityType {

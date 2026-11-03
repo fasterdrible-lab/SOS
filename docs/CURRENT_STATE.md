@@ -1,13 +1,13 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.19.0 em producao (`salesos-web:9`)
-**Data:** 2026-11-02
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 publicadas; proxima: V2-4
+**Versao atual:** V.1.19.0 em producao (`salesos-web:9`); V.1.20.0 (V2-4.1) concluida no codigo, nao publicada
+**Data:** 2026-11-03
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 publicadas; V2-4.1 concluida; proxima: V2-4.2
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Codigo:** branch `feat/saleos-v2`. A producao roda o codigo ate a V.1.19.0; a V2-4.1 (V.1.20.0) ainda nao foi commitada nem publicada e traz uma migration que nao e aditiva (reverter exige restaurar o backup, `docs/DEPLOY.md`).
 - **Producao:** imagem `salesos-web:9` desde 2026-11-02, `next` 16.4.3, `next-auth` 5.0.0-beta.32. Imagem `salesos-web:8` mantida na VPS para reverter. 5 migrations aplicadas (V2-2.2 e V2-3 nao tem migration).
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
@@ -17,7 +17,8 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-- **Testes:** 62 unitarios e 77 de integracao; o CI roda todos a cada push.
+  - V2-4.1 (nao publicada): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
+- **Testes:** 70 unitarios e 93 de integracao; o CI roda todos a cada push.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261102-180843`, antes da publicacao da V2-3), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -85,6 +86,13 @@ apps/web/lib/dashboard/metrics.ts                 -> funil, time, origens, motiv
 apps/web/lib/dashboard/executive.ts               -> consultas do Dashboard Executivo e filtro de vendedor
 apps/web/app/(app)/dashboard/dashboard-filters.tsx -> filtros de periodo e vendedor
 apps/web/app/api/dashboard/route.ts               -> Dashboard Executivo em JSON
+apps/web/lib/pipelines/defaults.ts                -> funil padrao e ids deterministicos
+apps/web/lib/pipelines/edit.ts                    -> plano de edicao das etapas (regra pura)
+apps/web/lib/pipelines/service.ts                 -> funil padrao, listagem de funis e validacao de etapa
+apps/web/lib/validations/pipeline.ts              -> schema Zod do funil
+apps/web/app/api/pipelines/route.ts               -> lista e cria funis
+apps/web/app/api/pipelines/[id]/route.ts          -> edita etapas e arquiva funil
+apps/web/app/(app)/pipeline/pipeline-editor-dialog.tsx -> dialogo "Funis" (gestor e administrador)
 apps/web/lib/ai/anthropic-client.ts               -> cliente fino da Anthropic (chat + classificacao via tool use)
 apps/web/lib/validations/sdr-conversation.ts      -> schema Zod compartilhado (conversa/mensagem do IA SDR)
 apps/web/app/api/sdr/[organizationId]/conversations/route.ts -> inicia conversa do IA SDR (publico)
@@ -206,6 +214,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Notificacoes derivadas no cabecalho (V2-2.2)
 - [x] Tema claro, escolhido pelo usuario (V2-2.2)
 - [x] Dashboard Executivo com filtros, funil, metas, time, origem e motivos de perda (V2-3)
+- [x] Funis e etapas configuraveis, status separado da etapa (V2-4.1)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -224,6 +233,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-4.1** - Funis e etapas configuraveis, status separado da etapa, migration de conversao, API e dialogo de funis. 163 testes automatizados. Nao publicada.
+
 **Tarefa V2-3** - Dashboard Executivo: filtros de periodo e vendedor, faturamento, ritmo do mes, funil, saude do pipeline, metas, time, origem e motivos de perda. 139 testes automatizados. Publicada em 2026-11-02 (`salesos-web:9`).
 
 **Tarefa V2-2.2** - Busca global (`Ctrl+K`), notificacoes e tema claro no cabecalho. 115 testes automatizados. Publicada em 2026-11-02 (`salesos-web:8`).
@@ -255,12 +266,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir as FASES V2-4 a V2-10 (`docs/TASKS.md`).
+- Publicar a V2-4.1, com autorizacao e backup antes (`docs/DEPLOY.md`): a migration nao e aditiva.
+- Seguir a V2-4.2 e as FASES V2-5 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-4: Kanban de Negociacoes (funis e etapas configuraveis, arrastar, filtros e pagina de detalhe da negociacao).
+Tarefa V2-4.2: Kanban de Negociacoes (arrastar entre etapas, filtros por dono, ordenacao, visao em lista, pagina de detalhe e edicao de valor, empresa, contato e dono).
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

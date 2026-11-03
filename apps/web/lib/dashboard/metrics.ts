@@ -3,18 +3,13 @@
 const round1 = (value: number) => Math.round(value * 10) / 10
 const round2 = (value: number) => Math.round(value * 100) / 100
 
-export const FUNNEL_STAGES = [
-  "PROSPECTING",
-  "QUALIFICATION",
-  "PROPOSAL",
-  "NEGOTIATION",
-  "CLOSED_WON",
-] as const
-
-export type FunnelStage = (typeof FUNNEL_STAGES)[number]
+/** Id do ultimo degrau do funil, alem das etapas: a venda. */
+export const WON_STEP_ID = "WON"
 
 export interface FunnelStep {
-  stage: FunnelStage
+  /** Id da etapa, ou WON_STEP_ID. */
+  id: string
+  name: string
   /** Negociacoes que chegaram a esta etapa, ou a uma posterior, no periodo. */
   count: number
   /** Percentual da etapa de cima; nulo na primeira ou com a de cima vazia. */
@@ -22,24 +17,32 @@ export interface FunnelStep {
 }
 
 /**
- * Funil a partir das entradas de etapa do periodo. Uma negociacao que pulou
- * etapas conta em todas as anteriores a mais alta que alcancou; perdas nao
- * entram.
+ * Funil a partir das entradas de historico do periodo, nas etapas de um funil
+ * (em ordem). Uma negociacao que pulou etapas conta em todas as anteriores a
+ * mais alta que alcancou; ganhar conta como o degrau final; perder conta so a
+ * etapa em que estava; etapas de outros funis sao ignoradas.
  */
-export function buildFunnel(entries: { opportunityId: string; toStage: string }[]): FunnelStep[] {
+export function buildFunnel(
+  entries: { opportunityId: string; toStageId: string; toStatus: string }[],
+  stages: { id: string; name: string }[]
+): FunnelStep[] {
+  const indexById = new Map(stages.map((stage, index) => [stage.id, index]))
   const highest = new Map<string, number>()
-  for (const { opportunityId, toStage } of entries) {
-    const index = FUNNEL_STAGES.indexOf(toStage as FunnelStage)
-    if (index < 0) continue
+  for (const { opportunityId, toStageId, toStatus } of entries) {
+    const stageIndex = indexById.get(toStageId)
+    if (stageIndex === undefined) continue
+    const index = toStatus === "WON" ? stages.length : stageIndex
     highest.set(opportunityId, Math.max(highest.get(opportunityId) ?? -1, index))
   }
 
   const reached = [...highest.values()]
-  return FUNNEL_STAGES.map((stage, index) => {
+  const steps = [...stages, { id: WON_STEP_ID, name: "Ganha" }]
+  return steps.map((step, index) => {
     const count = reached.filter((top) => top >= index).length
     const above = index === 0 ? 0 : reached.filter((top) => top >= index - 1).length
     return {
-      stage,
+      id: step.id,
+      name: step.name,
       count,
       percentOfPrevious: index === 0 || above === 0 ? null : round1((count / above) * 100),
     }

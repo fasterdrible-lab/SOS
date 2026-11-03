@@ -1,29 +1,21 @@
-export type OpportunityStage =
-  | "PROSPECTING"
-  | "QUALIFICATION"
-  | "PROPOSAL"
-  | "NEGOTIATION"
-  | "CLOSED_WON"
-  | "CLOSED_LOST"
+export type OpportunityStatus = "OPEN" | "WON" | "LOST"
 
-/** Probabilidade padrao de cada etapa: fechadas sao sempre 100 ou 0. */
-export const STAGE_PROBABILITY: Record<OpportunityStage, number> = {
-  PROSPECTING: 10,
-  QUALIFICATION: 25,
-  PROPOSAL: 50,
-  NEGOTIATION: 75,
-  CLOSED_WON: 100,
-  CLOSED_LOST: 0,
-}
+export const OPPORTUNITY_STATUSES = ["OPEN", "WON", "LOST"] as const
 
 export const MIN_LOST_REASON_LENGTH = 3
 
-export function isClosedStage(stage: OpportunityStage): boolean {
-  return stage === "CLOSED_WON" || stage === "CLOSED_LOST"
+/** Etapa de um funil, como as regras precisam dela. */
+export interface StageRef {
+  id: string
+  pipelineId: string
+  probability: number
+  archived: boolean
 }
 
-export interface StageChange {
-  stage: OpportunityStage
+export interface OpportunityChange {
+  pipelineId: string
+  stageId: string
+  status: OpportunityStatus
   probability: number
   wonAt: Date | null
   lostAt: Date | null
@@ -31,33 +23,56 @@ export interface StageChange {
   stageChangedAt: Date
 }
 
-export type StageTransition =
+export type OpportunityTransition =
   | { ok: true; unchanged: true }
-  | { ok: true; unchanged: false; data: StageChange }
+  | { ok: true; unchanged: false; data: OpportunityChange }
   | { ok: false; status: 403 | 422; error: string }
 
-export function planStageTransition(input: {
-  from: OpportunityStage
-  to: OpportunityStage
+/**
+ * Mudanca de etapa e/ou de status. Ganhar fixa 100%, perder fixa 0% e exige
+ * motivo; em andamento usa a probabilidade da etapa. Encerrada so muda de
+ * status (reabrir ou trocar o resultado) com permissao, e nao troca de etapa
+ * enquanto continuar encerrada.
+ */
+export function planOpportunityChange(input: {
+  current: { status: OpportunityStatus; stage: StageRef }
+  /** Ausente: mantem a etapa. */
+  targetStage?: StageRef | null
+  /** Ausente: mantem o status. */
+  targetStatus?: OpportunityStatus
   lostReason?: string | null
   canReopen: boolean
   now: Date
-}): StageTransition {
-  const { from, to, now } = input
+}): OpportunityTransition {
+  const { current, now } = input
+  const stage = input.targetStage ?? current.stage
+  const status = input.targetStatus ?? current.status
+  const stageChanged = stage.id !== current.stage.id
+  const statusChanged = status !== current.status
 
-  if (from === to) return { ok: true, unchanged: true }
+  if (!stageChanged && !statusChanged) return { ok: true, unchanged: true }
 
-  if (isClosedStage(from) && !input.canReopen) {
-    return {
-      ok: false,
-      status: 403,
-      error: "Somente gestor ou administrador pode reabrir uma negociacao encerrada.",
+  // Nem mover para etapa removida, nem deixar em andamento uma negociacao que
+  // ficou nela ao ser encerrada.
+  if (stage.archived && (stageChanged || status === "OPEN")) {
+    return { ok: false, status: 422, error: "Esta etapa foi removida do funil." }
+  }
+
+  if (current.status !== "OPEN") {
+    if (statusChanged && !input.canReopen) {
+      return {
+        ok: false,
+        status: 403,
+        error: "Somente gestor ou administrador pode reabrir uma negociacao encerrada.",
+      }
+    }
+    if (stageChanged && status !== "OPEN") {
+      return { ok: false, status: 422, error: "Reabra a negociacao para mudar de etapa." }
     }
   }
 
   const lostReason = input.lostReason?.trim() ?? ""
-
-  if (to === "CLOSED_LOST" && lostReason.length < MIN_LOST_REASON_LENGTH) {
+  if (status === "LOST" && statusChanged && lostReason.length < MIN_LOST_REASON_LENGTH) {
     return { ok: false, status: 422, error: "Informe o motivo da perda." }
   }
 
@@ -65,11 +80,13 @@ export function planStageTransition(input: {
     ok: true,
     unchanged: false,
     data: {
-      stage: to,
-      probability: STAGE_PROBABILITY[to],
-      wonAt: to === "CLOSED_WON" ? now : null,
-      lostAt: to === "CLOSED_LOST" ? now : null,
-      lostReason: to === "CLOSED_LOST" ? lostReason : null,
+      pipelineId: stage.pipelineId,
+      stageId: stage.id,
+      status,
+      probability: status === "WON" ? 100 : status === "LOST" ? 0 : stage.probability,
+      wonAt: status === "WON" ? now : null,
+      lostAt: status === "LOST" ? now : null,
+      lostReason: status === "LOST" ? lostReason : null,
       stageChangedAt: now,
     },
   }
@@ -94,4 +111,10 @@ export function resolveOpportunityLinks(input: {
   }
 
   return { ok: true, companyId: input.companyId ?? contactCompanyId }
+}
+
+export const STATUS_LABELS: Record<OpportunityStatus, string> = {
+  OPEN: "Em andamento",
+  WON: "Ganha",
+  LOST: "Perdida",
 }

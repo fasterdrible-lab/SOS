@@ -1,5 +1,6 @@
 import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
+import { STATUS_LABELS } from "@/lib/opportunities/rules"
 import { SEARCH_RESULTS_PER_GROUP } from "@/lib/search/query"
 
 export interface SearchResult {
@@ -13,15 +14,6 @@ export interface SearchGroup {
   key: "companies" | "contacts" | "opportunities" | "plans"
   label: string
   results: SearchResult[]
-}
-
-const STAGE_LABELS: Record<string, string> = {
-  PROSPECTING: "Prospecção",
-  QUALIFICATION: "Qualificação",
-  PROPOSAL: "Proposta",
-  NEGOTIATION: "Negociação",
-  CLOSED_WON: "Ganha",
-  CLOSED_LOST: "Perdida",
 }
 
 function joined(...parts: (string | null | undefined)[]) {
@@ -71,7 +63,13 @@ export async function globalSearch(input: {
             ...opportunityScope(role, userId),
             OR: [{ title: like }, { company: { name: like } }],
           },
-          select: { id: true, title: true, stage: true, company: { select: { name: true } } },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            stage: { select: { name: true } },
+            company: { select: { name: true } },
+          },
           orderBy: { updatedAt: "desc" },
           take,
         })
@@ -93,7 +91,10 @@ export async function globalSearch(input: {
       results: opportunities.map((row) => ({
         id: row.id,
         title: row.title,
-        subtitle: joined(STAGE_LABELS[row.stage] ?? row.stage, row.company?.name),
+        subtitle: joined(
+          row.status === "OPEN" ? row.stage.name : STATUS_LABELS[row.status],
+          row.company?.name
+        ),
         href: "/pipeline",
       })),
     },

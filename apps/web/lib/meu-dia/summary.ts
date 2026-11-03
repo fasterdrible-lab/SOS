@@ -6,7 +6,6 @@ import {
   conversionRate,
   type GoalProgress,
 } from "@/lib/meu-dia/goal-progress"
-import type { OpportunityStage } from "@/lib/opportunities/rules"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
 import {
   businessDaysOfMonth,
@@ -21,13 +20,12 @@ export const COOLING_AFTER_DAYS = 14
 const LIST_LIMIT = 5
 const DAY_MS = 24 * 60 * 60 * 1000
 
-export const OPEN_STAGES: OpportunityStage[] = ["PROSPECTING", "QUALIFICATION", "PROPOSAL", "NEGOTIATION"]
 
 export interface OpportunityItem {
   id: string
   title: string
   value: number
-  stage: OpportunityStage
+  stageName: string
   companyName: string | null
   daysInStage: number
   expectedClose: string | null
@@ -68,7 +66,7 @@ const opportunitySelect = {
   id: true,
   title: true,
   value: true,
-  stage: true,
+  stage: { select: { name: true } },
   stageChangedAt: true,
   expectedClose: true,
   company: { select: { name: true } },
@@ -78,7 +76,7 @@ type OpportunityRow = {
   id: string
   title: string
   value: { toString(): string }
-  stage: OpportunityStage
+  stage: { name: string }
   stageChangedAt: Date
   expectedClose: Date | null
   company: { name: string } | null
@@ -89,7 +87,7 @@ function toItem(row: OpportunityRow, now: Date): OpportunityItem {
     id: row.id,
     title: row.title,
     value: Number(row.value),
-    stage: row.stage,
+    stageName: row.stage.name,
     companyName: row.company?.name ?? null,
     daysInStage: Math.max(0, Math.floor((now.getTime() - row.stageChangedAt.getTime()) / DAY_MS)),
     expectedClose: row.expectedClose?.toISOString() ?? null,
@@ -111,8 +109,8 @@ export async function getMyDaySummary(input: {
   const coolingBefore = new Date(now.getTime() - COOLING_AFTER_DAYS * DAY_MS)
 
   const scoped = { organizationId, ...opportunityScope(role, userId) }
-  const open = { ...scoped, stage: { in: OPEN_STAGES } }
-  const proposalsWhere = { ...scoped, stage: "PROPOSAL" as const }
+  const open = { ...scoped, status: "OPEN" as const }
+  const proposalsWhere = { ...open, stage: { isProposal: true } }
   const coolingWhere = { ...open, stageChangedAt: { lt: coolingBefore } }
   const overdueWhere = { ...open, expectedClose: { lt: today.start } }
   const taskWhere = {
@@ -148,15 +146,15 @@ export async function getMyDaySummary(input: {
       select: { amount: true },
     }),
     prisma.opportunity.aggregate({
-      where: { ...scoped, stage: "CLOSED_WON", wonAt: { gte: monthWindow.start, lt: monthWindow.end } },
+      where: { ...scoped, status: "WON", wonAt: { gte: monthWindow.start, lt: monthWindow.end } },
       _sum: { value: true },
       _count: true,
     }),
     prisma.opportunity.count({
-      where: { ...scoped, stage: "CLOSED_LOST", lostAt: { gte: monthWindow.start, lt: monthWindow.end } },
+      where: { ...scoped, status: "LOST", lostAt: { gte: monthWindow.start, lt: monthWindow.end } },
     }),
     prisma.opportunity.aggregate({
-      where: { ...scoped, stage: "CLOSED_WON", wonAt: { gte: today.start, lt: today.end } },
+      where: { ...scoped, status: "WON", wonAt: { gte: today.start, lt: today.end } },
       _sum: { value: true },
       _count: true,
     }),

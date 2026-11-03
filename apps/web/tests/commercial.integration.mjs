@@ -6,7 +6,7 @@ import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
 
-import { Client, PASSWORD, createDb } from "./support.mjs"
+import { Client, PASSWORD, changeTo, createDb, ensurePipelines, legacyName } from "./support.mjs"
 
 const PREFIX = "commercial-test-"
 
@@ -29,6 +29,7 @@ before(async () => {
     `insert into organizations (id, name, slug, "updatedAt") values ($1, $1, $1, now())`,
     [ORG]
   )
+  await ensurePipelines(db, [ORG])
 
   const hash = await bcrypt.hash(PASSWORD, 4)
   for (const [name, role] of [
@@ -85,14 +86,24 @@ async function createOpportunity(client, body) {
 const history = async (opportunityId) =>
   (
     await db.query(
-      `select "fromStage", "toStage", "changedById", "lostReason" from opportunity_stage_history
-       where "opportunityId" = $1 order by "changedAt", id`,
+      `select "fromStageId", "fromStatus", "toStageId", "toStatus", "changedById", "lostReason"
+       from opportunity_stage_history where "opportunityId" = $1 order by "changedAt", id`,
       [opportunityId]
     )
-  ).rows
+  ).rows.map((row) => ({
+    fromStage: legacyName(row.fromStageId, row.fromStatus),
+    toStage: legacyName(row.toStageId, row.toStatus),
+    changedById: row.changedById,
+    lostReason: row.lostReason,
+  }))
+
+const currentStage = async (opportunityId) => {
+  const { rows } = await db.query(`select "stageId", status from opportunities where id = $1`, [opportunityId])
+  return legacyName(rows[0].stageId, rows[0].status)
+}
 
 const moveTo = (client, opportunityId, stage, lostReason) =>
-  client.json(`/api/opportunities/${opportunityId}`, "PATCH", { stage, lostReason })
+  client.json(`/api/opportunities/${opportunityId}`, "PATCH", changeTo(ORG, stage, lostReason))
 
 describe("vinculos", () => {
   it("rejeita contato de outra empresa", async () => {
@@ -153,7 +164,8 @@ describe("historico e datas", () => {
     const vendedor = await login("vendedor")
     const { body } = await createOpportunity(vendedor, { title: "Nova", value: 500 })
 
-    assert.equal(body.opportunity.stage, "PROSPECTING")
+    assert.equal(legacyName(body.opportunity.stageId, body.opportunity.status), "PROSPECTING")
+    assert.equal(body.opportunity.pipelineId, `pipe_${ORG}`)
     assert.equal(body.opportunity.probability, 10)
     assert.deepEqual(await history(body.opportunity.id), [
       { fromStage: null, toStage: "PROSPECTING", changedById: id("vendedor"), lostReason: null },
@@ -205,8 +217,7 @@ describe("historico e datas", () => {
 
     const missing = await moveTo(vendedor, opportunityId, "CLOSED_LOST")
     assert.equal(missing.status, 422)
-    const { rows } = await db.query(`select stage from opportunities where id = $1`, [opportunityId])
-    assert.equal(rows[0].stage, "PROSPECTING")
+    assert.equal(await currentStage(opportunityId), "PROSPECTING")
 
     const lost = await (await moveTo(vendedor, opportunityId, "CLOSED_LOST", "Sem orcamento")).json()
     assert.equal(lost.opportunity.lostReason, "Sem orcamento")
@@ -228,7 +239,7 @@ describe("reabertura", () => {
 
     const gestor = await login("gestor")
     const reopened = await (await moveTo(gestor, opportunityId, "NEGOTIATION")).json()
-    assert.equal(reopened.opportunity.stage, "NEGOTIATION")
+    assert.equal(legacyName(reopened.opportunity.stageId, reopened.opportunity.status), "NEGOTIATION")
     assert.equal(reopened.opportunity.wonAt, null)
     assert.equal(reopened.opportunity.probability, 75)
 
@@ -260,8 +271,7 @@ describe("concorrencia", () => {
       assert.equal(entries[index].fromStage, entries[index - 1].toStage)
     }
 
-    const { rows } = await db.query(`select stage from opportunities where id = $1`, [opportunityId])
-    assert.equal(rows[0].stage, entries.at(-1).toStage)
+    assert.equal(await currentStage(opportunityId), entries.at(-1).toStage)
   })
 
   it("converter o mesmo diagnostico em paralelo gera uma unica oportunidade", async () => {

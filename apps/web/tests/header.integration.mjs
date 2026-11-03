@@ -6,7 +6,7 @@ import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
 
-import { Client, PASSWORD, createDb } from "./support.mjs"
+import { Client, PASSWORD, createDb, ensurePipelines, legacyColumns } from "./support.mjs"
 
 const PREFIX = "header-test-"
 // Termo raro, para nao encontrar dados de desenvolvimento que ja existam.
@@ -50,6 +50,7 @@ before(async () => {
       [organization]
     )
   }
+  await ensurePipelines(db, ORGS)
 
   const hash = await bcrypt.hash(PASSWORD, 4)
   for (const [name, organization, role] of [
@@ -91,10 +92,10 @@ before(async () => {
     ["v2-titulo", "vendedor2", `Expansao ${TERM}`, "PROSPECTING", utc(now), null, null],
   ]) {
     await db.query(
-      `insert into opportunities (id, "organizationId", "ownerId", "companyId", title, value, stage,
-         "stageChangedAt", "expectedClose", "updatedAt")
-       values ($1, $2, $3, $4, $5, 1000, $6, $7, $8, now())`,
-      [id(name), id("org"), id(owner), companyId, title, stage, stageChangedAt, expectedClose]
+      `insert into opportunities (id, "organizationId", "ownerId", "companyId", title, value, "pipelineId",
+         "stageId", status, "stageChangedAt", "expectedClose", "updatedAt")
+       values ($1, $2, $3, $4, $5, 1000, $6, $7, $8, $9, $10, now())`,
+      [id(name), id("org"), id(owner), companyId, title, ...legacyColumns(id("org"), stage), stageChangedAt, expectedClose]
     )
   }
 

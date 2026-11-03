@@ -7,6 +7,7 @@ import { auth } from "@/lib/auth"
 import { canCreateOrganization } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { slugifyOrganizationName } from "@/lib/organizations/slug"
+import { ensureDefaultPipeline } from "@/lib/pipelines/service"
 import { organizationInputSchema } from "@/lib/validations/organization"
 
 const MAX_SLUG_ATTEMPTS = 5
@@ -65,6 +66,8 @@ export const POST = withApiErrors("POST /api/organizations", async (request: Req
       },
       select: { id: true, name: true, slug: true },
     })
+
+    await ensureDefaultPipeline(tx, created.id)
 
     await recordAudit(
       {

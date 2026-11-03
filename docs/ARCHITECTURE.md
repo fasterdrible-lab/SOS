@@ -79,7 +79,8 @@ Organization (tenant)
   └── ApiIntegration (chave de API por provedor de IA, criptografada)
   └── SdrConversation (conversa do IA SDR com um lead, N:N via SdrMessage)
   └── AuditLog (operacoes sensiveis, sem segredos)
-  └── OpportunityStageHistory (toda mudanca de etapa, com responsavel)
+  └── Pipeline (funil; um padrao por organizacao) └── PipelineStage (etapa, ordem, probabilidade)
+  └── OpportunityStageHistory (toda mudanca de etapa ou status, com responsavel)
   └── SalesGoal (meta mensal da equipe ou de um vendedor)
 ```
 
@@ -124,7 +125,8 @@ Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /a
 Periodo: lib/dashboard/period.ts, datas de calendario em Brasilia -> instantes em executive.ts
   comparacao com o periodo anterior equivalente (este mes: mesmos dias do mes anterior)
 Escopo: vendedor = proprias | gestor/admin = organizacao ou um vendedor (resolveSellerFilter)
-Funil: OpportunityStageHistory do periodo, etapa mais alta alcancada por negociacao
+Funil: OpportunityStageHistory do periodo nas etapas do funil filtrado (ou do padrao),
+  etapa mais alta alcancada por negociacao; ganhar e o degrau final
 Ritmo e metas: sempre o mes corrente (computeGoalProgress, o mesmo do Meu Dia)
 Agregacoes puras (funil, time, origens, motivos, ciclo): lib/dashboard/metrics.ts
 ```
@@ -150,12 +152,16 @@ Erro inesperado -> 500 { code: INTERNAL } + logServerError (JSON, sem segredos)
 
 ### Ciclo da Oportunidade
 ```
-Criacao (createOpportunity) -> PROSPECTING + 1a entrada em OpportunityStageHistory
-Mudanca de etapa -> planStageTransition (lib/opportunities/rules.ts):
-  CLOSED_LOST exige motivo | reabrir exige gestor ou administrador
-  probabilidade pela etapa | wonAt/lostAt com a data real | stageChangedAt
--> updateMany condicionado a etapa lida (409 se mudou) + historico, na mesma transacao
-Faturamento e conversao usam wonAt/lostAt, nunca updatedAt
+Funil: Pipeline + PipelineStage (lib/pipelines); ensureDefaultPipeline cria o padrao "Vendas"
+  com ids deterministicos (pipe_<org>, stg_<org>_<n>); etapa removida = archivedAt
+Negociacao: pipelineId + stageId + status (OPEN | WON | LOST), independentes
+Criacao (createOpportunity) -> etapa informada ou 1a do funil padrao, OPEN + 1a entrada do historico
+Mudanca -> planOpportunityChange (lib/opportunities/rules.ts):
+  LOST exige motivo | encerrada nao troca de etapa | reabrir ou trocar o resultado exige gestor/admin
+  probabilidade: WON 100, LOST 0, OPEN a da etapa | wonAt/lostAt com a data real | stageChangedAt
+-> updateMany condicionado a etapa e status lidos (409 se mudou) + historico, na mesma transacao
+Faturamento e conversao usam status + wonAt/lostAt, nunca updatedAt
+Funis: /api/pipelines (gestor/admin); editar = lista completa de etapas na ordem (planStageEdits)
 ```
 
 ### IA SDR
@@ -207,4 +213,6 @@ Consultor pertence a N organizações (OrganizationMember, N:N)
 | Fuso `America/Sao_Paulo` nas datas de negócio | O servidor roda em UTC; "hoje" e "este mês" são do cliente (V2-2.1) |
 | `node:test` em vez de Jest/Vitest | Nenhuma dependência nova; tipos removidos pelo próprio Node 24 (V2-1.3) |
 | Tema por cookie lido no servidor, sem `next-themes` | Página chega no tema certo, sem piscar e sem dependência nova (V2-2.2) |
+| Status separado da etapa, etapas em tabela | Funis configuráveis por cliente; ganha/perdida não ocupam coluna (V2-4.1) |
+| Etapa removida é arquivada, não apagada | O histórico e as encerradas continuam apontando para ela (V2-4.1) |
 | Notificações derivadas, sem tabela | Nunca ficam desatualizadas em relação ao dado; "marcar como lida" fica para quando houver eventos (V2-2.2) |

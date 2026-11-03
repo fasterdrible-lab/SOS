@@ -75,6 +75,12 @@ No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este 
 
 ## Negociações
 
+A partir da versão 1.20.0 (ainda não publicada em https://saleos.tech):
+
+- Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil e o que mostrar: em andamento, ganhas, perdidas ou todas.
+- Gestor e administrador gerenciam os funis pelo botão **Funis**: nome, ordem das etapas, probabilidade e quais etapas são de proposta (essas aparecem em "Propostas aguardando resposta" no Meu Dia). Uma etapa só pode ser removida sem negociações em andamento nela; o funil padrão não pode ser removido.
+- Ganha e perdida não são mais colunas: use **Ganhar** ou **Perder** no cartão. A negociação continua na etapa em que fechou. Encerrada não muda de etapa; **Reabrir** é para gestor e administrador.
+
 - Mude a etapa pelo seletor do cartão.
 - Para marcar como **Perdida**, o sistema pede o motivo antes de salvar. O motivo aparece no cartão e fica no histórico.
 - A data do ganho ou da perda é registrada no momento da mudança e é usada pelo Meu Dia e pelo Dashboard.

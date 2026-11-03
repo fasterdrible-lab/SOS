@@ -39,9 +39,12 @@ const initialForm = {
 export function OpportunityFormDialog({
   companies,
   contacts,
+  stageId,
 }: {
   companies: Option[]
   contacts: Option[]
+  /** Primeira etapa do funil exibido: a negociacao nasce nele. */
+  stageId: string
 }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -67,7 +70,7 @@ export function OpportunityFormDialog({
     const response = await fetch("/api/opportunities", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, stageId }),
     })
 
     const payload = await response.json().catch(() => null)

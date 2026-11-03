@@ -96,7 +96,7 @@ describe("formato dos erros", () => {
   it("404 e 422 seguem o mesmo formato", async () => {
     const admin = await login("admin")
     await expectError(
-      await admin.json(`/api/opportunities/${id("inexistente")}`, "PATCH", { stage: "PROPOSAL" }),
+      await admin.json(`/api/opportunities/${id("inexistente")}`, "PATCH", { status: "WON" }),
       404,
       "NOT_FOUND"
     )
@@ -106,7 +106,7 @@ describe("formato dos erros", () => {
     ).json()
     await expectError(
       await admin.json(`/api/opportunities/${created.opportunity.id}`, "PATCH", {
-        stage: "CLOSED_LOST",
+        status: "LOST",
       }),
       422,
       "UNPROCESSABLE"

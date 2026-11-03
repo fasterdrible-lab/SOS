@@ -1,6 +1,6 @@
 import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
-import { COOLING_AFTER_DAYS, OPEN_STAGES } from "@/lib/meu-dia/summary"
+import { COOLING_AFTER_DAYS } from "@/lib/meu-dia/summary"
 import { buildNotifications, type HeaderNotifications } from "@/lib/notifications/build"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
 import { dayRange } from "@/lib/time/business-calendar"
@@ -17,7 +17,7 @@ export async function getHeaderNotifications(input: {
   const { organizationId, userId, role } = input
   const now = input.now ?? new Date()
   const today = dayRange(now)
-  const open = { organizationId, ...opportunityScope(role, userId), stage: { in: OPEN_STAGES } }
+  const open = { organizationId, ...opportunityScope(role, userId), status: "OPEN" as const }
 
   const [hotLeads, overdueTasks, overdueClose, cooling] = await Promise.all([
     hasPermission(role, "sdr:read") ? getUnseenQualifiedLeadsCount(organizationId) : null,

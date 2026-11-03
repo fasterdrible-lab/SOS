@@ -1,5 +1,35 @@
 # CHANGELOG — SalesOS
 
+## [V.1.20.0] — 2026-11-03 (nao publicada)
+
+### Tarefa V2-4.1 — Funis e etapas configuraveis
+- **Funis**: cada cliente pode ter varios funis, cada um com etapas proprias (nome, ordem, probabilidade e marca de "etapa de proposta"). Gestor e administrador criam, editam e removem funis pelo botao "Funis" em Negociacoes ou por `/api/pipelines`, com auditoria. Etapa removida fica arquivada e so sai sem negociacoes em andamento; o funil padrao nao pode ser removido.
+- **Status separado da etapa**: a negociacao esta em andamento, ganha ou perdida, e continua na etapa em que fechou. Ganhar e perder viraram botoes no card; reabrir continua restrito a gestor e administrador.
+- Negociacoes: escolha do funil e filtro de status (em andamento, ganhas, perdidas, todas).
+- Meu Dia: as propostas aguardando resposta vem das etapas marcadas como proposta. Dashboard: filtro de funil, e o funil do periodo usa as etapas do funil escolhido.
+- Historico grava etapa e status de origem e destino.
+- Cliente novo ja nasce com o funil padrao "Vendas" (Prospeccao, Qualificacao, Proposta, Negociacao).
+- Corrigido antes de publicar: reabrir uma negociacao ganha numa etapa removida era aceito.
+- Testes: `pipelines.integration.mjs` (16) e regras novas em `opportunity-rules.test.mjs`; as demais suites foram adaptadas ao modelo novo.
+
+**Migration:** `20261103000000_pipelines`. Cria o funil padrao em cada organizacao, converte negociacoes e historico e remove o enum `OpportunityStage`. Nao e aditiva: reverter exige restaurar o backup (ver `docs/DEPLOY.md`). Aplicada apenas no banco de desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261103000000_pipelines/migration.sql`
+- `apps/web/lib/pipelines/defaults.ts`, `lib/pipelines/edit.ts`, `lib/pipelines/service.ts`, `lib/validations/pipeline.ts`
+- `apps/web/app/api/pipelines/route.ts`, `app/api/pipelines/[id]/route.ts`
+- `apps/web/app/(app)/pipeline/pipeline-editor-dialog.tsx`
+- `apps/web/tests/pipelines.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/opportunities/rules.ts`, `lib/opportunities/create.ts`, `lib/validations/opportunity.ts`
+- `apps/web/app/api/opportunities/route.ts`, `app/api/opportunities/[id]/route.ts`, `app/api/organizations/route.ts`, `app/api/dashboard/route.ts`
+- `apps/web/app/(app)/pipeline/page.tsx`, `opportunity-card.tsx`, `opportunity-form-dialog.tsx`
+- `apps/web/app/(app)/dashboard/page.tsx`, `dashboard-filters.tsx`, `app/(app)/meu-dia/page.tsx`
+- `apps/web/lib/dashboard/executive.ts`, `lib/dashboard/metrics.ts`, `lib/dashboard/kpis.ts`, `lib/meu-dia/summary.ts`, `lib/notifications/summary.ts`, `lib/search/global-search.ts`, `lib/authz/permissions.ts`, `lib/audit/record.ts`
+- `apps/web/tests/support.mjs` e as suites de integracao e unitarias afetadas
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/DEPLOY.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.19.0] — 2026-11-02 (publicada em producao, imagem `salesos-web:9`)
 
 ### Tarefa V2-3 — Dashboard Executivo

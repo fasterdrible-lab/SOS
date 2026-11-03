@@ -22,6 +22,66 @@ export function createDb() {
   return new pg.Client({ connectionString: process.env.DATABASE_URL })
 }
 
+// Funil padrao (V2-4.1), com os ids deterministicos de lib/pipelines/defaults.ts.
+// Os testes descrevem a negociacao pelo nome antigo da etapa ("PROPOSAL",
+// "CLOSED_WON"); estes ajudantes traduzem para funil, etapa e status.
+const LEGACY_POSITIONS = { PROSPECTING: 1, QUALIFICATION: 2, PROPOSAL: 3, NEGOTIATION: 4 }
+const LEGACY_NAMES = Object.fromEntries(Object.entries(LEGACY_POSITIONS).map(([name, position]) => [position, name]))
+const DEFAULT_STAGES = [
+  [1, "Prospecção", 10, false],
+  [2, "Qualificação", 25, false],
+  [3, "Proposta", 50, true],
+  [4, "Negociação", 75, false],
+]
+
+export const pipelineIdOf = (organizationId) => `pipe_${organizationId}`
+/** Etapa do funil padrao; ganha e perdida ficam em Negociacao. */
+export const stageIdOf = (organizationId, legacy) =>
+  `stg_${organizationId}_${LEGACY_POSITIONS[legacy] ?? 4}`
+export const statusOf = (legacy) =>
+  legacy === "CLOSED_WON" ? "WON" : legacy === "CLOSED_LOST" ? "LOST" : "OPEN"
+
+/** Colunas pipelineId, stageId e status, nessa ordem, para um insert. */
+export const legacyColumns = (organizationId, legacy) => [
+  pipelineIdOf(organizationId),
+  stageIdOf(organizationId, legacy),
+  statusOf(legacy),
+]
+
+/** Nome antigo a partir de etapa e status gravados. */
+export function legacyName(stageId, status) {
+  if (stageId === null || stageId === undefined) return null
+  if (status === "WON") return "CLOSED_WON"
+  if (status === "LOST") return "CLOSED_LOST"
+  return LEGACY_NAMES[Number(stageId.split("_").at(-1))]
+}
+
+/** Corpo do PATCH de /api/opportunities/[id] que leva a etapa antiga. */
+export function changeTo(organizationId, legacy, lostReason) {
+  const status = statusOf(legacy)
+  return status === "OPEN"
+    ? { stageId: stageIdOf(organizationId, legacy), status }
+    : { status, lostReason }
+}
+
+/** Cria o funil padrao de organizacoes inseridas por SQL. */
+export async function ensurePipelines(db, organizationIds) {
+  for (const organizationId of organizationIds) {
+    await db.query(
+      `insert into pipelines (id, "organizationId", name, "isDefault", "updatedAt")
+       values ($1, $2, 'Vendas', true, now()) on conflict (id) do nothing`,
+      [pipelineIdOf(organizationId), organizationId]
+    )
+    for (const [position, name, probability, isProposal] of DEFAULT_STAGES) {
+      await db.query(
+        `insert into pipeline_stages (id, "organizationId", "pipelineId", name, position, probability, "isProposal", "updatedAt")
+         values ($1, $2, $3, $4, $5, $6, $7, now()) on conflict (id) do nothing`,
+        [`stg_${organizationId}_${position}`, organizationId, pipelineIdOf(organizationId), name, position, probability, isProposal]
+      )
+    }
+  }
+}
+
 export class Client {
   cookies = new Map()
 

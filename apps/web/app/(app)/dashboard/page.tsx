@@ -22,10 +22,11 @@ import {
   type ExecutiveDashboard,
   type GoalRow,
 } from "@/lib/dashboard/executive"
-import type { FunnelStage, RankedGroups } from "@/lib/dashboard/metrics"
+import type { RankedGroups } from "@/lib/dashboard/metrics"
 import { parsePeriod } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
 import { COOLING_AFTER_DAYS } from "@/lib/meu-dia/summary"
+import { getPipelines } from "@/lib/pipelines/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { cn } from "@/lib/utils"
 
@@ -50,14 +51,6 @@ const monthName = new Intl.DateTimeFormat("pt-BR", {
   year: "numeric",
 })
 const shortDate = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit" })
-
-const FUNNEL_LABELS: Record<FunnelStage, string> = {
-  PROSPECTING: "Prospecção",
-  QUALIFICATION: "Qualificação",
-  PROPOSAL: "Proposta",
-  NEGOTIATION: "Negociação",
-  CLOSED_WON: "Ganha",
-}
 
 const percentText = (value: number | null) => (value === null ? "—" : `${number.format(value)}%`)
 const isoDay = (day: string) => shortDate.format(new Date(`${day}T00:00:00Z`))
@@ -87,11 +80,16 @@ export default async function DashboardPage({
   const period = parsePeriod(single(query.periodo))
   const isSeller = getAccessLevel(role) === "SELLER"
 
-  const [members, diagnostics] = await Promise.all([
+  const [members, pipelines, diagnostics] = await Promise.all([
     getDashboardMembers(organizationId),
+    getPipelines(organizationId),
     prisma.diagnostic.count({ where: { organizationId } }),
   ])
   const { sellerId } = resolveSellerFilter(role, members, single(query.vendedor))
+  const requestedPipeline = single(query.funil)
+  const pipelineId = pipelines.some((pipeline) => pipeline.id === requestedPipeline)
+    ? requestedPipeline!
+    : null
   const dashboard = await getExecutiveDashboard({
     organizationId,
     userId,
@@ -99,6 +97,8 @@ export default async function DashboardPage({
     period,
     sellerId,
     members,
+    pipelines,
+    pipelineId,
   })
 
   const scopeLabel =
@@ -110,7 +110,13 @@ export default async function DashboardPage({
 
   return (
     <main className="flex-1 space-y-4 p-4 sm:p-6">
-      <DashboardFilters period={period} sellerId={sellerId} members={isSeller ? null : members} />
+      <DashboardFilters
+        period={period}
+        sellerId={sellerId}
+        members={isSeller ? null : members}
+        pipelineId={pipelineId}
+        pipelines={pipelines.map((pipeline) => ({ id: pipeline.id, name: pipeline.name }))}
+      />
 
       <p className="px-1 text-xs text-muted-foreground">
         {scopeLabel} · {dashboard.period.label.toLowerCase()} ({isoDay(dashboard.period.start)} a{" "}
@@ -120,7 +126,7 @@ export default async function DashboardPage({
       <Indicators dashboard={dashboard} />
 
       <section className="grid gap-4 lg:grid-cols-3" aria-label="Funil, saúde e metas">
-        <FunnelCard dashboard={dashboard} />
+        <FunnelCard dashboard={dashboard} severalPipelines={pipelines.length > 1} />
         <HealthCard dashboard={dashboard} />
         <GoalsCard month={dashboard.goals.month} rows={dashboard.goals.rows} />
       </section>
@@ -211,15 +217,23 @@ function Indicators({ dashboard }: { dashboard: ExecutiveDashboard }) {
   )
 }
 
-function FunnelCard({ dashboard }: { dashboard: ExecutiveDashboard }) {
-  const { steps, leads } = dashboard.funnel
+function FunnelCard({
+  dashboard,
+  severalPipelines,
+}: {
+  dashboard: ExecutiveDashboard
+  severalPipelines: boolean
+}) {
+  const { steps, leads, pipelineName } = dashboard.funnel
   const max = Math.max(1, ...steps.map((step) => step.count))
 
   return (
     <PanelCard
       icon={Filter}
-      title="Funil do período"
-      hint="Negociações que chegaram a cada etapa, ou além, no período · % da etapa de cima."
+      title={`Funil do período · ${pipelineName}`}
+      hint={`Negociações que chegaram a cada etapa, ou além, no período · % da etapa de cima.${
+        severalPipelines && !dashboard.pipelineId ? " Com todos os funis, mostra o funil padrão." : ""
+      }`}
     >
       {leads !== null && (
         <p className="text-xs text-muted-foreground">
@@ -228,9 +242,9 @@ function FunnelCard({ dashboard }: { dashboard: ExecutiveDashboard }) {
       )}
       <ul className="space-y-2.5 pt-1">
         {steps.map((step) => (
-          <li key={step.stage} className="space-y-1">
+          <li key={step.id} className="space-y-1">
             <div className="flex items-baseline justify-between gap-2 text-sm">
-              <span className="text-foreground">{FUNNEL_LABELS[step.stage]}</span>
+              <span className="truncate text-foreground">{step.name}</span>
               <span className="text-muted-foreground">
                 <span className="font-semibold text-foreground">{step.count}</span>
                 {step.percentOfPrevious !== null && ` · ${number.format(step.percentOfPrevious)}%`}

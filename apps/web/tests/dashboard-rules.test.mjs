@@ -63,29 +63,43 @@ describe("periodos do dashboard", () => {
 })
 
 describe("funil", () => {
+  const stages = [
+    { id: "p", name: "Prospecção" },
+    { id: "q", name: "Qualificação" },
+    { id: "pr", name: "Proposta" },
+    { id: "n", name: "Negociação" },
+  ]
+  const entry = (opportunityId, toStageId, toStatus = "OPEN") => ({ opportunityId, toStageId, toStatus })
+
   it("conta a etapa mais alta alcancada e as anteriores", () => {
-    const steps = buildFunnel([
-      { opportunityId: "a", toStage: "PROSPECTING" },
-      { opportunityId: "a", toStage: "PROPOSAL" },
-      { opportunityId: "b", toStage: "PROSPECTING" },
-      // Pulou direto para o ganho.
-      { opportunityId: "c", toStage: "CLOSED_WON" },
-      { opportunityId: "d", toStage: "CLOSED_LOST" },
-    ])
-    assert.deepEqual(
-      steps.map((step) => [step.stage, step.count, step.percentOfPrevious]),
+    const steps = buildFunnel(
       [
-        ["PROSPECTING", 3, null],
-        ["QUALIFICATION", 2, 66.7],
-        ["PROPOSAL", 2, 100],
-        ["NEGOTIATION", 1, 50],
-        ["CLOSED_WON", 1, 100],
+        entry("a", "p"),
+        entry("a", "pr"),
+        entry("b", "p"),
+        // Ganhou direto da prospeccao: conta em todas as etapas e na venda.
+        entry("c", "p", "WON"),
+        // Perdeu na prospeccao: conta so a etapa em que estava.
+        entry("d", "p", "LOST"),
+        // Etapa de outro funil.
+        entry("e", "outro"),
+      ],
+      stages
+    )
+    assert.deepEqual(
+      steps.map((step) => [step.id, step.name, step.count, step.percentOfPrevious]),
+      [
+        ["p", "Prospecção", 4, null],
+        ["q", "Qualificação", 2, 50],
+        ["pr", "Proposta", 2, 100],
+        ["n", "Negociação", 1, 50],
+        ["WON", "Ganha", 1, 100],
       ]
     )
   })
 
   it("periodo sem movimento nao divide por zero", () => {
-    assert.ok(buildFunnel([]).every((step) => step.count === 0 && step.percentOfPrevious === null))
+    assert.ok(buildFunnel([], stages).every((step) => step.count === 0 && step.percentOfPrevious === null))
   })
 })
 

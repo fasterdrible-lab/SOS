@@ -18,7 +18,8 @@ import {
 } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
 import { computeGoalProgress, type GoalProgress } from "@/lib/meu-dia/goal-progress"
-import { COOLING_AFTER_DAYS, OPEN_STAGES } from "@/lib/meu-dia/summary"
+import { COOLING_AFTER_DAYS } from "@/lib/meu-dia/summary"
+import type { PipelineSummary } from "@/lib/pipelines/service"
 import {
   businessDaysOfMonth,
   calendarDateIn,
@@ -70,7 +71,10 @@ export interface ExecutiveDashboard {
     changeVsAverage: number | null
     businessDays: { total: number; elapsed: number }
   }
-  funnel: { leads: number | null; steps: FunnelStep[] }
+  /** Funil filtrado; nulo = todos. */
+  pipelineId: string | null
+  /** Funil filtrado ou, com todos, o padrao: etapas diferem entre funis. */
+  funnel: { pipelineId: string; pipelineName: string; leads: number | null; steps: FunnelStep[] }
   health: {
     openCount: number
     openValue: number
@@ -128,9 +132,15 @@ export async function getExecutiveDashboard(input: {
   sellerId?: string | null
   /** Evita reconsultar quando quem chama ja tem a lista. */
   members?: DashboardMember[]
+  /** Funis ativos da organizacao (getPipelines), o padrao primeiro. */
+  pipelines: PipelineSummary[]
+  /** Ja validado como funil da organizacao; nulo = todos. */
+  pipelineId?: string | null
   now?: Date
 }): Promise<ExecutiveDashboard> {
-  const { organizationId, userId, role, period } = input
+  const { organizationId, userId, role, period, pipelines } = input
+  const pipelineId = input.pipelineId ?? null
+  const funnelPipeline = pipelines.find((pipeline) => pipeline.id === pipelineId) ?? pipelines[0]
   const now = input.now ?? new Date()
   const level = getAccessLevel(role)
   const isSeller = level === "SELLER"
@@ -139,7 +149,7 @@ export async function getExecutiveDashboard(input: {
   const scope = isSeller ? "OWN" : ownerId ? "SELLER" : "ORGANIZATION"
   // Papel desconhecido nao ve nada (mesma regra de opportunityScope).
   const owner = level === null ? { ownerId: "__sem_acesso__" } : ownerId ? { ownerId } : {}
-  const base = { organizationId, ...owner }
+  const base = { organizationId, ...owner, ...(pipelineId ? { pipelineId } : {}) }
 
   const window = periodWindow(period, calendarDateIn(now))
   const current = toRange(window.current)
@@ -149,7 +159,7 @@ export async function getExecutiveDashboard(input: {
   // 80 dias antes do dia 1 cai sempre no terceiro mes anterior (2 meses < 63 dias < 80 < 89).
   const threeMonthsAgo = monthRange(new Date(month.start.getTime() - 80 * DAY_MS)).start
   const today = startOfCalendarDate(calendarDateIn(now))
-  const open = { ...base, stage: { in: OPEN_STAGES } }
+  const open = { ...base, status: "OPEN" as const }
 
   const [
     wonCurrent,
@@ -167,25 +177,30 @@ export async function getExecutiveDashboard(input: {
     members,
   ] = await Promise.all([
     prisma.opportunity.findMany({
-      where: { ...base, stage: "CLOSED_WON", wonAt: between(current) },
+      where: { ...base, status: "WON", wonAt: between(current) },
       select: { value: true, wonAt: true, createdAt: true, ownerId: true, lead: { select: { source: true } } },
     }),
     prisma.opportunity.aggregate({
-      where: { ...base, stage: "CLOSED_WON", wonAt: between(previous) },
+      where: { ...base, status: "WON", wonAt: between(previous) },
       _sum: { value: true },
       _count: true,
     }),
     prisma.opportunity.findMany({
-      where: { ...base, stage: "CLOSED_LOST", lostAt: between(current) },
+      where: { ...base, status: "LOST", lostAt: between(current) },
       select: { value: true, ownerId: true, lostReason: true },
     }),
-    prisma.opportunity.count({ where: { ...base, stage: "CLOSED_LOST", lostAt: between(previous) } }),
+    prisma.opportunity.count({ where: { ...base, status: "LOST", lostAt: between(previous) } }),
     prisma.opportunityStageHistory.findMany({
-      where: { organizationId, changedAt: between(current), opportunity: owner },
-      select: { opportunityId: true, toStage: true },
+      where: {
+        organizationId,
+        changedAt: between(current),
+        opportunity: owner,
+        toStage: { pipelineId: funnelPipeline.id },
+      },
+      select: { opportunityId: true, toStageId: true, toStatus: true },
     }),
-    // Leads nao tem dono: so entram na visao da organizacao inteira.
-    scope === "ORGANIZATION"
+    // Leads nao tem dono nem funil: so entram na visao da organizacao inteira.
+    scope === "ORGANIZATION" && !pipelineId
       ? prisma.lead.count({ where: { organizationId, createdAt: between(current) } })
       : null,
     prisma.opportunity.aggregate({ where: open, _sum: { value: true }, _count: true }),
@@ -195,11 +210,11 @@ export async function getExecutiveDashboard(input: {
     prisma.opportunity.count({ where: { ...open, expectedClose: { lt: today } } }),
     prisma.opportunity.groupBy({
       by: ["ownerId"],
-      where: { ...base, stage: "CLOSED_WON", wonAt: between(month) },
+      where: { ...base, status: "WON", wonAt: between(month) },
       _sum: { value: true },
     }),
     prisma.opportunity.aggregate({
-      where: { ...base, stage: "CLOSED_WON", wonAt: { gte: threeMonthsAgo, lt: month.start } },
+      where: { ...base, status: "WON", wonAt: { gte: threeMonthsAgo, lt: month.start } },
       _sum: { value: true },
     }),
     prisma.salesGoal.findMany({
@@ -297,7 +312,13 @@ export async function getExecutiveDashboard(input: {
         paceProgress.projection === null ? null : percentChange(paceProgress.projection, averageLast3Months),
       businessDays: { total: businessDays.total, elapsed: businessDays.elapsed },
     },
-    funnel: { leads, steps: buildFunnel(stageEntries) },
+    pipelineId,
+    funnel: {
+      pipelineId: funnelPipeline.id,
+      pipelineName: funnelPipeline.name,
+      leads,
+      steps: buildFunnel(stageEntries, funnelPipeline.stages),
+    },
     health: {
       openCount: openTotals._count,
       openValue: Number(openTotals._sum.value ?? 0),

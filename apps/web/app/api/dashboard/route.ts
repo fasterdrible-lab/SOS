@@ -10,6 +10,7 @@ import {
   resolveSellerFilter,
 } from "@/lib/dashboard/executive"
 import { parsePeriod } from "@/lib/dashboard/period"
+import { getPipelines } from "@/lib/pipelines/service"
 
 export const GET = withApiErrors("GET /api/dashboard", async (request: Request) => {
   const session = await auth()
@@ -23,10 +24,18 @@ export const GET = withApiErrors("GET /api/dashboard", async (request: Request) 
   if (denied) return denied
 
   const params = new URL(request.url).searchParams
-  const members = await getDashboardMembers(organizationId)
+  const [members, pipelines] = await Promise.all([
+    getDashboardMembers(organizationId),
+    getPipelines(organizationId),
+  ])
   const seller = resolveSellerFilter(session.user.role, members, params.get("vendedor"))
   if (seller.invalid) {
     return apiError("NOT_FOUND", "Vendedor nao encontrado nesta organizacao.")
+  }
+
+  const requestedPipeline = params.get("funil")
+  if (requestedPipeline && !pipelines.some((pipeline) => pipeline.id === requestedPipeline)) {
+    return apiError("NOT_FOUND", "Funil nao encontrado nesta organizacao.")
   }
 
   const dashboard = await getExecutiveDashboard({
@@ -36,6 +45,8 @@ export const GET = withApiErrors("GET /api/dashboard", async (request: Request) 
     period: parsePeriod(params.get("periodo")),
     sellerId: seller.sellerId,
     members,
+    pipelines,
+    pipelineId: requestedPipeline,
   })
 
   return NextResponse.json({ dashboard })

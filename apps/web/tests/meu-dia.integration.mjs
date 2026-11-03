@@ -6,7 +6,7 @@ import { after, before, describe, it } from "node:test"
 
 import bcrypt from "bcryptjs"
 
-import { Client, PASSWORD, createDb } from "./support.mjs"
+import { Client, PASSWORD, createDb, ensurePipelines, legacyColumns } from "./support.mjs"
 
 const PREFIX = "meudia-test-"
 
@@ -52,6 +52,7 @@ before(async () => {
       [organization]
     )
   }
+  await ensurePipelines(db, ORGS)
 
   const hash = await bcrypt.hash(PASSWORD, 4)
   for (const [name, organization, role] of [
@@ -97,11 +98,11 @@ before(async () => {
     ([name, organization, owner, value, stage, ...dates]) => [name, organization, owner, value, stage, ...dates.map(utc)]
   )) {
     await db.query(
-      `insert into opportunities (id, "organizationId", "ownerId", title, value, stage, "wonAt", "lostAt",
-         "stageChangedAt", "expectedClose", "lostReason", "updatedAt")
-       values ($1, $2, $3, $1, $4, $5, $6, $7, $8, $9, $10, now())`,
-      [id(name), id(organization), id(owner), value, stage, wonAt, lostAt, stageChangedAt, expectedClose,
-        stage === "CLOSED_LOST" ? "Teste" : null]
+      `insert into opportunities (id, "organizationId", "ownerId", title, value, "pipelineId", "stageId", status,
+         "wonAt", "lostAt", "stageChangedAt", "expectedClose", "lostReason", "updatedAt")
+       values ($1, $2, $3, $1, $4, $5, $6, $7, $8, $9, $10, $11, $12, now())`,
+      [id(name), id(organization), id(owner), value, ...legacyColumns(id(organization), stage), wonAt, lostAt,
+        stageChangedAt, expectedClose, stage === "CLOSED_LOST" ? "Teste" : null]
     )
   }
 

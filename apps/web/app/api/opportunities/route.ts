@@ -8,6 +8,7 @@ import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { createOpportunity, serializeOpportunity } from "@/lib/opportunities/create"
 import { resolveOpportunityLinks } from "@/lib/opportunities/rules"
+import { findStage } from "@/lib/pipelines/service"
 import { opportunityInputSchema } from "@/lib/validations/opportunity"
 
 export const GET = withApiErrors("GET /api/opportunities", async () => {
@@ -61,7 +62,13 @@ export const POST = withApiErrors("POST /api/opportunities", async (request: Req
     return validationError(parsed.error)
   }
 
-  const { companyId, contactId, expectedClose, ...rest } = parsed.data
+  const { companyId, contactId, stageId, expectedClose, ...rest } = parsed.data
+
+  const stage = stageId ? await findStage(prisma, organizationId, stageId) : undefined
+
+  if (stageId && (!stage || stage.archived)) {
+    return apiError("BAD_REQUEST", "Etapa invalida.")
+  }
 
   if (companyId) {
     const company = await prisma.company.findFirst({
@@ -103,7 +110,8 @@ export const POST = withApiErrors("POST /api/opportunities", async (request: Req
           expectedClose: expectedClose ? new Date(expectedClose) : null,
           ...rest,
         },
-        session.user.id
+        session.user.id,
+        stage ?? undefined
       )
     )
 

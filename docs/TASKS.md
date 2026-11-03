@@ -13,7 +13,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-2.1 | Meu Dia, cabecalho global, menu e metas | done (em producao desde 2026-10-31, `salesos-web:7`) |
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
 | V2-3 | Dashboard Executivo | done (em producao desde 2026-11-02, `salesos-web:9`) |
-| V2-4 | Kanban de Negociacoes | proxima |
+| V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (nao publicada) |
+| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | proxima |
+| V2-4.3 | Campos obrigatorios por etapa | todo |
 | V2-5 | Clientes 360 | todo |
 | V2-6 | Atividades e follow-ups | todo |
 | V2-7 | Integracao SALEIA | todo |
@@ -25,6 +27,32 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-4.1 - Funis e etapas configuraveis
+
+### Decisao (usuario, 2026-11-02)
+A V2-4 foi dividida em tres subtarefas, com a estrutura primeiro: 4.1 funis e etapas configuraveis com status separado e migration; 4.2 Kanban novo (arrastar, filtros, lista, detalhe e edicao); 4.3 campos obrigatorios por etapa. Referencia: capturas locais `telas 3 crm.jpeg` e `telas 4 crm.jpeg` (fora do git).
+
+### Resultado
+- Models `Pipeline` e `PipelineStage` (nome, posicao, probabilidade, marca de etapa de proposta, arquivamento). `Opportunity` ganha `pipelineId`, `stageId` e `status` (`OPEN`, `WON`, `LOST`); o enum `OpportunityStage` sai.
+- Migration `20261103000000_pipelines`: cria o funil padrao "Vendas" (Prospeccao 10%, Qualificacao 25%, Proposta 50%, Negociacao 75%) em cada organizacao e converte negociacoes e historico. Ganha e perdida viram status e ficam na ultima etapa aberta registrada (Negociacao, sem historico). Testada em banco descartavel com casos de ganho, perda, reabertura e fechamento sem historico.
+- O historico grava etapa e status de origem e destino (`fromStageId`, `fromStatus`, `toStageId`, `toStatus`).
+- Regras (`planOpportunityChange`, `lib/opportunities/rules.ts`): ganhar fixa 100% e a data; perder exige motivo, fixa 0% e a data; em andamento usa a probabilidade da etapa. Encerrada nao muda de etapa; reabrir ou trocar o resultado exige gestor ou administrador; nada fica em andamento numa etapa removida.
+- `PATCH /api/opportunities/[id]` recebe `stageId` e/ou `status` (com `lostReason`). `POST /api/opportunities` aceita `stageId`; sem ele, primeira etapa do funil padrao.
+- Funis: `GET/POST /api/pipelines`, `PUT/DELETE /api/pipelines/[id]` (permissao nova `pipelines:manage`, gestor e administrador, auditado). Editar substitui a lista de etapas na ordem enviada; etapa fora da lista e arquivada, so sem negociacoes em andamento; a probabilidade das abertas acompanha a etapa. O funil padrao nao pode ser removido.
+- Cliente novo nasce com o funil padrao; organizacoes criadas por SQL o recebem na primeira consulta (`ensureDefaultPipeline`, ids deterministicos).
+- Negociacoes (`/pipeline`): escolha do funil, filtro de status (em andamento, ganhas, perdidas, todas), colunas pelas etapas do funil, botoes Ganhar, Perder e Reabrir no card, dialogo "Funis" para gestores. Encerradas em etapa removida aparecem em "Etapas removidas".
+- Meu Dia: "Propostas aguardando resposta" usa as etapas marcadas como proposta. Dashboard: filtro de funil; o funil usa as etapas do funil escolhido (com todos, o padrao).
+- Testes: `npm run check` (70 unitarios) e `npm run test:integration` (93, em 7 suites; nova `pipelines.integration.mjs`, 16). As suites anteriores foram adaptadas por `tests/support.mjs` (`ensurePipelines`, `legacyColumns`, `changeTo`, `legacyName`), sem mudar o que verificam.
+- Bug encontrado pelos testes e corrigido: reabrir uma negociacao ganha numa etapa ja removida era aceito.
+- Verificacao visual em Chrome headless: quadro escuro, ganhas no claro, dialogo de funis e funil do Dashboard.
+
+### Limitacoes conhecidas
+- Reverter para a `salesos-web:9` depois desta migration exige restaurar o backup feito antes da publicacao: o enum antigo e removido.
+- O quadro ainda e o da FASE 3 com seletor de etapa: arrastar, filtros por dono, ordenacao, lista, detalhe e edicao entram na V2-4.2.
+- O historico convertido de negociacoes reabertas usa a ultima etapa aberta anterior; sem nenhuma, Negociacao.
+- Etapas arquivadas nao entram no funil do Dashboard.
+- Mover uma negociacao para outro funil so pela API (`stageId` de outro funil); a tela mostra apenas as etapas do funil atual.
 
 ## Tarefa: V2-3 - Dashboard Executivo
 
@@ -44,7 +72,7 @@ Captura local `telas 2 crm.jpeg` (fora do git, contem dados de outra empresa): f
 - Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: escuro, claro, filtro por vendedor e celular 390 px (corrigida a tabela do time que alargava a pagina no celular).
 
 ### Limitacoes conhecidas
-- As abas "Vendas / Pre-venda" e o filtro de funis da referencia nao foram feitos: pre-venda depende de reunioes (V2-6) e funis multiplos do Kanban (V2-4).
+- As abas "Vendas / Pre-venda" da referencia nao foram feitas: pre-venda depende de reunioes (V2-6). O filtro de funis entrou na V2-4.1.
 - O funil conta entradas de etapa no periodo; negociacoes antigas sem historico (criadas antes da V2-1.2) so tem a entrada reconstituida pela migration.
 - "Origem da venda" usa a origem do lead, que hoje so existe nas oportunidades do IA SDR; as demais aparecem como "Sem origem" ate haver campanha/origem na negociacao.
 - "No ritmo, o mes fecha" e as metas sao sempre do mes corrente, independente do filtro (indicado na tela). Feriados nao entram nos dias uteis.
