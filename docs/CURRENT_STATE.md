@@ -219,7 +219,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
 - `npm run lint` sem erros desde a V2-1.3.
-- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 5 migrations estao aplicadas.
+- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 6 migrations estao aplicadas.
 - Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`. Desde a V2-1.3, a recusa do provedor aparece no log com o status HTTP.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
