@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.20.0] — 2026-11-03 (nao publicada)
+## [V.1.20.0] — 2026-11-03 (publicada em producao em 2026-11-04, imagem `salesos-web:10`)
 
 ### Tarefa V2-4.1 — Funis e etapas configuraveis
 - **Funis**: cada cliente pode ter varios funis, cada um com etapas proprias (nome, ordem, probabilidade e marca de "etapa de proposta"). Gestor e administrador criam, editam e removem funis pelo botao "Funis" em Negociacoes ou por `/api/pipelines`, com auditoria. Etapa removida fica arquivada e so sai sem negociacoes em andamento; o funil padrao nao pode ser removido.
@@ -12,7 +12,7 @@
 - Corrigido antes de publicar: reabrir uma negociacao ganha numa etapa removida era aceito.
 - Testes: `pipelines.integration.mjs` (16) e regras novas em `opportunity-rules.test.mjs`; as demais suites foram adaptadas ao modelo novo.
 
-**Migration:** `20261103000000_pipelines`. Cria o funil padrao em cada organizacao, converte negociacoes e historico e remove o enum `OpportunityStage`. Nao e aditiva: reverter exige restaurar o backup (ver `docs/DEPLOY.md`). Aplicada apenas no banco de desenvolvimento.
+**Migration:** `20261103000000_pipelines`. Cria o funil padrao em cada organizacao, converte negociacoes e historico e remove o enum `OpportunityStage`. Nao e aditiva: reverter exige restaurar o backup (ver `docs/DEPLOY.md`). Aplicada em desenvolvimento e em producao, com o app parado.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261103000000_pipelines/migration.sql`
