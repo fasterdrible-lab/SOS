@@ -1,8 +1,8 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.20.0 em producao (`salesos-web:10`); V.1.21.0 (V2-4.2) na branch, nao publicada e com validacao pendente
+**Versao atual:** V.1.20.0 em producao (`salesos-web:10`); V.1.21.0 (V2-4.2) na branch, com CI aprovado, nao publicada
 **Data:** 2026-11-04
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 e V2-4.1 publicadas; V2-4.2 com codigo pronto, faltando validar; depois: V2-4.3
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 e V2-4.1 publicadas; V2-4.2 com CI aprovado, faltando conferir em navegador; depois: V2-4.3
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
@@ -17,9 +17,9 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-4.2 (nao publicada, validacao pendente): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
+  - V2-4.2 (nao publicada, CI aprovado, sem conferencia em navegador): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 78 unitarios aprovados. Integracao: 93 aprovados ate a V2-4.1; os 15 novos da V2-4.2 nao rodaram localmente (ver Problemas Encontrados). O CI roda todos a cada push.
+- **Testes:** 78 unitarios e 108 de integracao; o CI roda todos a cada push e aprovou o commit `5d48099`. Os 15 novos da V2-4.2 so rodaram no CI (ver Problemas Encontrados).
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261103-024921`, antes da publicacao da V2-4.1), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -223,7 +223,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Tema claro, escolhido pelo usuario (V2-2.2)
 - [x] Dashboard Executivo com filtros, funil, metas, time, origem e motivos de perda (V2-3)
 - [x] Funis e etapas configuraveis, status separado da etapa (V2-4.1)
-- [ ] Quadro com arrastar, filtros, lista, detalhe e edicao (V2-4.2: codigo pronto, validacao pendente)
+- [ ] Quadro com arrastar, filtros, lista, detalhe e edicao (V2-4.2: CI aprovado, falta conferir em navegador)
 
 ## Problemas Encontrados
 - Docker Desktop local travado desde 2026-11-04: o motor nao inicia (`init control API` sem resposta), mesmo apos reiniciar o Docker Desktop, `wsl --shutdown` e encerrar os processos a forca. Com isso, `salesos-postgres` e os testes de integracao ficam indisponiveis nesta maquina. Proximo passo sugerido: reiniciar o Windows. Nao usar Reset, que apagaria containers e volumes.
@@ -243,7 +243,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-4.2 (validacao pendente)** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao. 78 testes unitarios aprovados; integracao e tela nao verificadas localmente.
+**Tarefa V2-4.2 (falta conferir em navegador)** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao. 186 testes automatizados, aprovados no CI; o arrastar nao tem teste automatizado.
 
 **Tarefa V2-4.1** - Funis e etapas configuraveis, status separado da etapa, migration de conversao, API e dialogo de funis. 163 testes automatizados. Publicada em 2026-11-04 (`salesos-web:10`).
 
@@ -278,13 +278,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Validar a V2-4.2 (integracao e navegador) antes de publicar.
+- Conferir a V2-4.2 em navegador antes de publicar.
 - Seguir a V2-4.3 e as FASES V2-5 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Validar a V2-4.2 (`docs/TASKS.md`, "Pendente de validacao"). Depois, tarefa V2-4.3: campos obrigatorios por etapa.
+Conferir a V2-4.2 em navegador (`docs/TASKS.md`, "Pendente de validacao"). Depois, tarefa V2-4.3: campos obrigatorios por etapa.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

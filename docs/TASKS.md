@@ -14,7 +14,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
 | V2-3 | Dashboard Executivo | done (em producao desde 2026-11-02, `salesos-web:9`) |
 | V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (em producao desde 2026-11-04, `salesos-web:10`) |
-| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | codigo pronto, validacao pendente (nao publicada) |
+| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | CI aprovado, falta conferir em navegador (nao publicada) |
 | V2-4.3 | Campos obrigatorios por etapa | proxima, depois de validar a V2-4.2 |
 | V2-5 | Clientes 360 | todo |
 | V2-6 | Atividades e follow-ups | todo |
@@ -31,7 +31,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 ## Tarefa: V2-4.2 - Kanban, detalhe e edicao
 
 ### Estado
-Codigo pronto na branch `feat/saleos-v2`. **Validacao incompleta:** o Docker Desktop local travou, entao os testes de integracao e a verificacao visual nao rodaram nesta maquina. O resultado do CI esta em `docs/CURRENT_STATE.md`. Nao publicar antes de conferir o arrastar em navegador.
+Codigo na branch `feat/saleos-v2`, CI aprovado no commit `5d48099`, inclusive a etapa de testes de integracao. **Falta a verificacao em navegador:** o Docker Desktop local travou, entao nada foi visto em tela. Nao publicar antes de conferir o arrastar.
 
 ### Resultado
 - Quadro (`board.tsx`): arrastar entre etapas com HTML5 e atualizacao imediata, desfeita se a API recusar. Tela de toque usa um seletor no cartao. Cartao com dono, valor, empresa e dias na etapa; encerradas nao arrastam.
@@ -41,10 +41,9 @@ Codigo pronto na branch `feat/saleos-v2`. **Validacao incompleta:** o Docker Des
 - Mudar de funil pela tela: o seletor de etapa do detalhe lista as etapas de todos os funis.
 - Busca global e Meu Dia levam ao detalhe da negociacao.
 - Removido `opportunity-card.tsx`.
-- Testes escritos: `board-rules.test.mjs` (8, aprovados) e `kanban.integration.mjs` (15, **nunca executada localmente**). `npm run check`: 78 unitarios aprovados. Build aprovado. Total previsto de integracao: 108.
+- Testes escritos: `board-rules.test.mjs` (8, aprovados) e `kanban.integration.mjs` (15, aprovados no CI, nao executados localmente). `npm run check`: 78 unitarios aprovados. Build aprovado. Integracao: 108 testes.
 
 ### Pendente de validacao
-- Rodar `npm run test:integration` com o Docker de volta, ou conferir o CI.
 - Conferir em navegador: arrastar, desfazer quando a API recusa, filtros, lista, dialogo de edicao, celular e tema claro. O arrastar nao tem teste automatizado.
 
 ### Limitacoes conhecidas

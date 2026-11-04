@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.21.0] — 2026-11-04 (nao publicada, validacao pendente)
+## [V.1.21.0] — 2026-11-04 (nao publicada)
 
 ### Tarefa V2-4.2 — Kanban, detalhe e edicao
 - Quadro com arrastar entre etapas e seletor de etapa em tela de toque; cartao com dono, valor, empresa e dias na etapa.
@@ -10,7 +10,7 @@
 - Busca global e Meu Dia levam ao detalhe da negociacao.
 - Testes: `board-rules.test.mjs` (8) e `kanban.integration.mjs` (15).
 
-**Validacao:** lint, tipos, build e 78 testes unitarios aprovados. Os testes de integracao e a verificacao em navegador nao rodaram localmente, porque o Docker Desktop travou.
+**Validacao:** lint, tipos, build e 78 testes unitarios aprovados localmente; CI aprovado, inclusive os testes de integracao. A verificacao em navegador nao foi feita, porque o Docker Desktop local travou.
 
 Sem migration.
 
