@@ -46,7 +46,7 @@ Mostra o mês corrente no horário de Brasília. O vendedor vê os próprios nú
 | Conversão no mês | Ganhas ÷ (ganhas + perdidas) no mês |
 | Ticket médio | Faturado no mês ÷ número de vendas |
 | Vendas de hoje | Negociações ganhas hoje |
-| Propostas aguardando resposta | Negociações na etapa Proposta, das mais antigas para as mais novas |
+| Propostas aguardando resposta | Negociações em etapas marcadas como proposta, das mais antigas para as mais novas |
 | Negociações esfriando | Abertas há mais de 14 dias sem mudar de etapa |
 | Fechamento previsto vencido | Abertas com data prevista de fechamento já passada |
 | Tarefas atrasadas e de hoje | Tarefas pendentes dos planos de ação |
@@ -75,11 +75,12 @@ No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este 
 
 ## Negociações
 
-- Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil e o que mostrar: em andamento, ganhas, perdidas ou todas.
+- Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil e o que mostrar: em andamento, ganhas, perdidas ou todas. A versão 1.21.0, ainda não publicada, acrescenta filtro por dono e por texto, ordenação e visão em lista.
 - Gestor e administrador gerenciam os funis pelo botão **Funis**: nome, ordem das etapas, probabilidade e quais etapas são de proposta (essas aparecem em "Propostas aguardando resposta" no Meu Dia). Uma etapa só pode ser removida sem negociações em andamento nela; o funil padrão não pode ser removido.
-- Ganha e perdida não são mais colunas: use **Ganhar** ou **Perder** no cartão. A negociação continua na etapa em que fechou. Encerrada não muda de etapa; **Reabrir** é para gestor e administrador.
+- Ganha e perdida não são mais colunas: use **Ganhar** ou **Perder** no cartão (na versão 1.21.0, na página da negociação). A negociação continua na etapa em que fechou. Encerrada não muda de etapa; **Reabrir** é para gestor e administrador.
 
-- Mude a etapa pelo seletor do cartão.
+- Mude a etapa pelo seletor do cartão. Na versão 1.21.0, arraste o cartão entre as colunas; no celular, use o seletor.
+- Na versão 1.21.0, clique no título para abrir a página da negociação, com dados, histórico e **Editar**. Trocar o dono ou editar uma negociação encerrada é para gestor e administrador.
 - Para marcar como **Perdida**, o sistema pede o motivo antes de salvar. O motivo aparece no cartão e fica no histórico.
 - A data do ganho ou da perda é registrada no momento da mudança e é usada pelo Meu Dia e pelo Dashboard.
 - Reabrir uma negociação ganha ou perdida é permitido só para gestor e administrador.

@@ -1,13 +1,13 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.20.0 em producao (`salesos-web:10`)
+**Versao atual:** V.1.20.0 em producao (`salesos-web:10`); V.1.21.0 (V2-4.2) na branch, nao publicada e com validacao pendente
 **Data:** 2026-11-04
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 e V2-4.1 publicadas; proxima: V2-4.2
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 e V2-4.1 publicadas; V2-4.2 com codigo pronto, faltando validar; depois: V2-4.3
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Codigo:** `main` no GitHub e a producao rodam ate a V.1.20.0. A branch `feat/saleos-v2` esta a frente, com a V2-4.2 (V.1.21.0).
 - **Producao:** imagem `salesos-web:10` desde 2026-11-04, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 6 migrations aplicadas. Imagem `salesos-web:9` mantida na VPS, mas a migration `20261103000000_pipelines` nao e aditiva: reverter para ela exige restaurar o backup `salesos-20261103-024921` (`docs/DEPLOY.md`).
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
@@ -17,8 +17,9 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+  - V2-4.2 (nao publicada, validacao pendente): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 70 unitarios e 93 de integracao; o CI roda todos a cada push.
+- **Testes:** 78 unitarios aprovados. Integracao: 93 aprovados ate a V2-4.1; os 15 novos da V2-4.2 nao rodaram localmente (ver Problemas Encontrados). O CI roda todos a cada push.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261103-024921`, antes da publicacao da V2-4.1), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -48,9 +49,16 @@ apps/web/app/(app)/empresas/page.tsx              -> listagem de empresas (CRM)
 apps/web/app/(app)/empresas/company-form-dialog.tsx -> dialog de cadastro de empresa
 apps/web/app/(app)/contatos/page.tsx              -> listagem de contatos (CRM)
 apps/web/app/(app)/contatos/contact-form-dialog.tsx -> dialog de cadastro de contato
-apps/web/app/(app)/pipeline/page.tsx              -> board de oportunidades por estagio (CRM)
+apps/web/app/(app)/pipeline/page.tsx              -> Negociacoes: filtros, quadro ou lista
 apps/web/app/(app)/pipeline/opportunity-form-dialog.tsx -> dialog de criacao de oportunidade
-apps/web/app/(app)/pipeline/opportunity-card.tsx  -> card com select de estagio
+apps/web/app/(app)/pipeline/board.tsx             -> quadro com arrastar entre etapas
+apps/web/app/(app)/pipeline/board-filters.tsx     -> filtros do quadro
+apps/web/app/(app)/pipeline/[id]/page.tsx         -> detalhe da negociacao
+apps/web/app/(app)/pipeline/[id]/opportunity-actions.tsx -> etapa, Ganhar, Perder e Reabrir
+apps/web/app/(app)/pipeline/[id]/opportunity-edit-dialog.tsx -> edicao da negociacao
+apps/web/lib/opportunities/board.ts               -> filtros do quadro na URL (regra pura)
+apps/web/lib/opportunities/edit.ts                -> regra de edicao da negociacao (pura)
+apps/web/lib/opportunities/detail.ts              -> detalhe e historico da negociacao
 apps/web/app/(app)/planos/page.tsx                -> listagem de planos de acao
 apps/web/app/(app)/planos/action-plan-form-dialog.tsx -> dialog de cadastro de plano
 apps/web/app/(app)/planos/[id]/page.tsx           -> detalhe do plano (tarefas)
@@ -215,8 +223,10 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Tema claro, escolhido pelo usuario (V2-2.2)
 - [x] Dashboard Executivo com filtros, funil, metas, time, origem e motivos de perda (V2-3)
 - [x] Funis e etapas configuraveis, status separado da etapa (V2-4.1)
+- [ ] Quadro com arrastar, filtros, lista, detalhe e edicao (V2-4.2: codigo pronto, validacao pendente)
 
 ## Problemas Encontrados
+- Docker Desktop local travado desde 2026-11-04: o motor nao inicia (`init control API` sem resposta), mesmo apos reiniciar o Docker Desktop, `wsl --shutdown` e encerrar os processos a forca. Com isso, `salesos-postgres` e os testes de integracao ficam indisponiveis nesta maquina. Proximo passo sugerido: reiniciar o Windows. Nao usar Reset, que apagaria containers e volumes.
 - `npm.cmd run build` passou.
 - `npm run lint` sem erros desde a V2-1.3.
 - Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 6 migrations estao aplicadas.
@@ -233,6 +243,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-4.2 (validacao pendente)** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao. 78 testes unitarios aprovados; integracao e tela nao verificadas localmente.
+
 **Tarefa V2-4.1** - Funis e etapas configuraveis, status separado da etapa, migration de conversao, API e dialogo de funis. 163 testes automatizados. Publicada em 2026-11-04 (`salesos-web:10`).
 
 **Tarefa V2-3** - Dashboard Executivo: filtros de periodo e vendedor, faturamento, ritmo do mes, funil, saude do pipeline, metas, time, origem e motivos de perda. 139 testes automatizados. Publicada em 2026-11-02 (`salesos-web:9`).
@@ -266,12 +278,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir a V2-4.2 e as FASES V2-5 a V2-10 (`docs/TASKS.md`).
+- Validar a V2-4.2 (integracao e navegador) antes de publicar.
+- Seguir a V2-4.3 e as FASES V2-5 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-4.2: Kanban de Negociacoes (arrastar entre etapas, filtros por dono, ordenacao, visao em lista, pagina de detalhe e edicao de valor, empresa, contato e dono).
+Validar a V2-4.2 (`docs/TASKS.md`, "Pendente de validacao"). Depois, tarefa V2-4.3: campos obrigatorios por etapa.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

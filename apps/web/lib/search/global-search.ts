@@ -23,8 +23,8 @@ function joined(...parts: (string | null | undefined)[]) {
 
 /**
  * Busca na organizacao ativa, respeitando o papel: grupos sem permissao nao sao
- * consultados e o vendedor so encontra as proprias negociacoes. Empresas,
- * contatos e negociacoes levam a listagem, pois ainda nao tem pagina de detalhe.
+ * consultados e o vendedor so encontra as proprias negociacoes. Empresas e
+ * contatos levam a listagem, pois ainda nao tem pagina de detalhe.
  */
 export async function globalSearch(input: {
   organizationId: string
@@ -95,7 +95,7 @@ export async function globalSearch(input: {
           row.status === "OPEN" ? row.stage.name : STATUS_LABELS[row.status],
           row.company?.name
         ),
-        href: "/pipeline",
+        href: `/pipeline/${row.id}`,
       })),
     },
     {

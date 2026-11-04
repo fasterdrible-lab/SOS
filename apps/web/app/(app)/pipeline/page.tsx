@@ -1,13 +1,22 @@
 import Link from "next/link"
 
 import { auth } from "@/lib/auth"
-import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
+import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/permissions"
+import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
-import type { OpportunityStatus } from "@/lib/opportunities/rules"
+import type { Prisma } from "@/lib/generated/prisma/client"
+import {
+  BOARD_LIMIT,
+  BOARD_STATUSES,
+  ownerWhere,
+  parseBoardFilters,
+  type BoardSortKey,
+} from "@/lib/opportunities/board"
+import { STATUS_LABELS } from "@/lib/opportunities/rules"
 import { getPipelines } from "@/lib/pipelines/service"
-import { cn } from "@/lib/utils"
 
-import { OpportunityCard, type OpportunityCardData } from "./opportunity-card"
+import { Board, type BoardCard, type BoardColumn } from "./board"
+import { BoardFilters } from "./board-filters"
 import { OpportunityFormDialog } from "./opportunity-form-dialog"
 import { PipelineEditorDialog } from "./pipeline-editor-dialog"
 
@@ -16,13 +25,17 @@ const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
   maximumFractionDigits: 0,
 })
+// Previsao de fechamento e so uma data, gravada a meia-noite UTC.
+const dateOnly = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC", day: "2-digit", month: "2-digit", year: "numeric" })
 
-const STATUS_FILTERS: { key: string; label: string; statuses: OpportunityStatus[] }[] = [
-  { key: "abertas", label: "Em andamento", statuses: ["OPEN"] },
-  { key: "ganhas", label: "Ganhas", statuses: ["WON"] },
-  { key: "perdidas", label: "Perdidas", statuses: ["LOST"] },
-  { key: "todas", label: "Todas", statuses: ["OPEN", "WON", "LOST"] },
-]
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const ORDER_BY: Record<BoardSortKey, Prisma.OpportunityOrderByWithRelationInput[]> = {
+  recentes: [{ createdAt: "desc" }],
+  valor: [{ value: "desc" }, { createdAt: "desc" }],
+  fechamento: [{ expectedClose: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
+  parados: [{ stageChangedAt: "asc" }],
+}
 
 export default async function PipelinePage({
   searchParams,
@@ -31,8 +44,9 @@ export default async function PipelinePage({
 }) {
   const session = await auth()
   const organizationId = session?.user?.organizationId
+  const userId = session?.user?.id
 
-  if (!organizationId || !session?.user?.id) {
+  if (!organizationId || !userId) {
     return (
       <main className="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
         Acesse um cliente para ver as negociações.
@@ -41,26 +55,39 @@ export default async function PipelinePage({
   }
 
   const role = session.user.role
-  const query = await searchParams
-  const single = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value)
-  const pipelines = await getPipelines(organizationId)
-  const pipeline = pipelines.find((item) => item.id === single(query.funil)) ?? pipelines[0]
-  const statusFilter = STATUS_FILTERS.find((item) => item.key === single(query.status)) ?? STATUS_FILTERS[0]
+  const isSeller = getAccessLevel(role) === "SELLER"
+  const filters = parseBoardFilters(await searchParams)
+  const [pipelines, members] = await Promise.all([
+    getPipelines(organizationId),
+    getDashboardMembers(organizationId),
+  ])
+  const pipeline = pipelines.find((item) => item.id === filters.pipelineId) ?? pipelines[0]
+  const statusFilter = BOARD_STATUSES.find((item) => item.key === filters.status)!
 
-  const [opportunities, companies, contacts] = await Promise.all([
+  const like = { contains: filters.query, mode: "insensitive" as const }
+  const where: Prisma.OpportunityWhereInput = {
+    organizationId,
+    pipelineId: pipeline.id,
+    status: { in: statusFilter.statuses },
+    ...(isSeller ? {} : ownerWhere(filters.owner, userId)),
+    ...opportunityScope(role, userId),
+    ...(filters.query
+      ? { OR: [{ title: like }, { company: { name: like } }, { contact: { name: like } }] }
+      : {}),
+  }
+
+  const [opportunities, total, companies, contacts] = await Promise.all([
     prisma.opportunity.findMany({
-      where: {
-        organizationId,
-        pipelineId: pipeline.id,
-        status: { in: statusFilter.statuses },
-        ...opportunityScope(role, session.user.id),
-      },
+      where,
       include: {
-        company: { select: { id: true, name: true } },
-        contact: { select: { id: true, name: true } },
+        company: { select: { name: true } },
+        owner: { select: { name: true, email: true } },
+        stage: { select: { name: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: ORDER_BY[filters.sort],
+      take: BOARD_LIMIT,
     }),
+    prisma.opportunity.count({ where }),
     prisma.company.findMany({
       where: { organizationId },
       select: { id: true, name: true },
@@ -73,39 +100,32 @@ export default async function PipelinePage({
     }),
   ])
 
-  const cards: OpportunityCardData[] = opportunities.map((opportunity) => ({
+  const now = new Date()
+  const cards: BoardCard[] = opportunities.map((opportunity) => ({
     id: opportunity.id,
     title: opportunity.title,
     value: Number(opportunity.value),
     stageId: opportunity.stageId,
     status: opportunity.status,
-    lostReason: opportunity.lostReason,
     companyName: opportunity.company?.name ?? null,
-    contactName: opportunity.contact?.name ?? null,
+    ownerName: opportunity.owner ? opportunity.owner.name || opportunity.owner.email : null,
+    daysInStage: Math.max(0, Math.floor((now.getTime() - opportunity.stageChangedAt.getTime()) / DAY_MS)),
   }))
 
   const activeIds = new Set(pipeline.stages.map((stage) => stage.id))
-  const columns = pipeline.stages.map((stage) => ({
+  const columns: BoardColumn[] = pipeline.stages.map((stage) => ({
     id: stage.id,
     name: stage.name,
-    items: cards.filter((card) => card.stageId === stage.id),
+    droppable: true,
   }))
   // Encerradas que ficaram em etapas depois removidas do funil.
-  const orphans = cards.filter((card) => !activeIds.has(card.stageId))
-  if (orphans.length > 0) columns.push({ id: "removidas", name: "Etapas removidas", items: orphans })
-
-  const href = (next: { funil?: string; status?: string }) => {
-    const params = new URLSearchParams()
-    const funil = next.funil ?? pipeline.id
-    const status = next.status ?? statusFilter.key
-    if (funil !== pipelines[0].id) params.set("funil", funil)
-    if (status !== STATUS_FILTERS[0].key) params.set("status", status)
-    const text = params.toString()
-    return text ? `/pipeline?${text}` : "/pipeline"
+  const removed = [...new Set(cards.map((card) => card.stageId))].filter((id) => !activeIds.has(id))
+  for (const id of removed) {
+    const name = opportunities.find((item) => item.stageId === id)?.stage.name
+    columns.push({ id, name: `${name} (removida)`, droppable: false })
   }
 
-  const canReopen = hasPermission(role, "opportunities:reopen")
-  const stageOptions = pipeline.stages.map((stage) => ({ id: stage.id, name: stage.name }))
+  const totalValue = cards.reduce((sum, card) => sum + card.value, 0)
 
   return (
     <div className="flex flex-1 flex-col">
@@ -114,8 +134,9 @@ export default async function PipelinePage({
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Negociações</h1>
             <p className="text-sm text-muted-foreground">
-              {opportunities.length === 1 ? "1 negociação" : `${opportunities.length} negociações`} ·{" "}
-              {statusFilter.label.toLowerCase()} no funil {pipeline.name}
+              {total === 1 ? "1 negociação" : `${total} negociações`} · {statusFilter.label.toLowerCase()} no
+              funil {pipeline.name} · {currencyFormatter.format(totalValue)}
+              {total > cards.length && ` · mostrando as ${cards.length} primeiras`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -130,78 +151,69 @@ export default async function PipelinePage({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-foreground/5 bg-card px-3 py-2">
-          {pipelines.length > 1 && (
-            <nav className="flex flex-wrap gap-1" aria-label="Funis">
-              {pipelines.map((item) => (
-                <FilterLink key={item.id} href={href({ funil: item.id })} active={item.id === pipeline.id}>
-                  {item.name}
-                </FilterLink>
-              ))}
-            </nav>
-          )}
-          <nav className="flex flex-wrap gap-1" aria-label="Status">
-            {STATUS_FILTERS.map((item) => (
-              <FilterLink key={item.key} href={href({ status: item.key })} active={item.key === statusFilter.key}>
-                {item.label}
-              </FilterLink>
-            ))}
-          </nav>
-        </div>
+        <BoardFilters
+          filters={{ ...filters, pipelineId: pipeline.id === pipelines[0].id ? "" : pipeline.id }}
+          pipelines={pipelines.map((item) => ({ id: item.id, name: item.name }))}
+          members={isSeller ? null : members}
+        />
 
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {columns.map((column) => {
-            const total = column.items.reduce((sum, item) => sum + item.value, 0)
-            return (
-              <section
-                key={column.id}
-                aria-label={column.name}
-                className="w-72 shrink-0 rounded-xl border border-foreground/5 bg-card"
-              >
-                <div className="border-b border-foreground/5 p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-medium text-foreground">{column.name}</span>
-                    <span className="text-xs text-muted-foreground">{column.items.length}</span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{currencyFormatter.format(total)}</span>
-                </div>
+        {filters.view === "lista" ? (
+          <div className="overflow-x-auto rounded-xl border border-foreground/5 bg-card">
+            <table className="w-full min-w-[44rem] text-sm">
+              <thead>
+                <tr className="border-b border-foreground/5 text-left text-[11px] uppercase tracking-widest text-muted-foreground">
+                  <th className="px-3 py-2 font-medium">Negociação</th>
+                  <th className="px-3 py-2 font-medium">Empresa</th>
+                  <th className="px-3 py-2 font-medium">Etapa</th>
+                  <th className="px-3 py-2 font-medium">Status</th>
+                  <th className="px-3 py-2 font-medium">Dono</th>
+                  <th className="px-3 py-2 font-medium">Fechamento</th>
+                  <th className="px-3 py-2 text-right font-medium">Valor</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-foreground/5">
+                {opportunities.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
+                      Nenhuma negociação com estes filtros.
+                    </td>
+                  </tr>
+                )}
+                {opportunities.map((opportunity) => (
+                  <tr key={opportunity.id}>
+                    <td className="max-w-64 truncate px-3 py-2">
+                      <Link href={`/pipeline/${opportunity.id}`} className="font-medium text-foreground hover:text-gold-fg">
+                        {opportunity.title}
+                      </Link>
+                    </td>
+                    <td className="max-w-48 truncate px-3 py-2 text-muted-foreground">
+                      {opportunity.company?.name ?? "—"}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">{opportunity.stage.name}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{STATUS_LABELS[opportunity.status]}</td>
+                    <td className="max-w-40 truncate px-3 py-2 text-muted-foreground">
+                      {opportunity.owner ? opportunity.owner.name || opportunity.owner.email : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {opportunity.expectedClose ? dateOnly.format(opportunity.expectedClose) : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right font-medium text-gold-fg">
+                      {currencyFormatter.format(Number(opportunity.value))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Board
+            cards={cards}
+            columns={columns}
+            stages={pipeline.stages.map((stage) => ({ id: stage.id, name: stage.name }))}
+          />
+        )}
 
-                <div className="space-y-2 p-2">
-                  {column.items.length === 0 ? (
-                    <p className="p-2 text-center text-xs text-muted-foreground">Nenhuma negociação</p>
-                  ) : (
-                    column.items.map((item) => (
-                      <OpportunityCard
-                        key={item.id}
-                        opportunity={item}
-                        stages={stageOptions}
-                        canReopen={canReopen}
-                      />
-                    ))
-                  )}
-                </div>
-              </section>
-            )
-          })}
-        </div>
       </main>
     </div>
-  )
-}
-
-function FilterLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "rounded-lg px-3 py-1.5 text-sm transition-colors",
-        active
-          ? "bg-[#D4A64F]/15 font-medium text-gold-fg"
-          : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-      )}
-    >
-      {children}
-    </Link>
   )
 }

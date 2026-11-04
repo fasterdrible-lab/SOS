@@ -14,8 +14,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
 | V2-3 | Dashboard Executivo | done (em producao desde 2026-11-02, `salesos-web:9`) |
 | V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (em producao desde 2026-11-04, `salesos-web:10`) |
-| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | proxima |
-| V2-4.3 | Campos obrigatorios por etapa | todo |
+| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | codigo pronto, validacao pendente (nao publicada) |
+| V2-4.3 | Campos obrigatorios por etapa | proxima, depois de validar a V2-4.2 |
 | V2-5 | Clientes 360 | todo |
 | V2-6 | Atividades e follow-ups | todo |
 | V2-7 | Integracao SALEIA | todo |
@@ -27,6 +27,32 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-4.2 - Kanban, detalhe e edicao
+
+### Estado
+Codigo pronto na branch `feat/saleos-v2`. **Validacao incompleta:** o Docker Desktop local travou, entao os testes de integracao e a verificacao visual nao rodaram nesta maquina. O resultado do CI esta em `docs/CURRENT_STATE.md`. Nao publicar antes de conferir o arrastar em navegador.
+
+### Resultado
+- Quadro (`board.tsx`): arrastar entre etapas com HTML5 e atualizacao imediata, desfeita se a API recusar. Tela de toque usa um seletor no cartao. Cartao com dono, valor, empresa e dias na etapa; encerradas nao arrastam.
+- Filtros na URL (`lib/opportunities/board.ts`): funil, status, dono (equipe, minhas, sem responsavel, membro), ordenacao, texto (titulo, empresa, contato) e visao em quadro ou lista. Vendedor nao tem filtro de dono. Limite de 500 negociacoes por consulta, com aviso.
+- Detalhe em `/pipeline/[id]` e `GET /api/opportunities/[id]` (`lib/opportunities/detail.ts`): dados, historico e acoes Ganhar, Perder e Reabrir, que sairam do cartao. Fora do escopo responde 404.
+- Edicao em `PUT /api/opportunities/[id]` (`lib/opportunities/edit.ts`): titulo, valor, empresa, contato, dono, previsao e observacoes, com vinculos revalidados e auditoria `opportunity.updated` so com os nomes dos campos. Trocar o dono usa a permissao nova `opportunities:assign`; negociacao encerrada so e editada por gestor ou administrador.
+- Mudar de funil pela tela: o seletor de etapa do detalhe lista as etapas de todos os funis.
+- Busca global e Meu Dia levam ao detalhe da negociacao.
+- Removido `opportunity-card.tsx`.
+- Testes escritos: `board-rules.test.mjs` (8, aprovados) e `kanban.integration.mjs` (15, **nunca executada localmente**). `npm run check`: 78 unitarios aprovados. Build aprovado. Total previsto de integracao: 108.
+
+### Pendente de validacao
+- Rodar `npm run test:integration` com o Docker de volta, ou conferir o CI.
+- Conferir em navegador: arrastar, desfazer quando a API recusa, filtros, lista, dialogo de edicao, celular e tema claro. O arrastar nao tem teste automatizado.
+
+### Limitacoes conhecidas
+- Edicao sem controle de concorrencia: vale a ultima gravacao.
+- Trocar o dono nao aparece no historico da negociacao, so no `AuditLog` (sem tela de consulta ate a V2-9).
+- Nao ha filtro por periodo de criacao nem o painel "Filtros" da referencia.
+- O botao "Criar Tarefa" do cartao da referencia depende da V2-6.
+- Quadro sem paginacao alem do limite de 500.
 
 ## Tarefa: V2-4.1 - Funis e etapas configuraveis
 
@@ -49,10 +75,8 @@ A V2-4 foi dividida em tres subtarefas, com a estrutura primeiro: 4.1 funis e et
 
 ### Limitacoes conhecidas
 - Reverter para a `salesos-web:9` depois desta migration exige restaurar o backup feito antes da publicacao: o enum antigo e removido.
-- O quadro ainda e o da FASE 3 com seletor de etapa: arrastar, filtros por dono, ordenacao, lista, detalhe e edicao entram na V2-4.2.
 - O historico convertido de negociacoes reabertas usa a ultima etapa aberta anterior; sem nenhuma, Negociacao.
 - Etapas arquivadas nao entram no funil do Dashboard.
-- Mover uma negociacao para outro funil so pela API (`stageId` de outro funil); a tela mostra apenas as etapas do funil atual.
 
 ## Tarefa: V2-3 - Dashboard Executivo
 
@@ -89,7 +113,7 @@ Captura local `telas 2 crm.jpeg` (fora do git, contem dados de outra empresa): f
 - Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: Meu Dia claro e escuro, notificacoes, busca, pipeline, diagnostico e celular 390 px.
 
 ### Limitacoes conhecidas
-- Empresa, contato e negociacao encontrados levam a listagem, pois ainda nao ha pagina de detalhe (V2-4 e V2-5). Plano de acao leva ao detalhe.
+- Empresa e contato encontrados levam a listagem, pois ainda nao ha pagina de detalhe (V2-5). Negociacao e plano de acao levam ao detalhe (negociacao desde a V2-4.2).
 - A busca usa `contains` sem indice de texto: suficiente para o volume atual; acentos precisam coincidir ("negociacao" nao acha "negociação").
 - Notificacoes nao tem "marcar como lida": so o lead qualificado sai ao abrir `/sdr`. Nao ha e-mail nem push.
 - O widget publico do IA SDR segue o cookie do tema; dentro de um iframe de outro site o cookie nao e enviado e ele fica escuro.
@@ -112,7 +136,7 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 - Reunioes, follow-ups e fechamento do dia dependem das FASES V2-6 e V2-8; recomendacoes, da V2-7.
 - ~~O `/dashboard` ainda calcula o mes em UTC~~: corrigido na V2-3.
 - Tarefas dos planos de acao nao tem responsavel: aparecem para toda a organizacao.
-- O clique em uma negociacao leva ao pipeline, que ainda nao tem pagina de detalhe.
+- ~~O clique em uma negociacao leva ao pipeline~~: leva ao detalhe desde a V2-4.2.
 
 ## Tarefa: V2-1.3 - Qualidade tecnica
 
@@ -143,7 +167,7 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 - Migration conferida no banco de desenvolvimento: as 2 oportunidades existentes mantiveram valores e receberam a entrada inicial do historico.
 
 ### Limitacoes conhecidas
-- Nao ha edicao de valor, empresa ou contato de uma oportunidade: os vinculos so sao validados na criacao. A edicao entra na FASE V2-4.
+- ~~Nao ha edicao de valor, empresa ou contato de uma oportunidade~~: feito na V2-4.2, com os vinculos revalidados.
 - Ganhar uma oportunidade com valor zero ainda e permitido (as do IA SDR nascem com zero). A obrigatoriedade de campos por etapa fica para a V2-4.3.
 - Historico reconstituido pela migration tem responsavel nulo e uma unica passagem direta ate a etapa atual.
 - `Company.revenue` e `Diagnostic.averageTicket` seguem em `Float`: sao dados descritivos, nao entram em somas de faturamento.

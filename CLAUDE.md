@@ -43,7 +43,7 @@ CHANGELOG.md        → Histórico de versões
 - A VPS é compartilhada com o SALE-IA: nunca interromper o serviço dele nem gerar o build lá
 
 ## Versão Atual
-**V.1.20.0** em produção (imagem `salesos-web:10`). Branch `feat/saleos-v2`, alinhada com `main` (Prompt Mestre V2) (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
+**V.1.20.0** em produção (imagem `salesos-web:10`), igual a `main`. **V.1.21.0** (tarefa V2-4.2) na branch `feat/saleos-v2`, não publicada e com validação pendente (Prompt Mestre V2) (detalhes em [docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md))
 
 ## Admin do Sistema
 - Email: fasterdrible@gmail.com

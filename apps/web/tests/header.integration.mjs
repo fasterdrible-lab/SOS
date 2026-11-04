@@ -144,12 +144,13 @@ describe("busca global", () => {
     assert.deepEqual(groups, { companies: [id("empresa-b")] })
   })
 
-  it("plano leva ao detalhe; demais, a listagem", async () => {
+  it("negociacao e plano levam ao detalhe; demais, a listagem", async () => {
     const response = await search(await login("gestor"), TERM)
     const { groups } = await response.json()
     const hrefs = Object.fromEntries(groups.map((group) => [group.key, group.results[0].href]))
+    const hrefOpportunity = groups.find((group) => group.key === "opportunities").results[0].id
     assert.deepEqual(hrefs, {
-      opportunities: "/pipeline",
+      opportunities: `/pipeline/${hrefOpportunity}`,
       companies: "/empresas",
       contacts: "/contatos",
       plans: `/planos/${id("plano")}`,

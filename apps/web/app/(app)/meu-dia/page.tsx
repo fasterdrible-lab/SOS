@@ -434,7 +434,7 @@ function OpportunityCard({
           {list.items.map((item) => (
             <li key={item.id}>
               <Link
-                href="/pipeline"
+                href={`/pipeline/${item.id}`}
                 className="flex items-start justify-between gap-3 py-2.5 hover:text-foreground"
               >
                 <span className="min-w-0">

@@ -8,6 +8,7 @@ export type AuditAction =
   | "session.organization-switched"
   | "goal.saved"
   | "goal.removed"
+  | "opportunity.updated"
   | "pipeline.created"
   | "pipeline.updated"
   | "pipeline.archived"

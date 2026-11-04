@@ -247,7 +247,7 @@ describe("editar etapas", () => {
     assert.equal(rows[0].probability, 45)
   })
 
-  it("encerrada fica na etapa removida e aparece em 'Etapas removidas'", async () => {
+  it("encerrada fica na etapa removida e fica visivel como etapa removida", async () => {
     const gestor = await login("gestor")
     const won = await json(
       await gestor.json(`/api/opportunities/${state.opportunityId}`, "PATCH", { status: "WON" })
@@ -263,7 +263,7 @@ describe("editar etapas", () => {
     assert.equal(edited.status, 200)
 
     const page = await (await gestor.request(`/pipeline?funil=${state.inside.id}&status=ganhas`)).text()
-    assert.match(page, /Etapas removidas/)
+    assert.ok(page.includes("(removida)"))
     assert.ok(page.includes(`${PREFIX}inside`))
   })
 

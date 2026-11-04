@@ -22,6 +22,7 @@ const PERMISSIONS = {
   "opportunities:read": EVERYONE,
   "opportunities:write": EVERYONE,
   "opportunities:reopen": MANAGERS,
+  "opportunities:assign": MANAGERS,
   "pipelines:manage": MANAGERS,
   "diagnostics:write": EVERYONE,
   "action-plans:read": EVERYONE,

@@ -1,5 +1,33 @@
 # CHANGELOG — SalesOS
 
+## [V.1.21.0] — 2026-11-04 (nao publicada, validacao pendente)
+
+### Tarefa V2-4.2 — Kanban, detalhe e edicao
+- Quadro com arrastar entre etapas e seletor de etapa em tela de toque; cartao com dono, valor, empresa e dias na etapa.
+- Filtros na URL: funil, status, dono, ordenacao e texto, com visao em quadro ou lista.
+- Pagina de detalhe da negociacao (`/pipeline/[id]`) com dados, historico e acoes; Ganhar, Perder e Reabrir sairam do cartao. O seletor de etapa do detalhe tambem muda de funil.
+- `GET` e `PUT /api/opportunities/[id]`: leitura do detalhe e edicao de titulo, valor, empresa, contato, dono, previsao e observacoes, com auditoria. Nova permissao `opportunities:assign`.
+- Busca global e Meu Dia levam ao detalhe da negociacao.
+- Testes: `board-rules.test.mjs` (8) e `kanban.integration.mjs` (15).
+
+**Validacao:** lint, tipos, build e 78 testes unitarios aprovados. Os testes de integracao e a verificacao em navegador nao rodaram localmente, porque o Docker Desktop travou.
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/app/(app)/pipeline/board.tsx`, `board-filters.tsx`, `[id]/page.tsx`, `[id]/opportunity-actions.tsx`, `[id]/opportunity-edit-dialog.tsx`
+- `apps/web/lib/opportunities/board.ts`, `edit.ts`, `detail.ts`
+- `apps/web/tests/board-rules.test.mjs`, `apps/web/tests/kanban.integration.mjs`
+
+**Arquivos removidos:**
+- `apps/web/app/(app)/pipeline/opportunity-card.tsx`
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/pipeline/page.tsx`, `app/(app)/meu-dia/page.tsx`, `app/api/opportunities/[id]/route.ts`
+- `apps/web/lib/search/global-search.ts`, `lib/validations/opportunity.ts`, `lib/authz/permissions.ts`, `lib/audit/record.ts`
+- `apps/web/tests/header.integration.mjs`, `apps/web/tests/pipelines.integration.mjs`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.20.0] — 2026-11-03 (publicada em producao em 2026-11-04, imagem `salesos-web:10`)
 
 ### Tarefa V2-4.1 — Funis e etapas configuraveis
