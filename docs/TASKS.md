@@ -14,8 +14,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
 | V2-3 | Dashboard Executivo | done (em producao desde 2026-11-02, `salesos-web:9`) |
 | V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (em producao desde 2026-11-04, `salesos-web:10`) |
-| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (nao publicada) |
-| V2-4.3 | Campos obrigatorios por etapa | done (nao publicada, nao commitada) |
+| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (em producao desde 2026-11-05, `salesos-web:11`) |
+| V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-5 | Clientes 360 | proxima |
 | V2-6 | Atividades e follow-ups | todo |
 | V2-7 | Integracao SALEIA | todo |

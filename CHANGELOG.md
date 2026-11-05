@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.22.0] — 2026-11-05 (nao publicada)
+## [V.1.22.0] — 2026-11-05 (publicada em producao, imagem `salesos-web:11`)
 
 ### Tarefa V2-4.3 — Campos obrigatorios por etapa
 - Cada etapa pode exigir valor, empresa, contato e previsao de fechamento, configurados no dialogo Funis. Por padrao, nenhuma exige nada.
@@ -9,7 +9,7 @@
 - Em andamento, nao se apaga campo exigido pela etapa atual; o que ja faltava nao impede editar o resto.
 - Testes: casos novos em `opportunity-rules.test.mjs`, `board-rules.test.mjs` e `kanban.integration.mjs`.
 
-**Migration:** `20261104000000_stage_required_fields` (aditiva). Aplicada apenas no banco de desenvolvimento.
+**Migration:** `20261104000000_stage_required_fields` (aditiva). Aplicada em desenvolvimento e em producao.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261104000000_stage_required_fields/migration.sql`
@@ -24,7 +24,7 @@
 - `apps/web/tests/opportunity-rules.test.mjs`, `board-rules.test.mjs`, `kanban.integration.mjs`
 - `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
 
-## [V.1.21.0] — 2026-11-04 (nao publicada)
+## [V.1.21.0] — 2026-11-04 (publicada em producao com a V.1.22.0, imagem `salesos-web:11`)
 
 ### Tarefa V2-4.2 — Kanban, detalhe e edicao
 - Quadro com arrastar entre etapas e seletor de etapa em tela de toque; cartao com dono, valor, empresa e dias na etapa.

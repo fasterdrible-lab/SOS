@@ -1,14 +1,14 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.20.0 em producao (`salesos-web:10`); V.1.21.0 (V2-4.2) e V.1.22.0 (V2-4.3) validadas, nao publicadas
+**Versao atual:** V.1.22.0 em producao (`salesos-web:11`)
 **Data:** 2026-11-05
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-3 e V2-4.1 publicadas; V2-4.2 e V2-4.3 concluidas, aguardando publicacao; proxima: V2-5
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-4 publicadas; proxima: V2-5
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** `main` no GitHub e a producao rodam ate a V.1.20.0. A branch `feat/saleos-v2` esta a frente, com a V2-4.2 (V.1.21.0, CI aprovado). A V2-4.3 (V.1.22.0) esta na copia local, ainda sem commit.
-- **Producao:** imagem `salesos-web:10` desde 2026-11-04, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 6 migrations aplicadas. Imagem `salesos-web:9` mantida na VPS, mas a migration `20261103000000_pipelines` nao e aditiva: reverter para ela exige restaurar o backup `salesos-20261103-024921` (`docs/DEPLOY.md`).
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Producao:** imagem `salesos-web:11` desde 2026-11-05, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 7 migrations aplicadas. Imagem `salesos-web:10` mantida na VPS para reverter; a migration da V2-4.3 e aditiva, entao basta voltar `WEB_TAG`. A `salesos-web:9` nao esta mais na VPS.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -17,11 +17,11 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-4.3 (nao publicada): campos obrigatorios por etapa; ganhar exige valor.
-  - V2-4.2 (nao publicada): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
+  - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
+  - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
 - **Testes:** 87 unitarios e 114 de integracao, aprovados localmente; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
-- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261103-024921`, antes da publicacao da V2-4.1), `www.saleos.tech` com certificado.
+- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261105-121353`, antes da publicacao da V2-4.2 e V2-4.3), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 ## Historico anterior ao Prompt Mestre V2
@@ -229,7 +229,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
 - `npm run lint` sem erros desde a V2-1.3.
-- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 6 migrations estao aplicadas.
+- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa ser iniciado com `docker start salesos-postgres`; as 7 migrations estao aplicadas.
 - Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`. Desde a V2-1.3, a recusa do provedor aparece no log com o status HTTP.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
@@ -243,9 +243,9 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-4.3** - Campos obrigatorios por etapa e valor exigido para ganhar. 201 testes automatizados. Nao publicada.
+**Tarefa V2-4.3** - Campos obrigatorios por etapa e valor exigido para ganhar. 201 testes automatizados. Publicada em 2026-11-05 (`salesos-web:11`).
 
-**Tarefa V2-4.2** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao, verificados em navegador real. Nao publicada.
+**Tarefa V2-4.2** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao, verificados em navegador real. Publicada em 2026-11-05 (`salesos-web:11`).
 
 **Tarefa V2-4.1** - Funis e etapas configuraveis, status separado da etapa, migration de conversao, API e dialogo de funis. 163 testes automatizados. Publicada em 2026-11-04 (`salesos-web:10`).
 
@@ -280,7 +280,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Publicar V2-4.2 e V2-4.3, com autorizacao (`docs/DEPLOY.md`); ha uma migration aditiva.
 - Seguir as FASES V2-5 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
