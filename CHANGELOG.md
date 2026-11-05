@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.23.0] — 2026-11-05 (nao publicada)
+## [V.1.23.0] — 2026-11-05 (publicada em producao, imagem `salesos-web:12`)
 
 ### Tarefa V2-5 — Clientes 360
 - Visao 360 da empresa em `/empresas/[id]`: faturado, pipeline aberto, ticket medio, taxa de ganho, ultima movimentacao, negociacoes, linha do tempo, contatos, leads, ultimo diagnostico e secao SALEIA "em breve". Vendedor ve so as proprias negociacoes.

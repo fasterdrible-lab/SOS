@@ -45,6 +45,8 @@ systemctl start salesos-backup.service
 journalctl -u salesos-backup.service -n 4 --no-pager    # "Backup concluido" e "Copia externa concluida"
 ```
 
+4. Confira se o SALE-IA está sem reunião: `curl -s -A Mozilla https://api.saleia.app.br/health` deve trazer `"reunioes_ativas":0`. Carregar a imagem pesa na VPS compartilhada; com reunião ativa, espere terminar.
+
 ### Gerar e enviar a imagem
 
 Na máquina de desenvolvimento, com `<N>` igual à versão atual (`WEB_TAG` em `/opt/salesos/.env`) mais 1:

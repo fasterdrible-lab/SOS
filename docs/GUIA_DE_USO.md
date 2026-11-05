@@ -79,8 +79,6 @@ Em **Empresas**, clique no nome para abrir a visão completa daquele cliente da 
 
 Use **Editar** para corrigir os dados da empresa e o lápis ao lado de um contato para editá-lo. **Novo contato**, nessa tela, já cria o contato na empresa. Um contato com negociações em outra empresa não pode trocar de empresa.
 
-Disponível a partir da versão 1.23.0, ainda não publicada em https://saleos.tech.
-
 ## Negociações
 
 - Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil, o que mostrar (em andamento, ganhas, perdidas ou todas), o dono e a ordem, procure por título, empresa ou contato e alterne entre quadro e lista.
