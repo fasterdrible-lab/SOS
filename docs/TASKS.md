@@ -16,8 +16,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (em producao desde 2026-11-04, `salesos-web:10`) |
 | V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
-| V2-5 | Clientes 360 | proxima |
-| V2-6 | Atividades e follow-ups | todo |
+| V2-5 | Clientes 360 | done (nao publicada, nao commitada) |
+| V2-6 | Atividades e follow-ups | proxima |
 | V2-7 | Integracao SALEIA | todo |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
@@ -27,6 +27,27 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-5 - Clientes 360
+
+### Decisao
+Conforme `docs/AUDITORIA_V2.md`: `/clientes` continua listando as organizacoes do consultor e a visao 360 fica em `/empresas/[id]`. O rotulo do menu continua "Empresas", para nao confundir com "Meus Clientes".
+
+### Resultado
+- Visao 360 em `/empresas/[id]` e `GET /api/companies/[id]` (`lib/companies/overview.ts`): faturado, pipeline aberto, ticket medio, taxa de ganho e ultima movimentacao (`lib/companies/summary.ts`), negociacoes, linha do tempo das ultimas 15 mudancas, contatos, leads, ultimo diagnostico e secao SALEIA "em breve", sem dados ficticios.
+- Vendedor ve so as proprias negociacoes nos numeros, na lista e na linha do tempo, e nao ve leads (`sdr:read`). Contatos seguem visiveis para toda a organizacao. Empresa de outra organizacao responde 404.
+- Editar empresa (`PUT /api/companies/[id]`) e contato (`PUT /api/contacts/[id]`), com auditoria `company.updated` e `contact.updated` so com os nomes dos campos. Contato nao troca de empresa se tiver negociacao em outra (409), para manter a regra de vinculo.
+- `/empresas` liga ao detalhe e mostra o que esta em negociacao, no escopo do papel. `/contatos` liga a empresa e ganhou edicao. "Novo contato" na visao 360 ja nasce na empresa.
+- Busca global: empresa e contato levam a visao 360. Detalhe da negociacao liga a empresa.
+- `describeHistoryChange` passou para `lib/opportunities/rules.ts`, compartilhado com o detalhe da negociacao.
+- Testes: `npm run check` (91 unitarios; novo `company-rules.test.mjs`, 4) e `npm run test:integration` (129, em 9 suites; nova `company.integration.mjs`, 15). Roteiro em navegador real: 35 verificacoes, conferindo o banco.
+
+### Limitacoes conhecidas
+- O diagnostico e ligado pelo nome da empresa, sem diferenciar maiusculas: `Diagnostic` nao referencia `Company`, entao nome diferente nao encontra.
+- Nao ha exclusao de empresa ou contato, nem responsavel pela empresa.
+- Planos de acao nao tem vinculo com empresa e nao aparecem na visao 360.
+- Contato nao tem pagina propria; contato sem empresa so aparece em `/contatos`.
+- Atividades e reunioes entram com a V2-6; a secao SALEIA, com a V2-7.
 
 ## Tarefa: V2-4.3 - Campos obrigatorios por etapa
 
@@ -127,7 +148,7 @@ Captura local `telas 2 crm.jpeg` (fora do git, contem dados de outra empresa): f
 - Verificacao visual em Chrome headless, com dados de exemplo removidos ao final: Meu Dia claro e escuro, notificacoes, busca, pipeline, diagnostico e celular 390 px.
 
 ### Limitacoes conhecidas
-- Empresa e contato encontrados levam a listagem, pois ainda nao ha pagina de detalhe (V2-5). Negociacao e plano de acao levam ao detalhe (negociacao desde a V2-4.2).
+- ~~Empresa e contato encontrados levam a listagem~~: empresa leva a visao 360 desde a V2-5, e contato leva a empresa dele; contato sem empresa continua na listagem.
 - A busca usa `contains` sem indice de texto: suficiente para o volume atual; acentos precisam coincidir ("negociacao" nao acha "negociação").
 - Notificacoes nao tem "marcar como lida": so o lead qualificado sai ao abrir `/sdr`. Nao ha e-mail nem push.
 - O widget publico do IA SDR segue o cookie do tema; dentro de um iframe de outro site o cookie nao e enviado e ele fica escuro.

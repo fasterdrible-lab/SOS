@@ -238,6 +238,22 @@ export function planOpportunityEdit(input: {
   }
 }
 
+/** Texto de uma entrada do historico de etapas. */
+export function describeHistoryChange(entry: {
+  fromStatus: OpportunityStatus | null
+  toStatus: OpportunityStatus
+  fromStageName: string | null
+  toStageName: string
+}): string {
+  if (entry.fromStatus === null) return `Criada em ${entry.toStageName}`
+  if (entry.fromStatus !== entry.toStatus) {
+    if (entry.toStatus === "WON") return `Ganha em ${entry.toStageName}`
+    if (entry.toStatus === "LOST") return `Perdida em ${entry.toStageName}`
+    return `Reaberta em ${entry.toStageName}`
+  }
+  return `${entry.fromStageName} → ${entry.toStageName}`
+}
+
 export const STATUS_LABELS: Record<OpportunityStatus, string> = {
   OPEN: "Em andamento",
   WON: "Ganha",

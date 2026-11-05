@@ -46,7 +46,7 @@ SalesOS
 ```
 Meu Dia (página inicial)            → /meu-dia
 Módulo 1 — Diagnóstico Comercial    → /diagnostico
-Módulo 2 — CRM Inteligente          → /empresas, /contatos, /pipeline (Negociações)
+Módulo 2 — CRM Inteligente          → /empresas (visão 360 em /empresas/[id]), /contatos, /pipeline (Negociações)
 Módulo 3 — IA SDR                   → /sdr (console) e /sdr/[organizationId] (widget público)
 Módulo 4 — Consultor Digital        → /consultor
 Módulo 5 — Plano de Ação            → /planos
@@ -55,7 +55,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): Clientes 360°, Atividades, SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
+Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): Atividades, SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -117,6 +117,14 @@ Meu Dia: getMyDaySummary (lib/meu-dia/summary.ts), usado pela pagina e por GET /
   vendedor: proprias oportunidades e meta individual | gestor/admin: organizacao e meta da equipe
 Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias uteis seg-sex
 Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /api/goals
+```
+
+### Visao 360 da empresa
+```
+/empresas/[id] e GET /api/companies/[id] -> getCompanyOverview (lib/companies/overview.ts)
+Negociacoes, indicadores e linha do tempo no escopo do papel (opportunityScope)
+Contatos: toda a organizacao | Leads: so com sdr:read | Diagnostico: pelo nome da empresa
+Edicao: PUT /api/companies/[id] e /api/contacts/[id], auditadas so com os nomes dos campos
 ```
 
 ### Dashboard Executivo

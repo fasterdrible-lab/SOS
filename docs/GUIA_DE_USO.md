@@ -73,6 +73,14 @@ No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este 
 | Time | Vendas, conversão, ticket, faturamento e % da meta por dono da negociação |
 | Origem da venda e motivos de perda | Agrupados pelo texto, sem diferenciar maiúsculas |
 
+## Empresas
+
+Em **Empresas**, clique no nome para abrir a visão completa daquele cliente da sua carteira: quanto já comprou, o que está em negociação, ticket médio, taxa de ganho, histórico das negociações, contatos, leads e o último diagnóstico feito com o mesmo nome de empresa. O vendedor vê só as próprias negociações; leads aparecem para gestor e administrador.
+
+Use **Editar** para corrigir os dados da empresa e o lápis ao lado de um contato para editá-lo. **Novo contato**, nessa tela, já cria o contato na empresa. Um contato com negociações em outra empresa não pode trocar de empresa.
+
+Disponível a partir da versão 1.23.0, ainda não publicada em https://saleos.tech.
+
 ## Negociações
 
 - Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil, o que mostrar (em andamento, ganhas, perdidas ou todas), o dono e a ordem, procure por título, empresa ou contato e alterne entre quadro e lista.
@@ -96,4 +104,4 @@ No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este 
 
 ## O que ainda não existe
 
-Clientes 360°; Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.
+Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.

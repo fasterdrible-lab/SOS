@@ -23,8 +23,8 @@ function joined(...parts: (string | null | undefined)[]) {
 
 /**
  * Busca na organizacao ativa, respeitando o papel: grupos sem permissao nao sao
- * consultados e o vendedor so encontra as proprias negociacoes. Empresas e
- * contatos levam a listagem, pois ainda nao tem pagina de detalhe.
+ * consultados e o vendedor so encontra as proprias negociacoes. Contato leva a
+ * pagina da empresa dele; sem empresa, a listagem.
  */
 export async function globalSearch(input: {
   organizationId: string
@@ -51,7 +51,7 @@ export async function globalSearch(input: {
             organizationId,
             OR: [{ name: like }, { email: like }, { phone: like }],
           },
-          select: { id: true, name: true, email: true, role: true, company: { select: { name: true } } },
+          select: { id: true, name: true, email: true, role: true, company: { select: { id: true, name: true } } },
           orderBy: { name: "asc" },
           take,
         })
@@ -105,7 +105,7 @@ export async function globalSearch(input: {
         id: row.id,
         title: row.name,
         subtitle: joined(row.segment, row.email),
-        href: "/empresas",
+        href: `/empresas/${row.id}`,
       })),
     },
     {
@@ -115,7 +115,7 @@ export async function globalSearch(input: {
         id: row.id,
         title: row.name,
         subtitle: joined(row.role, row.company?.name, row.email),
-        href: "/contatos",
+        href: row.company ? `/empresas/${row.company.id}` : "/contatos",
       })),
     },
     {

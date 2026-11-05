@@ -1,6 +1,8 @@
+import Link from "next/link"
 import { Building2 } from "lucide-react"
 
 import { auth } from "@/lib/auth"
+import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -14,16 +16,37 @@ import {
 
 import { CompanyFormDialog } from "./company-form-dialog"
 
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+})
+
 export default async function EmpresasPage() {
   const session = await auth()
   const organizationId = session?.user?.organizationId
 
-  const companies = organizationId
-    ? await prisma.company.findMany({
-        where: { organizationId },
-        orderBy: { createdAt: "desc" },
-      })
-    : []
+  const [companies, openByCompany] = organizationId
+    ? await Promise.all([
+        prisma.company.findMany({
+          where: { organizationId },
+          orderBy: { createdAt: "desc" },
+        }),
+        prisma.opportunity.groupBy({
+          by: ["companyId"],
+          where: {
+            organizationId,
+            status: "OPEN",
+            companyId: { not: null },
+            ...opportunityScope(session?.user?.role, session?.user?.id ?? ""),
+          },
+          _sum: { value: true },
+          _count: true,
+        }),
+      ])
+    : [[], []]
+
+  const openOf = (companyId: string) => openByCompany.find((row) => row.companyId === companyId)
 
   return (
     <div className="flex flex-1 flex-col">
@@ -68,6 +91,9 @@ export default async function EmpresasPage() {
                         Contato
                       </TableHead>
                       <TableHead className="text-muted-foreground">
+                        Em negociação
+                      </TableHead>
+                      <TableHead className="text-muted-foreground">
                         Criada em
                       </TableHead>
                     </TableRow>
@@ -76,13 +102,20 @@ export default async function EmpresasPage() {
                     {companies.map((company) => (
                       <TableRow key={company.id} className="border-foreground/5">
                         <TableCell className="font-medium text-foreground">
-                          {company.name}
+                          <Link href={`/empresas/${company.id}`} className="hover:text-gold-fg">
+                            {company.name}
+                          </Link>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {company.segment ?? "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {company.email ?? company.phone ?? "-"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {openOf(company.id)
+                            ? `${openOf(company.id)!._count} · ${currencyFormatter.format(Number(openOf(company.id)!._sum.value ?? 0))}`
+                            : "-"}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Intl.DateTimeFormat("pt-BR").format(

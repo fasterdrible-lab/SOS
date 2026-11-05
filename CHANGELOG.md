@@ -1,5 +1,28 @@
 # CHANGELOG — SalesOS
 
+## [V.1.23.0] — 2026-11-05 (nao publicada)
+
+### Tarefa V2-5 — Clientes 360
+- Visao 360 da empresa em `/empresas/[id]`: faturado, pipeline aberto, ticket medio, taxa de ganho, ultima movimentacao, negociacoes, linha do tempo, contatos, leads, ultimo diagnostico e secao SALEIA "em breve". Vendedor ve so as proprias negociacoes.
+- Edicao de empresa e de contato, com auditoria. Contato nao troca de empresa se tiver negociacao em outra.
+- `/empresas` mostra o que esta em negociacao e liga ao detalhe; `/contatos` liga a empresa e permite editar.
+- Busca global, detalhe da negociacao e "Novo contato" passam a usar a empresa.
+- Testes: `company-rules.test.mjs` (4) e `company.integration.mjs` (15).
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/app/(app)/empresas/[id]/page.tsx`, `[id]/company-edit-dialog.tsx`, `app/(app)/contatos/contact-edit-dialog.tsx`
+- `apps/web/app/api/companies/[id]/route.ts`, `app/api/contacts/[id]/route.ts`
+- `apps/web/lib/companies/overview.ts`, `lib/companies/summary.ts`
+- `apps/web/tests/company-rules.test.mjs`, `apps/web/tests/company.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/app/(app)/empresas/page.tsx`, `app/(app)/contatos/page.tsx`, `contact-form-dialog.tsx`, `app/(app)/pipeline/[id]/page.tsx`
+- `apps/web/lib/opportunities/rules.ts`, `lib/search/global-search.ts`, `lib/validations/company.ts`, `lib/validations/contact.ts`, `lib/audit/record.ts`
+- `apps/web/tests/header.integration.mjs`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.22.0] — 2026-11-05 (publicada em producao, imagem `salesos-web:11`)
 
 ### Tarefa V2-4.3 — Campos obrigatorios por etapa

@@ -8,8 +8,8 @@ import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
-import { getOpportunityDetail, type OpportunityHistoryEntry } from "@/lib/opportunities/detail"
-import { STATUS_LABELS } from "@/lib/opportunities/rules"
+import { getOpportunityDetail } from "@/lib/opportunities/detail"
+import { STATUS_LABELS, describeHistoryChange } from "@/lib/opportunities/rules"
 import { getPipelines } from "@/lib/pipelines/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { cn } from "@/lib/utils"
@@ -33,16 +33,6 @@ const dateOnly = new Intl.DateTimeFormat("pt-BR", {
   month: "2-digit",
   year: "numeric",
 })
-
-function describeChange(entry: OpportunityHistoryEntry): string {
-  if (entry.fromStatus === null) return `Criada em ${entry.toStageName}`
-  if (entry.fromStatus !== entry.toStatus) {
-    if (entry.toStatus === "WON") return `Ganha em ${entry.toStageName}`
-    if (entry.toStatus === "LOST") return `Perdida em ${entry.toStageName}`
-    return `Reaberta em ${entry.toStageName}`
-  }
-  return `${entry.fromStageName} → ${entry.toStageName}`
-}
 
 export default async function OpportunityPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
@@ -85,7 +75,16 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
     },
     { label: "Probabilidade", value: `${opportunity.probability}%` },
     { label: "Dono", value: opportunity.owner?.name ?? "Sem responsável" },
-    { label: "Empresa", value: opportunity.company?.name ?? "—" },
+    {
+      label: "Empresa",
+      value: opportunity.company ? (
+        <Link href={`/empresas/${opportunity.company.id}`} className="hover:text-gold-fg">
+          {opportunity.company.name}
+        </Link>
+      ) : (
+        "—"
+      ),
+    },
     { label: "Contato", value: opportunity.contact?.name ?? "—" },
     {
       label: "Previsão de fechamento",
@@ -175,7 +174,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
               <ol className="space-y-3">
                 {opportunity.history.map((entry) => (
                   <li key={entry.id} className="border-l-2 border-[#D4A64F]/40 pl-3">
-                    <p className="text-sm text-foreground">{describeChange(entry)}</p>
+                    <p className="text-sm text-foreground">{describeHistoryChange(entry)}</p>
                     <p className="text-xs text-muted-foreground">
                       {dateTime.format(new Date(entry.changedAt))}
                       {entry.changedByName ? ` · ${entry.changedByName}` : ""}

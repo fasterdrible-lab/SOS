@@ -9,6 +9,8 @@ export type AuditAction =
   | "goal.saved"
   | "goal.removed"
   | "opportunity.updated"
+  | "company.updated"
+  | "contact.updated"
   | "pipeline.created"
   | "pipeline.updated"
   | "pipeline.archived"

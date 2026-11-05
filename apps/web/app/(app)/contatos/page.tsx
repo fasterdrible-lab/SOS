@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Contact2 } from "lucide-react"
 
 import { auth } from "@/lib/auth"
@@ -12,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { ContactEditDialog } from "./contact-edit-dialog"
 import { ContactFormDialog } from "./contact-form-dialog"
 
 export default async function ContatosPage() {
@@ -82,6 +84,7 @@ export default async function ContatosPage() {
                       <TableHead className="text-muted-foreground">
                         Criado em
                       </TableHead>
+                      <TableHead className="w-10" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -91,7 +94,13 @@ export default async function ContatosPage() {
                           {contact.name}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {contact.company?.name ?? "-"}
+                          {contact.company ? (
+                            <Link href={`/empresas/${contact.company.id}`} className="hover:text-gold-fg">
+                              {contact.company.name}
+                            </Link>
+                          ) : (
+                            "-"
+                          )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {contact.role ?? "-"}
@@ -103,6 +112,9 @@ export default async function ContatosPage() {
                           {new Intl.DateTimeFormat("pt-BR").format(
                             contact.createdAt
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <ContactEditDialog contact={contact} companies={companies} />
                         </TableCell>
                       </TableRow>
                     ))}

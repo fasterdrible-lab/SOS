@@ -38,12 +38,16 @@ const initialForm = {
 
 export function ContactFormDialog({
   companies,
+  defaultCompanyId = "",
 }: {
   companies: CompanyOption[]
+  /** Na visao da empresa, o contato ja nasce nela. */
+  defaultCompanyId?: string
 }) {
+  const blankForm = { ...initialForm, companyId: defaultCompanyId }
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState(blankForm)
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -52,7 +56,7 @@ export function ContactFormDialog({
   }
 
   function resetAndClose() {
-    setForm(initialForm)
+    setForm(blankForm)
     setError("")
     setOpen(false)
   }

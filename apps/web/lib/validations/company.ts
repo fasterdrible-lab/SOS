@@ -24,3 +24,31 @@ export const companyInputSchema = z.object({
 })
 
 export type CompanyInput = z.infer<typeof companyInputSchema>
+
+/** Texto vazio limpa o campo: a edicao envia sempre o cadastro inteiro. */
+const clearableText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullable()
+    .default(null)
+    .transform((value) => value || null)
+
+const clearableEmail = z
+  .string()
+  .trim()
+  .email("Email invalido.")
+  .max(160)
+  .nullable()
+  .or(z.literal(""))
+  .default(null)
+  .transform((value) => value || null)
+
+export const companyEditSchema = z.object({
+  name: z.string().trim().min(2, "Informe o nome da empresa.").max(120),
+  segment: clearableText(80),
+  website: clearableText(200),
+  phone: clearableText(30),
+  email: clearableEmail,
+})

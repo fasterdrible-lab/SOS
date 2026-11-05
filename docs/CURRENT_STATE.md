@@ -1,13 +1,13 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.22.0 em producao (`salesos-web:11`)
+**Versao atual:** V.1.22.0 em producao (`salesos-web:11`); V.1.23.0 (V2-5) validada localmente, sem commit e nao publicada
 **Data:** 2026-11-05
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-4 publicadas; proxima: V2-5
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-4 publicadas; V2-5 concluida no codigo; proxima: V2-6
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
+- **Codigo:** `main`, `feat/saleos-v2` e a producao estao na V.1.22.0. A V2-5 (V.1.23.0) esta na copia local, ainda sem commit.
 - **Producao:** imagem `salesos-web:11` desde 2026-11-05, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 7 migrations aplicadas. Imagem `salesos-web:10` mantida na VPS para reverter; a migration da V2-4.3 e aditiva, entao basta voltar `WEB_TAG`. A `salesos-web:9` nao esta mais na VPS.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
@@ -17,10 +17,11 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+  - V2-5 (nao publicada): visao 360 da empresa, edicao de empresa e contato.
   - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
   - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 87 unitarios e 114 de integracao, aprovados localmente; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
+- **Testes:** 91 unitarios e 129 de integracao, aprovados localmente; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261105-121353`, antes da publicacao da V2-4.2 e V2-4.3), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -59,6 +60,13 @@ apps/web/app/(app)/pipeline/[id]/opportunity-actions.tsx -> etapa, Ganhar, Perde
 apps/web/app/(app)/pipeline/[id]/opportunity-edit-dialog.tsx -> edicao da negociacao
 apps/web/lib/opportunities/board.ts               -> filtros do quadro na URL (regra pura)
 apps/web/lib/opportunities/detail.ts              -> detalhe e historico da negociacao
+apps/web/lib/companies/overview.ts                -> dados da visao 360 da empresa, no escopo do papel
+apps/web/lib/companies/summary.ts                 -> indicadores da empresa (regra pura)
+apps/web/app/(app)/empresas/[id]/page.tsx         -> visao 360 da empresa
+apps/web/app/(app)/empresas/[id]/company-edit-dialog.tsx -> edicao da empresa
+apps/web/app/(app)/contatos/contact-edit-dialog.tsx -> edicao do contato
+apps/web/app/api/companies/[id]/route.ts          -> leitura e edicao da empresa
+apps/web/app/api/contacts/[id]/route.ts           -> edicao do contato
 apps/web/app/(app)/planos/page.tsx                -> listagem de planos de acao
 apps/web/app/(app)/planos/action-plan-form-dialog.tsx -> dialog de cadastro de plano
 apps/web/app/(app)/planos/[id]/page.tsx           -> detalhe do plano (tarefas)
@@ -225,6 +233,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Funis e etapas configuraveis, status separado da etapa (V2-4.1)
 - [x] Quadro com arrastar, filtros, lista, detalhe e edicao (V2-4.2)
 - [x] Campos obrigatorios por etapa, ganhar exige valor (V2-4.3)
+- [x] Visao 360 da empresa, edicao de empresa e contato (V2-5)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -243,6 +252,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-5** - Visao 360 da empresa e edicao de empresa e contato. 220 testes automatizados. Nao publicada.
+
 **Tarefa V2-4.3** - Campos obrigatorios por etapa e valor exigido para ganhar. 201 testes automatizados. Publicada em 2026-11-05 (`salesos-web:11`).
 
 **Tarefa V2-4.2** - Quadro com arrastar, filtros, lista, detalhe e edicao da negociacao, verificados em navegador real. Publicada em 2026-11-05 (`salesos-web:11`).
@@ -280,12 +291,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir as FASES V2-5 a V2-10 (`docs/TASKS.md`).
+- Publicar a V2-5, com autorizacao (`docs/DEPLOY.md`); nao ha migration.
+- Seguir as FASES V2-6 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-5: Clientes 360.
+Tarefa V2-6: Atividades e follow-ups (rotas, telas, agenda e responsavel, sobre o model `Activity`).
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.
