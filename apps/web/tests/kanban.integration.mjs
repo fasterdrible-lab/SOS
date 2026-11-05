@@ -239,6 +239,89 @@ describe("mudar de funil", () => {
   })
 })
 
+describe("campos obrigatorios por etapa", () => {
+  const patch = (client, name, body) => client.json(`/api/opportunities/${id(name)}`, "PATCH", body)
+  let etapas
+
+  before(async () => {
+    const gestor = await login("gestor")
+    const { pipeline } = await (
+      await gestor.json("/api/pipelines", "POST", {
+        name: "Exigente",
+        stages: [
+          { name: "Entrada", probability: 10 },
+          { name: "Fechamento", probability: 90, requiredFields: ["value", "companyId", "expectedClose"] },
+        ],
+      })
+    ).json()
+    etapas = pipeline.stages
+    assert.deepEqual(etapas[1].requiredFields, ["value", "companyId", "expectedClose"])
+
+    const created = await gestor.json("/api/opportunities", "POST", {
+      title: "Incompleta",
+      value: 0,
+      stageId: etapas[0].id,
+    })
+    assert.equal(created.status, 201)
+    const { opportunity } = await created.json()
+    await db.query(`update opportunities set id = $1 where id = $2`, [id("incompleta"), opportunity.id])
+  })
+
+  it("recusa campo desconhecido na configuracao", async () => {
+    const response = await (await login("gestor")).json("/api/pipelines", "POST", {
+      name: "Invalido",
+      stages: [{ name: "Etapa", probability: 10, requiredFields: ["cpf"] }],
+    })
+    assert.equal(response.status, 400)
+  })
+
+  it("nao entra na etapa sem os campos e diz o que falta", async () => {
+    const gestor = await login("gestor")
+    const response = await patch(gestor, "incompleta", { stageId: etapas[1].id })
+    assert.equal(response.status, 422)
+    assert.equal((await response.json()).error, "Esta etapa exige: Valor, Empresa, Previsão de fechamento.")
+    assert.equal((await row("incompleta")).stageId, etapas[0].id)
+  })
+
+  it("nao cria direto em etapa que exige campos", async () => {
+    const gestor = await login("gestor")
+    const missing = await gestor.json("/api/opportunities", "POST", { title: "Direta", value: 10, stageId: etapas[1].id })
+    assert.equal(missing.status, 422)
+  })
+
+  it("nao ganha com valor zero", async () => {
+    const response = await patch(await login("gestor"), "incompleta", { status: "WON" })
+    assert.equal(response.status, 422)
+    assert.equal((await response.json()).error, "Informe o valor antes de ganhar a negociacao.")
+  })
+
+  it("preenchendo os campos, entra; depois nao apaga o que a etapa exige", async () => {
+    const gestor = await login("gestor")
+    assert.equal(
+      (await put(gestor, "incompleta", { value: 500, companyId: id("empresa-b"), expectedClose: "2027-03-01" })).status,
+      200
+    )
+    assert.equal((await patch(gestor, "incompleta", { stageId: etapas[1].id })).status, 200)
+
+    const cleared = await put(gestor, "incompleta", { companyId: "" })
+    assert.equal(cleared.status, 422)
+    assert.equal((await cleared.json()).error, "Esta etapa exige: Empresa.")
+    assert.equal((await put(gestor, "incompleta", { title: "Completa" })).status, 200)
+  })
+
+  it("perder nao depende dos campos", async () => {
+    const gestor = await login("gestor")
+    const created = await (
+      await gestor.json("/api/opportunities", "POST", { title: "Sem nada", value: 0, stageId: etapas[0].id })
+    ).json()
+    const lost = await gestor.json(`/api/opportunities/${created.opportunity.id}`, "PATCH", {
+      status: "LOST",
+      lostReason: "Sem interesse",
+    })
+    assert.equal(lost.status, 200)
+  })
+})
+
 describe("filtros do quadro", () => {
   const titles = async (name, query) => {
     const response = await (await login(name)).request(`/pipeline?visao=lista&${query}`)

@@ -14,9 +14,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-2.2 | Meu Dia: busca global, notificacoes e tema claro no cabecalho | done (em producao desde 2026-11-02, `salesos-web:8`) |
 | V2-3 | Dashboard Executivo | done (em producao desde 2026-11-02, `salesos-web:9`) |
 | V2-4.1 | Funis e etapas configuraveis, status separado da etapa | done (em producao desde 2026-11-04, `salesos-web:10`) |
-| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | CI aprovado, falta conferir em navegador (nao publicada) |
-| V2-4.3 | Campos obrigatorios por etapa | proxima, depois de validar a V2-4.2 |
-| V2-5 | Clientes 360 | todo |
+| V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (nao publicada) |
+| V2-4.3 | Campos obrigatorios por etapa | done (nao publicada, nao commitada) |
+| V2-5 | Clientes 360 | proxima |
 | V2-6 | Atividades e follow-ups | todo |
 | V2-7 | Integracao SALEIA | todo |
 | V2-8 | Report Diario | todo |
@@ -28,23 +28,38 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
 
+## Tarefa: V2-4.3 - Campos obrigatorios por etapa
+
+### Resultado
+- `PipelineStage.requiredFields` (migration aditiva `20261104000000_stage_required_fields`): a etapa pode exigir valor, empresa, contato e previsao de fechamento. Nenhuma etapa exige nada por padrao, entao nada muda ate um gestor configurar.
+- Entrar numa etapa sem os campos responde 422 dizendo o que falta, ao mover, reabrir ou criar nela. No quadro, o cartao volta para a coluna e a mensagem aparece.
+- Ganhar exige valor maior que zero em qualquer funil, e uma negociacao ganha nao pode ser editada para valor zero.
+- Em andamento, nao se apaga um campo exigido pela etapa atual. O que ja faltava antes da exigencia nao impede editar o resto. Perder nunca depende dos campos.
+- Configuracao: caixas "Exige" por etapa no dialogo Funis. `planOpportunityEdit` passou de `lib/opportunities/edit.ts` para `rules.ts`, junto de `missingFields`.
+- Testes: `npm run check` (87 unitarios) e `npm run test:integration` (114, em 8 suites). Em navegador real, com arrastar nativo do Chrome: 26 verificacoes, conferindo o banco, incluindo o cartao voltando e a mensagem da etapa exigente.
+
+### Limitacoes conhecidas
+- Passar a exigir um campo nao afeta negociacoes que ja estao na etapa: a regra vale na entrada.
+- Negociacoes do IA SDR nascem com valor zero: precisam receber valor antes de serem ganhas.
+- A mensagem do quadro diz o que falta, mas nao abre a edicao da negociacao.
+
 ## Tarefa: V2-4.2 - Kanban, detalhe e edicao
 
 ### Estado
-Codigo na branch `feat/saleos-v2`, CI aprovado no commit `5d48099`, inclusive a etapa de testes de integracao. **Falta a verificacao em navegador:** o Docker Desktop local travou, entao nada foi visto em tela. Nao publicar antes de conferir o arrastar.
+CI aprovado no commit `5d48099`. Depois, com o Docker de volta, 114 testes de integracao e a verificacao em navegador real passaram localmente (ver V2-4.3).
 
 ### Resultado
 - Quadro (`board.tsx`): arrastar entre etapas com HTML5 e atualizacao imediata, desfeita se a API recusar. Tela de toque usa um seletor no cartao. Cartao com dono, valor, empresa e dias na etapa; encerradas nao arrastam.
 - Filtros na URL (`lib/opportunities/board.ts`): funil, status, dono (equipe, minhas, sem responsavel, membro), ordenacao, texto (titulo, empresa, contato) e visao em quadro ou lista. Vendedor nao tem filtro de dono. Limite de 500 negociacoes por consulta, com aviso.
 - Detalhe em `/pipeline/[id]` e `GET /api/opportunities/[id]` (`lib/opportunities/detail.ts`): dados, historico e acoes Ganhar, Perder e Reabrir, que sairam do cartao. Fora do escopo responde 404.
-- Edicao em `PUT /api/opportunities/[id]` (`lib/opportunities/edit.ts`): titulo, valor, empresa, contato, dono, previsao e observacoes, com vinculos revalidados e auditoria `opportunity.updated` so com os nomes dos campos. Trocar o dono usa a permissao nova `opportunities:assign`; negociacao encerrada so e editada por gestor ou administrador.
+- Edicao em `PUT /api/opportunities/[id]` (`planOpportunityEdit`, `lib/opportunities/rules.ts`): titulo, valor, empresa, contato, dono, previsao e observacoes, com vinculos revalidados e auditoria `opportunity.updated` so com os nomes dos campos. Trocar o dono usa a permissao nova `opportunities:assign`; negociacao encerrada so e editada por gestor ou administrador.
 - Mudar de funil pela tela: o seletor de etapa do detalhe lista as etapas de todos os funis.
 - Busca global e Meu Dia levam ao detalhe da negociacao.
 - Removido `opportunity-card.tsx`.
-- Testes escritos: `board-rules.test.mjs` (8, aprovados) e `kanban.integration.mjs` (15, aprovados no CI, nao executados localmente). `npm run check`: 78 unitarios aprovados. Build aprovado. Integracao: 108 testes.
+- Testes escritos: `board-rules.test.mjs` (8, aprovados) e `kanban.integration.mjs` (15). `npm run check`: 78 unitarios. Integracao: 108 testes, aprovados no CI e localmente.
 
-### Pendente de validacao
-- Conferir em navegador: arrastar, desfazer quando a API recusa, filtros, lista, dialogo de edicao, celular e tema claro. O arrastar nao tem teste automatizado.
+### Verificacao em navegador
+Chrome headless com arrastar nativo (CDP), conferindo o banco: arrastar pelo cartao e pelo titulo, sem abrir o link; recusa da API desfaz o movimento e mostra o erro; encerrada nao arrasta; filtros na URL; lista; edicao; Ganhar e Reabrir; celular 390 px sem rolagem lateral, com seletor de etapa. O arrastar nao tem teste no CI: esse roteiro nao faz parte do repositorio.
 
 ### Limitacoes conhecidas
 - Edicao sem controle de concorrencia: vale a ultima gravacao.
@@ -167,7 +182,7 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 
 ### Limitacoes conhecidas
 - ~~Nao ha edicao de valor, empresa ou contato de uma oportunidade~~: feito na V2-4.2, com os vinculos revalidados.
-- Ganhar uma oportunidade com valor zero ainda e permitido (as do IA SDR nascem com zero). A obrigatoriedade de campos por etapa fica para a V2-4.3.
+- ~~Ganhar uma oportunidade com valor zero ainda e permitido~~: bloqueado na V2-4.3, junto dos campos obrigatorios por etapa.
 - Historico reconstituido pela migration tem responsavel nulo e uma unica passagem direta ate a etapa atual.
 - `Company.revenue` e `Diagnostic.averageTicket` seguem em `Float`: sao dados descritivos, nao entram em somas de faturamento.
 - A criacao do IA SDR em transacao foi verificada por tipos e leitura de codigo; o fluxo real depende da tarefa 9.2.

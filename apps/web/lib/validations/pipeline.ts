@@ -1,5 +1,6 @@
 import { z } from "zod"
 
+import { REQUIRABLE_KEYS } from "@/lib/opportunities/rules"
 import { MAX_STAGES } from "@/lib/pipelines/defaults"
 
 export const pipelineStageInputSchema = z.object({
@@ -7,6 +8,7 @@ export const pipelineStageInputSchema = z.object({
   name: z.string().trim().min(1, "Informe o nome da etapa.").max(60),
   probability: z.coerce.number().int().min(0).max(100),
   isProposal: z.boolean().default(false),
+  requiredFields: z.array(z.enum(REQUIRABLE_KEYS)).default([]),
 })
 
 /** O funil inteiro, com as etapas na ordem desejada. */

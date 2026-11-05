@@ -12,6 +12,8 @@ export interface IncomingStage {
   name: string
   probability: number
   isProposal: boolean
+  /** Ausente: nenhuma exigencia. */
+  requiredFields?: string[]
 }
 
 export type StageEditPlan =

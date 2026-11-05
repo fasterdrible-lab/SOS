@@ -1,5 +1,29 @@
 # CHANGELOG — SalesOS
 
+## [V.1.22.0] — 2026-11-05 (nao publicada)
+
+### Tarefa V2-4.3 — Campos obrigatorios por etapa
+- Cada etapa pode exigir valor, empresa, contato e previsao de fechamento, configurados no dialogo Funis. Por padrao, nenhuma exige nada.
+- Entrar na etapa sem os campos e recusado com a lista do que falta, ao mover, reabrir ou criar; no quadro, o cartao volta para a coluna.
+- Ganhar exige valor maior que zero, e negociacao ganha nao pode ser editada para zero. Perder nunca depende dos campos.
+- Em andamento, nao se apaga campo exigido pela etapa atual; o que ja faltava nao impede editar o resto.
+- Testes: casos novos em `opportunity-rules.test.mjs`, `board-rules.test.mjs` e `kanban.integration.mjs`.
+
+**Migration:** `20261104000000_stage_required_fields` (aditiva). Aplicada apenas no banco de desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261104000000_stage_required_fields/migration.sql`
+
+**Arquivos removidos:**
+- `apps/web/lib/opportunities/edit.ts` (conteudo em `rules.ts`)
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/opportunities/rules.ts`, `lib/pipelines/service.ts`, `lib/pipelines/edit.ts`, `lib/validations/pipeline.ts`
+- `apps/web/app/api/opportunities/route.ts`, `app/api/opportunities/[id]/route.ts`, `app/api/pipelines/route.ts`, `app/api/pipelines/[id]/route.ts`
+- `apps/web/app/(app)/pipeline/pipeline-editor-dialog.tsx`
+- `apps/web/tests/opportunity-rules.test.mjs`, `board-rules.test.mjs`, `kanban.integration.mjs`
+- `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/GUIA_DE_USO.md`, `CHANGELOG.md`
+
 ## [V.1.21.0] — 2026-11-04 (nao publicada)
 
 ### Tarefa V2-4.2 — Kanban, detalhe e edicao
@@ -10,13 +34,13 @@
 - Busca global e Meu Dia levam ao detalhe da negociacao.
 - Testes: `board-rules.test.mjs` (8) e `kanban.integration.mjs` (15).
 
-**Validacao:** lint, tipos, build e 78 testes unitarios aprovados localmente; CI aprovado, inclusive os testes de integracao. A verificacao em navegador nao foi feita, porque o Docker Desktop local travou.
+**Validacao:** lint, tipos, build e testes unitarios; integracao no CI e localmente; arrastar e telas em navegador real.
 
 Sem migration.
 
 **Arquivos criados:**
 - `apps/web/app/(app)/pipeline/board.tsx`, `board-filters.tsx`, `[id]/page.tsx`, `[id]/opportunity-actions.tsx`, `[id]/opportunity-edit-dialog.tsx`
-- `apps/web/lib/opportunities/board.ts`, `edit.ts`, `detail.ts`
+- `apps/web/lib/opportunities/board.ts`, `detail.ts`
 - `apps/web/tests/board-rules.test.mjs`, `apps/web/tests/kanban.integration.mjs`
 
 **Arquivos removidos:**

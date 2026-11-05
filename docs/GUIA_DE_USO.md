@@ -75,10 +75,11 @@ No topo, escolha o período (este mês, mês anterior, últimos 90 dias ou este 
 
 ## Negociações
 
-- Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil e o que mostrar: em andamento, ganhas, perdidas ou todas. A versão 1.21.0, ainda não publicada, acrescenta filtro por dono e por texto, ordenação e visão em lista.
+- Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil e o que mostrar: em andamento, ganhas, perdidas ou todas. As versões 1.21.0 e 1.22.0, ainda não publicadas, acrescentam filtro por dono e por texto, ordenação e visão em lista.
 - Gestor e administrador gerenciam os funis pelo botão **Funis**: nome, ordem das etapas, probabilidade e quais etapas são de proposta (essas aparecem em "Propostas aguardando resposta" no Meu Dia). Uma etapa só pode ser removida sem negociações em andamento nela; o funil padrão não pode ser removido.
 - Ganha e perdida não são mais colunas: use **Ganhar** ou **Perder** no cartão (na versão 1.21.0, na página da negociação). A negociação continua na etapa em que fechou. Encerrada não muda de etapa; **Reabrir** é para gestor e administrador.
 
+- Na versão 1.22.0, cada etapa pode exigir valor, empresa, contato ou previsão de fechamento (botão **Funis**, opção **Exige**). Sem esses campos a negociação não entra na etapa, e o sistema diz o que falta. Ganhar sempre exige valor; perder nunca depende desses campos.
 - Mude a etapa pelo seletor do cartão. Na versão 1.21.0, arraste o cartão entre as colunas; no celular, use o seletor.
 - Na versão 1.21.0, clique no título para abrir a página da negociação, com dados, histórico e **Editar**. Trocar o dono ou editar uma negociação encerrada é para gestor e administrador.
 - Para marcar como **Perdida**, o sistema pede o motivo antes de salvar. O motivo aparece no cartão e fica no histórico.

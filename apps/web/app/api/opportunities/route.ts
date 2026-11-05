@@ -7,7 +7,7 @@ import { denyUnless } from "@/lib/authz/guard"
 import { opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { createOpportunity, serializeOpportunity } from "@/lib/opportunities/create"
-import { resolveOpportunityLinks } from "@/lib/opportunities/rules"
+import { missingFields, resolveOpportunityLinks } from "@/lib/opportunities/rules"
 import { findStage } from "@/lib/pipelines/service"
 import { opportunityInputSchema } from "@/lib/validations/opportunity"
 
@@ -96,6 +96,18 @@ export const POST = withApiErrors("POST /api/opportunities", async (request: Req
 
   if (!links.ok) {
     return apiError("BAD_REQUEST", links.error)
+  }
+
+  if (stage) {
+    const missing = missingFields(stage.requiredFields, {
+      value: rest.value,
+      companyId: links.companyId,
+      contactId: contactId ?? null,
+      expectedClose: expectedClose ? new Date(expectedClose) : null,
+    })
+    if (missing.length > 0) {
+      return apiError("UNPROCESSABLE", `Esta etapa exige: ${missing.join(", ")}.`)
+    }
   }
 
   try {

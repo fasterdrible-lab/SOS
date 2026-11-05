@@ -162,7 +162,9 @@ Mudanca -> planOpportunityChange (lib/opportunities/rules.ts):
 -> updateMany condicionado a etapa e status lidos (409 se mudou) + historico, na mesma transacao
 Faturamento e conversao usam status + wonAt/lostAt, nunca updatedAt
 Funis: /api/pipelines (gestor/admin); editar = lista completa de etapas na ordem (planStageEdits)
-Edicao: PUT /api/opportunities/[id] -> planOpportunityEdit (lib/opportunities/edit.ts), so o que mudou, auditado
+Campos exigidos: PipelineStage.requiredFields (valor, empresa, contato, previsao), checados ao entrar na etapa
+  (mover, reabrir, criar) e ao apagar o campo; WON exige valor; LOST nunca e bloqueado
+Edicao: PUT /api/opportunities/[id] -> planOpportunityEdit (lib/opportunities/rules.ts), so o que mudou, auditado
   dono: opportunities:assign | encerrada: gestor/admin | etapa e status seguem no PATCH
 Quadro: /pipeline, filtros na URL (lib/opportunities/board.ts); arrastar faz PATCH de stageId
 Detalhe: /pipeline/[id] e GET /api/opportunities/[id] (getOpportunityDetail); fora do escopo = 404

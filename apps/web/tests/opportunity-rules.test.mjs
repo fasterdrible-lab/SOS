@@ -1,19 +1,31 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { planOpportunityChange, resolveOpportunityLinks } from "../lib/opportunities/rules.ts"
+import {
+  missingFields,
+  planOpportunityChange,
+  resolveOpportunityLinks,
+} from "../lib/opportunities/rules.ts"
 import { planStageEdits } from "../lib/pipelines/edit.ts"
 
 const now = new Date("2026-10-31T15:00:00Z")
-const stage = (id, probability, extra = {}) => ({ id, pipelineId: "vendas", probability, archived: false, ...extra })
+const stage = (id, probability, extra = {}) => ({
+  id,
+  pipelineId: "vendas",
+  probability,
+  archived: false,
+  requiredFields: [],
+  ...extra,
+})
+const data = { value: 1000, companyId: null, contactId: null, expectedClose: null }
 const PROSPECCAO = stage("prospeccao", 10)
 const PROPOSTA = stage("proposta", 50)
 const NEGOCIACAO = stage("negociacao", 75)
 
 const plan = (current, change = {}) =>
   planOpportunityChange({ current, canReopen: false, now, ...change })
-const open = (at = PROSPECCAO) => ({ status: "OPEN", stage: at })
-const closed = (status, at = NEGOCIACAO) => ({ status, stage: at })
+const open = (at = PROSPECCAO, fields = data) => ({ status: "OPEN", stage: at, data: fields })
+const closed = (status, at = NEGOCIACAO) => ({ status, stage: at, data })
 
 describe("mudanca de etapa", () => {
   it("nao altera nada sem mudanca", () => {
@@ -131,6 +143,48 @@ describe("negociacao encerrada", () => {
     const result = plan(closed("LOST"), { targetStage: PROPOSTA, targetStatus: "OPEN", canReopen: true })
     assert.equal(result.data.stageId, "proposta")
     assert.equal(result.data.probability, 50)
+  })
+})
+
+describe("campos obrigatorios por etapa", () => {
+  const exigente = stage("exigente", 60, { requiredFields: ["value", "companyId", "contactId", "expectedClose"] })
+  const completa = { value: 500, companyId: "a", contactId: "c", expectedClose: new Date("2027-01-01") }
+
+  it("lista o que falta, com valor zero como vazio", () => {
+    assert.deepEqual(missingFields(exigente.requiredFields, { ...data, value: 0 }), [
+      "Valor",
+      "Empresa",
+      "Contato",
+      "Previsão de fechamento",
+    ])
+    assert.deepEqual(missingFields([], data), [])
+    assert.deepEqual(missingFields(exigente.requiredFields, completa), [])
+  })
+
+  it("bloqueia a entrada na etapa e diz o que falta", () => {
+    const result = plan(open(), { targetStage: stage("x", 50, { requiredFields: ["companyId", "contactId"] }) })
+    assert.deepEqual(result, { ok: false, status: 422, error: "Esta etapa exige: Empresa, Contato." })
+  })
+
+  it("entra com tudo preenchido", () => {
+    assert.equal(plan(open(PROSPECCAO, completa), { targetStage: exigente }).ok, true)
+  })
+
+  it("nao bloqueia sair da etapa, nem perder, nem ficar nela", () => {
+    assert.equal(plan(open(exigente), { targetStage: PROPOSTA }).ok, true)
+    assert.equal(plan(open(exigente), { targetStatus: "LOST", lostReason: "Sem verba" }).ok, true)
+    const lostMoving = plan(open(), { targetStage: exigente, targetStatus: "LOST", lostReason: "Sem verba" })
+    assert.equal(lostMoving.ok, true)
+  })
+
+  it("ganhar sempre exige valor", () => {
+    const zero = plan(open(PROPOSTA, { ...data, value: 0 }), { targetStatus: "WON" })
+    assert.deepEqual(zero, { ok: false, status: 422, error: "Informe o valor antes de ganhar a negociacao." })
+  })
+
+  it("reabrir em outra etapa tambem exige os campos dela", () => {
+    const result = plan(closed("LOST"), { targetStage: exigente, targetStatus: "OPEN", canReopen: true })
+    assert.equal(result.status, 422)
   })
 })
 

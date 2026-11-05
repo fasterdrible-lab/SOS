@@ -71,6 +71,7 @@ export const PUT = withApiErrors("PUT /api/pipelines/[id]", async (request: Requ
         position: stage.position,
         probability: stage.probability,
         isProposal: stage.isProposal,
+        requiredFields: stage.requiredFields ?? [],
       }
       if (stage.id) {
         await tx.pipelineStage.update({ where: { id: stage.id }, data })

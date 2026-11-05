@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import { boardHref, ownerWhere, parseBoardFilters } from "../lib/opportunities/board.ts"
-import { planOpportunityEdit } from "../lib/opportunities/edit.ts"
+import { planOpportunityEdit } from "../lib/opportunities/rules.ts"
 
 const current = {
   title: "Contrato",
@@ -14,7 +14,15 @@ const current = {
   notes: null,
 }
 const plan = (next, extra = {}) =>
-  planOpportunityEdit({ current, next, closed: false, canAssign: false, canEditClosed: false, ...extra })
+  planOpportunityEdit({
+    current,
+    next,
+    status: "OPEN",
+    requiredFields: [],
+    canAssign: false,
+    canEditClosed: false,
+    ...extra,
+  })
 
 describe("edicao da negociacao", () => {
   it("devolve apenas o que mudou", () => {
@@ -31,7 +39,7 @@ describe("edicao da negociacao", () => {
   })
 
   it("sem mudanca nao exige permissao nenhuma", () => {
-    const result = plan({ title: "Contrato", ownerId: "ana" }, { closed: true })
+    const result = plan({ title: "Contrato", ownerId: "ana" }, { status: "WON" })
     assert.deepEqual(result, { ok: true, fields: [], changes: {} })
   })
 
@@ -41,9 +49,38 @@ describe("edicao da negociacao", () => {
     assert.deepEqual(plan({ ownerId: "bia" }, { canAssign: true }).fields, ["ownerId"])
   })
 
+  it("nao apaga campo exigido pela etapa atual", () => {
+    assert.deepEqual(plan({ companyId: null }, { requiredFields: ["companyId"] }), {
+      ok: false,
+      status: 422,
+      error: "Esta etapa exige: Empresa.",
+    })
+    assert.equal(plan({ value: 0 }, { requiredFields: ["value"] }).status, 422)
+    assert.equal(plan({ companyId: "b" }, { requiredFields: ["companyId"] }).ok, true)
+    // Encerrada nao esta mais sujeita a etapa.
+    assert.equal(
+      plan({ companyId: null }, { status: "LOST", canEditClosed: true, requiredFields: ["companyId"] }).ok,
+      true
+    )
+  })
+
+  it("campo que ja faltava nao impede editar o resto", () => {
+    assert.equal(plan({ title: "Novo" }, { requiredFields: ["contactId"] }).ok, true)
+    assert.equal(plan({ contactId: "c" }, { requiredFields: ["contactId", "expectedClose"] }).ok, true)
+  })
+
+  it("ganha nao fica sem valor", () => {
+    assert.deepEqual(plan({ value: 0 }, { status: "WON", canEditClosed: true }), {
+      ok: false,
+      status: 422,
+      error: "Uma negociacao ganha precisa ter valor.",
+    })
+    assert.equal(plan({ value: 0 }, { status: "LOST", canEditClosed: true }).ok, true)
+  })
+
   it("encerrada so e editada por quem pode reabrir", () => {
-    assert.equal(plan({ value: 2000 }, { closed: true }).status, 403)
-    assert.equal(plan({ value: 2000 }, { closed: true, canEditClosed: true }).ok, true)
+    assert.equal(plan({ value: 2000 }, { status: "WON" }).status, 403)
+    assert.equal(plan({ value: 2000 }, { status: "WON", canEditClosed: true }).ok, true)
   })
 })
 

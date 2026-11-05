@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { PipelineSummary } from "@/lib/pipelines/service"
+import { REQUIRABLE_FIELDS } from "@/lib/opportunities/rules"
 import { MAX_STAGES } from "@/lib/pipelines/defaults"
 
 interface StageDraft {
@@ -26,6 +27,7 @@ interface StageDraft {
   name: string
   probability: string
   isProposal: boolean
+  requiredFields: string[]
 }
 
 const NEW_PIPELINE = "novo"
@@ -35,8 +37,8 @@ function draftOf(pipeline: PipelineSummary | undefined): { name: string; stages:
     return {
       name: "",
       stages: [
-        { key: "n1", name: "Primeiro contato", probability: "10", isProposal: false },
-        { key: "n2", name: "Proposta", probability: "50", isProposal: true },
+        { key: "n1", name: "Primeiro contato", probability: "10", isProposal: false, requiredFields: [] },
+        { key: "n2", name: "Proposta", probability: "50", isProposal: true, requiredFields: [] },
       ],
     }
   }
@@ -48,6 +50,7 @@ function draftOf(pipeline: PipelineSummary | undefined): { name: string; stages:
       name: stage.name,
       probability: String(stage.probability),
       isProposal: stage.isProposal,
+      requiredFields: stage.requiredFields,
     })),
   }
 }
@@ -97,7 +100,7 @@ export function PipelineEditorDialog({
       ...current,
       stages: [
         ...current.stages,
-        { key: `novo-${counter}`, name: "", probability: "50", isProposal: false },
+        { key: `novo-${counter}`, name: "", probability: "50", isProposal: false, requiredFields: [] },
       ],
     }))
   }
@@ -128,6 +131,7 @@ export function PipelineEditorDialog({
         name: stage.name,
         probability: Number(stage.probability),
         isProposal: stage.isProposal,
+        requiredFields: stage.requiredFields,
       })),
     }
     const payload = editing
@@ -282,6 +286,25 @@ export function PipelineEditorDialog({
                     />
                     Etapa de proposta (entra em &quot;Propostas aguardando resposta&quot;)
                   </label>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-xs text-muted-foreground">
+                    <span>Exige:</span>
+                    {REQUIRABLE_FIELDS.map((field) => (
+                      <label key={field.key} className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={stage.requiredFields.includes(field.key)}
+                          onChange={(event) =>
+                            updateStage(stage.key, {
+                              requiredFields: event.target.checked
+                                ? [...stage.requiredFields, field.key]
+                                : stage.requiredFields.filter((key) => key !== field.key),
+                            })
+                          }
+                        />
+                        {field.label}
+                      </label>
+                    ))}
+                  </div>
                 </li>
               ))}
             </ul>

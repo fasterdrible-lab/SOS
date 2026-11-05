@@ -9,8 +9,11 @@ import { prisma } from "@/lib/db"
 import { recordAudit } from "@/lib/audit/record"
 import { serializeOpportunity } from "@/lib/opportunities/create"
 import { getOpportunityDetail } from "@/lib/opportunities/detail"
-import { planOpportunityEdit } from "@/lib/opportunities/edit"
-import { planOpportunityChange, resolveOpportunityLinks } from "@/lib/opportunities/rules"
+import {
+  planOpportunityChange,
+  planOpportunityEdit,
+  resolveOpportunityLinks,
+} from "@/lib/opportunities/rules"
 import { findStage } from "@/lib/pipelines/service"
 import { opportunityChangeSchema, opportunityEditSchema } from "@/lib/validations/opportunity"
 
@@ -65,12 +68,14 @@ export const PUT = withApiErrors("PUT /api/opportunities/[id]", async (
   const { id } = await params
   const existing = await prisma.opportunity.findFirst({
     where: { id, organizationId, ...opportunityScope(session.user.role, session.user.id) },
+    include: { stage: { select: { requiredFields: true } } },
   })
 
   if (!existing) {
     return apiError("NOT_FOUND", "Oportunidade nao encontrada.")
   }
 
+  const { stage: editedStage, ...stored } = existing
   const { expectedClose, ...fields } = parsed.data
   const next = {
     ...fields,
@@ -122,7 +127,8 @@ export const PUT = withApiErrors("PUT /api/opportunities/[id]", async (
       notes: existing.notes,
     },
     next,
-    closed: existing.status !== "OPEN",
+    status: existing.status,
+    requiredFields: editedStage.requiredFields,
     canAssign: hasPermission(session.user.role, "opportunities:assign"),
     canEditClosed: hasPermission(session.user.role, "opportunities:reopen"),
   })
@@ -130,7 +136,7 @@ export const PUT = withApiErrors("PUT /api/opportunities/[id]", async (
   if (!plan.ok) return apiError(codeForStatus(plan.status), plan.error)
 
   if (plan.fields.length === 0) {
-    return NextResponse.json({ opportunity: serializeOpportunity(existing) })
+    return NextResponse.json({ opportunity: serializeOpportunity(stored) })
   }
 
   const opportunity = await prisma.$transaction(async (tx) => {
@@ -188,7 +194,11 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
       organizationId,
       ...opportunityScope(session.user.role, session.user.id),
     },
-    include: { stage: { select: { id: true, pipelineId: true, probability: true, archivedAt: true } } },
+    include: {
+      stage: {
+        select: { id: true, pipelineId: true, probability: true, archivedAt: true, requiredFields: true },
+      },
+    },
   })
 
   if (!existing) {
@@ -213,6 +223,13 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
         pipelineId: currentStage.pipelineId,
         probability: currentStage.probability,
         archived: currentStage.archivedAt !== null,
+        requiredFields: currentStage.requiredFields,
+      },
+      data: {
+        value: Number(current.value),
+        companyId: current.companyId,
+        contactId: current.contactId,
+        expectedClose: current.expectedClose,
       },
     },
     targetStage,

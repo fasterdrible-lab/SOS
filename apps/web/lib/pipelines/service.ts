@@ -14,7 +14,14 @@ export interface PipelineSummary {
   id: string
   name: string
   isDefault: boolean
-  stages: { id: string; name: string; position: number; probability: number; isProposal: boolean }[]
+  stages: {
+    id: string
+    name: string
+    position: number
+    probability: number
+    isProposal: boolean
+    requiredFields: string[]
+  }[]
 }
 
 const stageSelect = {
@@ -23,6 +30,7 @@ const stageSelect = {
   position: true,
   probability: true,
   isProposal: true,
+  requiredFields: true,
 } as const
 
 /**
@@ -39,7 +47,7 @@ export async function ensureDefaultPipeline(db: Db, organizationId: string): Pro
         where: { archivedAt: null },
         orderBy: { position: "asc" },
         take: 1,
-        select: { id: true, probability: true },
+        select: { id: true, probability: true, requiredFields: true },
       },
     },
   })
@@ -68,7 +76,7 @@ export async function ensureDefaultPipeline(db: Db, organizationId: string): Pro
   const first = await db.pipelineStage.findFirstOrThrow({
     where: { pipelineId, archivedAt: null },
     orderBy: { position: "asc" },
-    select: { id: true, probability: true },
+    select: { id: true, probability: true, requiredFields: true },
   })
   return { ...first, pipelineId, archived: false }
 }
@@ -92,9 +100,15 @@ export async function getPipelines(organizationId: string): Promise<PipelineSumm
 export async function findStage(db: Db, organizationId: string, stageId: string): Promise<StageRef | null> {
   const stage = await db.pipelineStage.findFirst({
     where: { id: stageId, organizationId, pipeline: { archivedAt: null } },
-    select: { id: true, pipelineId: true, probability: true, archivedAt: true },
+    select: { id: true, pipelineId: true, probability: true, archivedAt: true, requiredFields: true },
   })
   return stage
-    ? { id: stage.id, pipelineId: stage.pipelineId, probability: stage.probability, archived: stage.archivedAt !== null }
+    ? {
+        id: stage.id,
+        pipelineId: stage.pipelineId,
+        probability: stage.probability,
+        archived: stage.archivedAt !== null,
+        requiredFields: stage.requiredFields,
+      }
     : null
 }

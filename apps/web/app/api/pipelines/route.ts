@@ -59,6 +59,7 @@ export const POST = withApiErrors("POST /api/pipelines", async (request: Request
             position: stage.position,
             probability: stage.probability,
             isProposal: stage.isProposal,
+            requiredFields: stage.requiredFields ?? [],
           })),
         },
       },

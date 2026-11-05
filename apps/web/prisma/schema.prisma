@@ -256,6 +256,8 @@ model PipelineStage {
   probability    Int
   /// Etapa de proposta: entra em "Propostas aguardando resposta" no Meu Dia.
   isProposal     Boolean   @default(false)
+  /// Campos que a negociacao precisa ter para entrar nesta etapa (REQUIRABLE_FIELDS).
+  requiredFields String[]  @default([])
   archivedAt     DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
