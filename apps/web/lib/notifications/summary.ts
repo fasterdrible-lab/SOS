@@ -19,12 +19,20 @@ export async function getHeaderNotifications(input: {
   const today = dayRange(now)
   const open = { organizationId, ...opportunityScope(role, userId), status: "OPEN" as const }
 
-  const [hotLeads, overdueTasks, overdueClose, cooling] = await Promise.all([
+  const [hotLeads, overdueTasks, overdueActivities, overdueClose, cooling] = await Promise.all([
     hasPermission(role, "sdr:read") ? getUnseenQualifiedLeadsCount(organizationId) : null,
     prisma.actionTask.count({
       where: {
         actionPlan: { organizationId },
         status: { in: ["PENDING", "IN_PROGRESS"] },
+        dueDate: { lt: today.start },
+      },
+    }),
+    prisma.activity.count({
+      where: {
+        organizationId,
+        ...opportunityScope(role, userId),
+        completedAt: null,
         dueDate: { lt: today.start },
       },
     }),
@@ -34,5 +42,5 @@ export async function getHeaderNotifications(input: {
     }),
   ])
 
-  return buildNotifications({ hotLeads, overdueTasks, overdueClose, cooling })
+  return buildNotifications({ hotLeads, overdueTasks, overdueActivities, overdueClose, cooling })
 }

@@ -1,16 +1,20 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, ClipboardList, History, KanbanSquare, Sparkles, Users, Zap, type LucideIcon } from "lucide-react"
+import { ArrowLeft, ClipboardList, History, KanbanSquare, ListTodo, Sparkles, Users, Zap, type LucideIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
+import { hasPermission } from "@/lib/authz/permissions"
 import { getCompanyOverview } from "@/lib/companies/overview"
+import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
 import { STATUS_LABELS } from "@/lib/opportunities/rules"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { cn } from "@/lib/utils"
 
+import { ActivityFormDialog } from "../../atividades/activity-form-dialog"
+import { ActivityList } from "../../atividades/activity-list"
 import { ContactEditDialog } from "../../contatos/contact-edit-dialog"
 import { ContactFormDialog } from "../../contatos/contact-form-dialog"
 import { CompanyEditDialog } from "./company-edit-dialog"
@@ -45,11 +49,15 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
 
   if (!company) notFound()
 
-  const companies = await prisma.company.findMany({
-    where: { organizationId },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  })
+  const [companies, members] = await Promise.all([
+    prisma.company.findMany({
+      where: { organizationId },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    }),
+    hasPermission(session.user.role, "activities:assign") ? getDashboardMembers(organizationId) : null,
+  ])
+  const activityMembers = members?.map((member) => ({ id: member.userId, name: member.name })) ?? null
 
   const { summary } = company
   const details = [company.segment, company.website, company.phone, company.email].filter(Boolean)
@@ -135,6 +143,25 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
                   </li>
                 ))}
               </ul>
+            )}
+          </Panel>
+
+          <Panel
+            icon={ListTodo}
+            title={`Atividades (${company.activities.length})`}
+            action={
+              <ActivityFormDialog
+                context={{ companyId: company.id }}
+                options={null}
+                members={activityMembers}
+                userId={userId}
+              />
+            }
+          >
+            {company.activities.length === 0 ? (
+              <Empty>Nenhuma atividade nesta empresa.</Empty>
+            ) : (
+              <ActivityList activities={company.activities} options={null} members={activityMembers} userId={userId} />
             )}
           </Panel>
 

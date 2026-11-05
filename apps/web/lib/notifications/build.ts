@@ -5,11 +5,13 @@ export interface NotificationCounts {
   /** Nulo quando o papel nao acompanha o IA SDR. */
   hotLeads: number | null
   overdueTasks: number
+  /** Reunioes, follow-ups e demais atividades com data vencida. */
+  overdueActivities: number
   overdueClose: number
   cooling: number
 }
 
-export type NotificationKind = "hot-leads" | "overdue-tasks" | "overdue-close" | "cooling"
+export type NotificationKind = "hot-leads" | "overdue-activities" | "overdue-tasks" | "overdue-close" | "cooling"
 
 export interface HeaderNotification {
   kind: NotificationKind
@@ -38,9 +40,16 @@ export function buildNotifications(counts: NotificationCounts): HeaderNotificati
       urgent: true,
     },
     {
+      kind: "overdue-activities",
+      count: counts.overdueActivities,
+      title: plural(counts.overdueActivities, "atividade atrasada", "atividades atrasadas"),
+      href: "/atividades",
+      urgent: true,
+    },
+    {
       kind: "overdue-tasks",
       count: counts.overdueTasks,
-      title: plural(counts.overdueTasks, "tarefa atrasada", "tarefas atrasadas"),
+      title: plural(counts.overdueTasks, "tarefa de plano atrasada", "tarefas de plano atrasadas"),
       href: "/meu-dia",
       urgent: true,
     },

@@ -1,3 +1,4 @@
+import type { ActivityType } from "@/lib/activities/rules"
 import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import {
@@ -40,6 +41,15 @@ export interface TaskItem {
   overdue: boolean
 }
 
+export interface ActivitySummaryItem {
+  id: string
+  type: ActivityType
+  title: string
+  dueDate: string
+  companyName: string | null
+  overdue: boolean
+}
+
 export interface OpportunityList {
   total: number
   items: OpportunityItem[]
@@ -60,6 +70,8 @@ export interface MyDaySummary {
   tasks: { overdue: number; today: number; items: TaskItem[] }
   /** Nulo quando o papel nao acompanha o IA SDR. */
   hotLeads: number | null
+  meetingsToday: { total: number; items: ActivitySummaryItem[] }
+  followUps: { overdue: number; today: number; items: ActivitySummaryItem[] }
 }
 
 const opportunitySelect = {
@@ -118,6 +130,38 @@ export async function getMyDaySummary(input: {
     status: { in: ["PENDING" as const, "IN_PROGRESS" as const] },
     dueDate: { lt: today.end },
   }
+  const pendingActivity = { organizationId, ...opportunityScope(role, userId), completedAt: null }
+  const meetingWhere = {
+    ...pendingActivity,
+    type: "MEETING" as const,
+    dueDate: { gte: today.start, lt: today.end },
+  }
+  const followUpWhere = {
+    ...pendingActivity,
+    type: { notIn: ["MEETING" as const, "NOTE" as const] },
+    dueDate: { lt: today.end },
+  }
+  const activitySelect = {
+    id: true,
+    type: true,
+    title: true,
+    dueDate: true,
+    company: { select: { name: true } },
+  } as const
+  const toActivity = (row: {
+    id: string
+    type: ActivityType
+    title: string
+    dueDate: Date | null
+    company: { name: string } | null
+  }): ActivitySummaryItem => ({
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    dueDate: row.dueDate!.toISOString(),
+    companyName: row.company?.name ?? null,
+    overdue: row.dueDate! < today.start,
+  })
 
   const [
     goal,
@@ -134,6 +178,11 @@ export async function getMyDaySummary(input: {
     tasksOverdue,
     tasksTotal,
     hotLeads,
+    meetings,
+    meetingsTotal,
+    followUps,
+    followUpsOverdue,
+    followUpsTotal,
   ] = await Promise.all([
     prisma.salesGoal.findUnique({
       where: {
@@ -193,6 +242,21 @@ export async function getMyDaySummary(input: {
     prisma.actionTask.count({ where: { ...taskWhere, dueDate: { lt: today.start } } }),
     prisma.actionTask.count({ where: taskWhere }),
     hasPermission(role, "sdr:read") ? getUnseenQualifiedLeadsCount(organizationId) : null,
+    prisma.activity.findMany({
+      where: meetingWhere,
+      select: activitySelect,
+      orderBy: { dueDate: "asc" },
+      take: LIST_LIMIT,
+    }),
+    prisma.activity.count({ where: meetingWhere }),
+    prisma.activity.findMany({
+      where: followUpWhere,
+      select: activitySelect,
+      orderBy: { dueDate: "asc" },
+      take: LIST_LIMIT,
+    }),
+    prisma.activity.count({ where: { ...followUpWhere, dueDate: { lt: today.start } } }),
+    prisma.activity.count({ where: followUpWhere }),
   ])
 
   const revenue = Number(wonMonth._sum.value ?? 0)
@@ -226,5 +290,11 @@ export async function getMyDaySummary(input: {
       })),
     },
     hotLeads,
+    meetingsToday: { total: meetingsTotal, items: meetings.map(toActivity) },
+    followUps: {
+      overdue: followUpsOverdue,
+      today: followUpsTotal - followUpsOverdue,
+      items: followUps.map(toActivity),
+    },
   }
 }

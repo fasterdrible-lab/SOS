@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { AlarmClock, Bell, CalendarX, Flame, Snowflake, type LucideIcon } from "lucide-react"
+import { AlarmClock, Bell, CalendarClock, CalendarX, Flame, Snowflake, type LucideIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import type { HeaderNotifications, NotificationKind } from "@/lib/notifications/
 
 const ICONS: Record<NotificationKind, LucideIcon> = {
   "hot-leads": Flame,
+  "overdue-activities": CalendarClock,
   "overdue-tasks": AlarmClock,
   "overdue-close": CalendarX,
   cooling: Snowflake,

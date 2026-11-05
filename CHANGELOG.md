@@ -1,5 +1,33 @@
 # CHANGELOG — SalesOS
 
+## [V.1.24.0] — 2026-11-05 (concluida localmente, nao publicada)
+
+### Tarefa V2-6 — Atividades e follow-ups
+- Atividades (reuniao, follow-up, ligacao, e-mail, tarefa e nota) com responsavel, data, descricao e vinculo a negociacao, empresa e contato. Reuniao e follow-up exigem data; nota ja nasce concluida.
+- Tela **Atividades** (`/atividades`, no menu): lista agrupada em atrasadas, hoje, proximas, sem data e concluidas, e agenda semanal; filtros de status, tipo e responsavel; criar, editar, concluir, reabrir e remover.
+- Vendedor ve e altera so as proprias atividades; gestor e administrador veem a equipe e atribuem a qualquer membro. Nova permissao `activities:assign` (alem de `activities:read` e `activities:write`).
+- Empresa e contato sao herdados da negociacao ou do contato; vinculos de empresas diferentes sao recusados.
+- Detalhe da negociacao e visao 360 da empresa mostram e criam atividades.
+- Meu Dia: "Reunioes de hoje" e "Follow-ups atrasados e de hoje", com botao de concluir, no lugar dos avisos de "em breve".
+- Notificacoes: novo aviso de atividades atrasadas; o aviso de tarefas dos planos passou a dizer "tarefas de plano atrasadas".
+- Testes: `activity-rules.test.mjs` (14) e `activities.integration.mjs` (24).
+
+**Migration:** `20261105000000_activity_owner` (aditiva: `ownerId`, `companyId` e indice). Aplicada em desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261105000000_activity_owner/migration.sql`
+- `apps/web/lib/activities/rules.ts`, `lib/activities/service.ts`, `lib/validations/activity.ts`
+- `apps/web/app/api/activities/route.ts`, `app/api/activities/[id]/route.ts`
+- `apps/web/app/(app)/atividades/page.tsx`, `activity-filters.tsx`, `activity-form-dialog.tsx`, `activity-list.tsx`, `activity-toggle.tsx`
+- `apps/web/tests/activity-rules.test.mjs`, `apps/web/tests/activities.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/authz/permissions.ts`, `lib/navigation.ts`, `lib/dashboard/period.ts` (`weekDays`)
+- `apps/web/lib/meu-dia/summary.ts`, `lib/notifications/build.ts`, `lib/notifications/summary.ts`, `lib/companies/overview.ts`
+- `apps/web/app/(app)/meu-dia/page.tsx`, `app/(app)/pipeline/[id]/page.tsx`, `app/(app)/empresas/[id]/page.tsx`, `components/notifications-menu.tsx`
+- `apps/web/tests/header-rules.test.mjs`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.23.0] — 2026-11-05 (publicada em producao, imagem `salesos-web:12`)
 
 ### Tarefa V2-5 — Clientes 360

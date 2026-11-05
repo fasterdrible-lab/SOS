@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { listActivities } from "@/lib/activities/service"
 import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
@@ -14,6 +15,8 @@ import { getPipelines } from "@/lib/pipelines/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { cn } from "@/lib/utils"
 
+import { ActivityFormDialog } from "../../atividades/activity-form-dialog"
+import { ActivityList } from "../../atividades/activity-list"
 import { OpportunityActions } from "./opportunity-actions"
 import { OpportunityEditDialog } from "./opportunity-edit-dialog"
 
@@ -52,7 +55,8 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
   const canReopen = hasPermission(role, "opportunities:reopen")
   const canEdit = opportunity.status === "OPEN" || canReopen
 
-  const [pipelines, members, companies, contacts] = await Promise.all([
+  const [activities, pipelines, members, companies, contacts] = await Promise.all([
+    listActivities({ organizationId, userId, role, where: { opportunityId: opportunity.id } }),
     getPipelines(organizationId),
     canAssign ? getDashboardMembers(organizationId) : null,
     prisma.company.findMany({
@@ -66,6 +70,8 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
       orderBy: { name: "asc" },
     }),
   ])
+
+  const activityMembers = members?.map((member) => ({ id: member.userId, name: member.name })) ?? null
 
   const facts = [
     { label: "Funil", value: opportunity.pipeline.name },
@@ -164,6 +170,25 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
                   </p>
                   <p className="whitespace-pre-wrap text-sm text-foreground">{opportunity.notes}</p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-foreground/5 bg-card py-0">
+            <CardContent className="space-y-2 p-5">
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">Atividades ({activities.length})</h2>
+                <ActivityFormDialog
+                  context={{ opportunityId: opportunity.id }}
+                  options={null}
+                  members={activityMembers}
+                  userId={userId}
+                />
+              </div>
+              {activities.length === 0 ? (
+                <p className="py-1 text-sm text-muted-foreground">Nenhuma atividade nesta negociação.</p>
+              ) : (
+                <ActivityList activities={activities} options={null} members={activityMembers} userId={userId} />
               )}
             </CardContent>
           </Card>

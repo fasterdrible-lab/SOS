@@ -67,6 +67,7 @@ model User {
   sessions Session[]
   members  OrganizationMember[]
   ownedOpportunities Opportunity[]
+  ownedActivities Activity[]
   auditLogs AuditLog[]
   opportunityStageChanges OpportunityStageHistory[]
   salesGoals         SalesGoal[] @relation("SalesGoalUser")
@@ -134,6 +135,7 @@ model Company {
   contacts      Contact[]
   leads         Lead[]
   opportunities Opportunity[]
+  activities    Activity[]
 
   @@index([organizationId])
   @@map("companies")
@@ -275,8 +277,11 @@ model PipelineStage {
 model Activity {
   id             String       @id @default(cuid())
   organizationId String
+  companyId      String?
   contactId      String?
   opportunityId  String?
+  /// Responsavel; o vendedor ve e altera apenas as proprias.
+  ownerId        String?
   type           ActivityType
   title          String
   description    String?      @db.Text
@@ -286,10 +291,13 @@ model Activity {
   updatedAt      DateTime     @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
   contact      Contact?     @relation(fields: [contactId], references: [id])
   opportunity  Opportunity? @relation(fields: [opportunityId], references: [id])
+  owner        User?        @relation(fields: [ownerId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
+  @@index([organizationId, ownerId, dueDate])
   @@map("activities")
 }
 

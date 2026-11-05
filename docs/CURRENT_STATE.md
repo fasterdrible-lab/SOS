@@ -2,13 +2,13 @@
 
 **Versao atual:** V.1.23.0 em producao (`salesos-web:12`)
 **Data:** 2026-11-05
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-5 publicadas; proxima: V2-6
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-5 publicadas; V2-6 concluida localmente (nao publicada); proxima: V2-7
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda exatamente esse codigo.
-- **Producao:** imagem `salesos-web:12` desde 2026-11-05, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 7 migrations aplicadas (a V2-5 nao tem migration). Imagem `salesos-web:11` mantida na VPS: para reverter, basta voltar `WEB_TAG`.
+- **Codigo:** branch `feat/saleos-v2`. A V2-6 (V.1.24.0) esta concluida localmente, sem commit e sem publicacao; a producao roda o codigo da V2-5.
+- **Producao:** imagem `salesos-web:12` desde 2026-11-05, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 7 migrations aplicadas (a V2-5 nao tem migration). A V2-6 traz a 8a, `20261105000000_activity_owner` (aditiva), aplicada so em desenvolvimento. Imagem `salesos-web:11` mantida na VPS: para reverter, basta voltar `WEB_TAG`.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -17,11 +17,12 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+  - V2-6 (concluida em 2026-11-05, nao publicada): atividades com responsavel, tela `/atividades` com lista e agenda semanal, atividades na negociacao e na empresa, reunioes e follow-ups no Meu Dia e aviso de atividades atrasadas.
   - V2-5 (publicada em 2026-11-05): visao 360 da empresa, edicao de empresa e contato.
   - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
   - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 91 unitarios e 129 de integracao, aprovados localmente; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
+- **Testes:** 105 unitarios e 153 de integracao, aprovados localmente com a V2-6; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261105-143829`, antes da publicacao da V2-5), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -175,6 +176,13 @@ apps/web/lib/search/query.ts                      -> normalizacao e limites do t
 apps/web/lib/search/global-search.ts              -> busca por papel em negociacoes, empresas, contatos e planos
 apps/web/components/global-search.tsx             -> dialogo de busca (Ctrl+K)
 apps/web/app/api/search/route.ts                  -> busca global em JSON
+apps/web/lib/activities/rules.ts                  -> tipos, grupos, vinculos e filtros das atividades (regra pura)
+apps/web/lib/activities/service.ts                -> listagem no escopo do papel e conferencia dos vinculos
+apps/web/lib/validations/activity.ts              -> schema Zod da atividade
+apps/web/app/api/activities/route.ts              -> lista e cria atividades
+apps/web/app/api/activities/[id]/route.ts         -> edita, conclui, reabre e remove
+apps/web/app/(app)/atividades/page.tsx            -> tela Atividades: lista agrupada e agenda semanal
+apps/web/app/(app)/atividades/activity-*.tsx      -> filtros, lista, dialogo e botao de concluir (usados tambem na negociacao, na empresa e no Meu Dia)
 apps/web/tests/support.mjs                        -> cliente HTTP e travas de ambiente dos testes de integracao
 apps/web/tests/*.test.mjs                         -> testes unitarios (permissoes, etapas, erros, calendario, metas)
 apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, regras comerciais, erros, Meu Dia)
@@ -234,6 +242,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Quadro com arrastar, filtros, lista, detalhe e edicao (V2-4.2)
 - [x] Campos obrigatorios por etapa, ganhar exige valor (V2-4.3)
 - [x] Visao 360 da empresa, edicao de empresa e contato (V2-5)
+- [x] Atividades e follow-ups com responsavel, lista, agenda, Meu Dia e notificacoes (V2-6, local)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -252,6 +261,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-6** - Atividades e follow-ups: responsavel, tela com lista e agenda, atividades na negociacao e na empresa, Meu Dia e notificacoes. 258 testes automatizados. Concluida localmente em 2026-11-05; falta commit, verificacao em navegador e publicacao (com a migration `20261105000000_activity_owner`).
+
 **Tarefa V2-5** - Visao 360 da empresa e edicao de empresa e contato. 220 testes automatizados. Publicada em 2026-11-05 (`salesos-web:12`).
 
 **Tarefa V2-4.3** - Campos obrigatorios por etapa e valor exigido para ganhar. 201 testes automatizados. Publicada em 2026-11-05 (`salesos-web:11`).
@@ -291,12 +302,14 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## O Que Falta
 - Concluir a tarefa 9.2 com uma chave Anthropic valida (`sk-ant-...`), cadastrada em `/configuracoes`.
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
-- Seguir as FASES V2-6 a V2-10 (`docs/TASKS.md`).
+- Publicar a V2-6 (commit, CI, backup antes da migration e nova imagem) e conferi-la em navegador.
+- Descrever a tela de Atividades em `docs/GUIA_DE_USO.md`.
+- Seguir as FASES V2-7 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-6: Atividades e follow-ups (rotas, telas, agenda e responsavel, sobre o model `Activity`).
+Tarefa V2-7: Integracao SALEIA. Antes, se autorizado, publicar a V2-6.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

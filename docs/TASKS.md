@@ -17,8 +17,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
-| V2-6 | Atividades e follow-ups | proxima |
-| V2-7 | Integracao SALEIA | todo |
+| V2-6 | Atividades e follow-ups | done (local, nao publicada) |
+| V2-7 | Integracao SALEIA | proxima |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
@@ -27,6 +27,28 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-6 - Atividades e follow-ups
+
+### Resultado
+- `Activity` ganha `ownerId` (responsavel) e `companyId` (migration aditiva `20261105000000_activity_owner`, com indice por organizacao, dono e data). Atividades antigas ficam sem dono.
+- Tipos: reuniao, follow-up, ligacao, e-mail, tarefa e nota. Reuniao e follow-up exigem data (422); nota nasce concluida (`lib/activities/rules.ts`).
+- API: `GET/POST /api/activities` (filtros `status`, `tipo`, `dono`) e `PATCH/DELETE /api/activities/[id]` (editar, concluir com `completed: true`, reabrir, remover). Permissoes novas `activities:read` e `activities:write` (todos) e `activities:assign` (gestor e administrador).
+- Escopo: o vendedor ve e altera apenas as proprias atividades (`activityScope` = `opportunityScope`) e nao atribui a outra pessoa (403); responsavel precisa ser membro da organizacao. Fora do escopo responde 404.
+- Vinculos: negociacao, empresa e contato conferidos na organizacao e no escopo do papel; empresa e contato sao herdados da negociacao ou do contato, e apontar para empresas diferentes responde 400 (`resolveActivityLinks`).
+- Tela `/atividades` (menu "Atividades"): lista agrupada em atrasadas, hoje, proximas, sem data e concluidas, e agenda semanal de segunda a domingo com navegacao entre semanas (`weekDays`, `lib/dashboard/period.ts`). Filtros na URL: status, tipo, responsavel (gestor e administrador) e visao.
+- Atividades no detalhe da negociacao e na visao 360 da empresa (ultimas 20, pendentes primeiro), com criacao ja vinculada.
+- Meu Dia: "Reunioes de hoje" e "Follow-ups atrasados e de hoje" (follow-ups, ligacoes, e-mails e tarefas com data) substituem os avisos de "em breve", com botao de concluir.
+- Notificacoes: novo aviso "atividades atrasadas", que leva a `/atividades`; o aviso antigo passou a se chamar "tarefas de plano atrasadas".
+- Testes: `npm run check` (105 unitarios; novo `activity-rules.test.mjs`, 14) e `npm run test:integration` (153, em 43 suites; nova `activities.integration.mjs`, 24).
+
+### Limitacoes conhecidas
+- Sem verificacao em navegador real nesta tarefa: as telas foram conferidas pelo HTML nos testes de integracao.
+- Criar, editar e remover atividade nao entram no `AuditLog`.
+- Sem lembrete por e-mail ou push, sem recorrencia e sem integracao com Google Agenda ou Outlook.
+- O seletor de negociacao da tela lista ate 200 negociacoes em andamento; a lista, ate 500 atividades.
+- Pre-venda no Dashboard (reunioes por vendedor) e o botao "Criar Tarefa" no cartao do quadro nao foram feitos.
+- `docs/GUIA_DE_USO.md` ainda nao descreve a tela de Atividades.
 
 ## Tarefa: V2-5 - Clientes 360
 
@@ -47,7 +69,7 @@ Conforme `docs/AUDITORIA_V2.md`: `/clientes` continua listando as organizacoes d
 - Nao ha exclusao de empresa ou contato, nem responsavel pela empresa.
 - Planos de acao nao tem vinculo com empresa e nao aparecem na visao 360.
 - Contato nao tem pagina propria; contato sem empresa so aparece em `/contatos`.
-- Atividades e reunioes entram com a V2-6; a secao SALEIA, com a V2-7.
+- ~~Atividades e reunioes entram com a V2-6~~: feito na V2-6. A secao SALEIA entra com a V2-7.
 
 ## Tarefa: V2-4.3 - Campos obrigatorios por etapa
 

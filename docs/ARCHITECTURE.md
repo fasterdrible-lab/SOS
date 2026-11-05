@@ -45,6 +45,7 @@ SalesOS
 
 ```
 Meu Dia (página inicial)            → /meu-dia
+Atividades e follow-ups             → /atividades (lista e agenda semanal)
 Módulo 1 — Diagnóstico Comercial    → /diagnostico
 Módulo 2 — CRM Inteligente          → /empresas (visão 360 em /empresas/[id]), /contatos, /pipeline (Negociações)
 Módulo 3 — IA SDR                   → /sdr (console) e /sdr/[organizationId] (widget público)
@@ -55,7 +56,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): Atividades, SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
+Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -73,7 +74,7 @@ Organization (tenant)
   └── Company
   └── Contact
   └── Opportunity
-  └── Activity
+  └── Activity (reunião, follow-up, ligação, e-mail, tarefa ou nota; responsável e vínculos opcionais)
   └── ActionPlan
   └── Diagnostic
   └── ApiIntegration (chave de API por provedor de IA, criptografada)
@@ -125,6 +126,17 @@ Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /a
 Negociacoes, indicadores e linha do tempo no escopo do papel (opportunityScope)
 Contatos: toda a organizacao | Leads: so com sdr:read | Diagnostico: pelo nome da empresa
 Edicao: PUT /api/companies/[id] e /api/contacts/[id], auditadas so com os nomes dos campos
+```
+
+### Atividades
+```
+/atividades e GET/POST /api/activities, PATCH/DELETE /api/activities/[id]
+Escopo: activityScope = opportunityScope (vendedor: ownerId proprio) | atribuir: activities:assign
+Vinculos: checkActivityLinks (lib/activities/service.ts) confere na organizacao e no escopo do papel;
+  resolveActivityLinks herda empresa e contato da negociacao ou do contato; empresas diferentes = 400
+Regras puras (lib/activities/rules.ts): reuniao e follow-up exigem data | nota nasce concluida
+  grupos atrasadas/hoje/proximas/sem data/concluidas pelo dia de Brasilia | agenda: weekDays (seg-dom)
+Reflexos: detalhe da negociacao, visao 360 da empresa, Meu Dia (reunioes de hoje, follow-ups) e sino
 ```
 
 ### Dashboard Executivo

@@ -1,9 +1,11 @@
+import { listActivities, type ActivityItem } from "@/lib/activities/service"
 import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { summarizeOpportunities, type CompanySummary } from "@/lib/companies/summary"
 import { prisma } from "@/lib/db"
 import { describeHistoryChange, type OpportunityStatus } from "@/lib/opportunities/rules"
 
 const TIMELINE_LIMIT = 15
+const ACTIVITY_LIMIT = 20
 
 export interface CompanyOverview {
   id: string
@@ -34,6 +36,8 @@ export interface CompanyOverview {
     phone: string | null
     companyId: string | null
   }[]
+  /** Pendentes primeiro; no escopo do papel. */
+  activities: ActivityItem[]
   /** Nulo quando o papel nao acompanha o IA SDR. */
   leads: { id: string; name: string; source: string | null; status: string; createdAt: string }[] | null
   /** Ligado pelo nome da empresa: `Diagnostic` nao referencia `Company`. */
@@ -55,7 +59,15 @@ export async function getCompanyOverview(input: {
 
   const scoped = { organizationId, companyId: id, ...opportunityScope(role, userId) }
 
-  const [opportunities, contacts, leads, diagnostic, history] = await Promise.all([
+  const [activities, opportunities, contacts, leads, diagnostic, history] = await Promise.all([
+    listActivities({
+      organizationId,
+      userId,
+      role,
+      where: { companyId: id },
+      orderBy: [{ completedAt: { sort: "asc", nulls: "first" } }, { dueDate: { sort: "asc", nulls: "last" } }],
+      take: ACTIVITY_LIMIT,
+    }),
     prisma.opportunity.findMany({
       where: scoped,
       include: {
@@ -124,6 +136,7 @@ export async function getCompanyOverview(input: {
       expectedClose: row.expectedClose?.toISOString() ?? null,
     })),
     contacts,
+    activities,
     leads:
       leads?.map((lead) => ({ ...lead, status: lead.status as string, createdAt: lead.createdAt.toISOString() })) ??
       null,

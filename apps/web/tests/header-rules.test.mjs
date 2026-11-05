@@ -8,33 +8,34 @@ import { parseTheme } from "../lib/theme.ts"
 describe("notificacoes do cabecalho", () => {
   it("sem pendencias, nada a mostrar", () => {
     assert.deepEqual(
-      buildNotifications({ hotLeads: 0, overdueTasks: 0, overdueClose: 0, cooling: 0 }),
+      buildNotifications({ hotLeads: 0, overdueTasks: 0, overdueActivities: 0, overdueClose: 0, cooling: 0 }),
       { total: 0, items: [] }
     )
   })
 
   it("lista apenas o que tem pendencia e soma o total", () => {
-    const { total, items } = buildNotifications({ hotLeads: 2, overdueTasks: 0, overdueClose: 1, cooling: 3 })
+    const { total, items } = buildNotifications({ hotLeads: 2, overdueTasks: 0, overdueActivities: 0, overdueClose: 1, cooling: 3 })
     assert.equal(total, 6)
     assert.deepEqual(items.map((item) => item.kind), ["hot-leads", "overdue-close", "cooling"])
     assert.deepEqual(items.map((item) => item.href), ["/sdr", "/meu-dia", "/meu-dia"])
   })
 
   it("papel sem IA SDR nao recebe leads", () => {
-    const { items } = buildNotifications({ hotLeads: null, overdueTasks: 1, overdueClose: 0, cooling: 0 })
+    const { items } = buildNotifications({ hotLeads: null, overdueTasks: 1, overdueActivities: 0, overdueClose: 0, cooling: 0 })
     assert.deepEqual(items.map((item) => item.kind), ["overdue-tasks"])
   })
 
   it("usa singular e plural", () => {
-    const one = buildNotifications({ hotLeads: 1, overdueTasks: 1, overdueClose: 1, cooling: 1 })
+    const one = buildNotifications({ hotLeads: 1, overdueTasks: 1, overdueActivities: 1, overdueClose: 1, cooling: 1 })
     assert.deepEqual(one.items.map((item) => item.title), [
       "1 lead qualificado pelo IA SDR",
-      "1 tarefa atrasada",
+      "1 atividade atrasada",
+      "1 tarefa de plano atrasada",
       "1 negociação com fechamento vencido",
       "1 negociação esfriando",
     ])
-    const many = buildNotifications({ hotLeads: 0, overdueTasks: 4, overdueClose: 0, cooling: 2 })
-    assert.deepEqual(many.items.map((item) => item.title), ["4 tarefas atrasadas", "2 negociações esfriando"])
+    const many = buildNotifications({ hotLeads: 0, overdueTasks: 4, overdueActivities: 0, overdueClose: 0, cooling: 2 })
+    assert.deepEqual(many.items.map((item) => item.title), ["4 tarefas de plano atrasadas", "2 negociações esfriando"])
   })
 })
 

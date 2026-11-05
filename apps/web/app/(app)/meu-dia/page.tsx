@@ -12,12 +12,14 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
+import { ACTIVITY_TYPE_LABELS } from "@/lib/activities/rules"
 import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import {
   COOLING_AFTER_DAYS,
   getMyDaySummary,
+  type ActivitySummaryItem,
   type OpportunityItem,
   type OpportunityList,
 } from "@/lib/meu-dia/summary"
@@ -26,6 +28,7 @@ import { ORGANIZATION_GOAL_SCOPE } from "@/lib/validations/goal"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
+import { ActivityToggle } from "../atividades/activity-toggle"
 import { GoalDialog, type GoalMember } from "./goal-dialog"
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
@@ -55,6 +58,15 @@ const ROLE_LABELS: Record<string, string> = {
   MANAGER: "Gestor",
   MEMBER: "Vendedor",
 }
+
+const timeOnly = new Intl.DateTimeFormat("pt-BR", { timeZone: BUSINESS_TIME_ZONE, hour: "2-digit", minute: "2-digit" })
+const shortDateTime = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: BUSINESS_TIME_ZONE,
+  day: "2-digit",
+  month: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+})
 
 const days = (count: number) => (count === 1 ? "1 dia" : `${count} dias`)
 
@@ -286,15 +298,18 @@ export default async function MeuDiaPage() {
           </PanelCard>
         )}
 
-        <UpcomingCard
+        <ActivityCard
           icon={CalendarClock}
-          title="Reuniões de hoje"
-          text="Aparecem aqui quando o módulo Atividades estiver disponível."
+          title={`Reuniões de hoje (${summary.meetingsToday.total})`}
+          items={summary.meetingsToday.items}
+          empty="Nenhuma reunião agendada para hoje."
         />
-        <UpcomingCard
+        <ActivityCard
           icon={MessagesSquare}
-          title="Follow-ups pendentes"
-          text="Aparecem aqui quando o módulo Atividades estiver disponível."
+          title={`Follow-ups atrasados e de hoje (${summary.followUps.overdue + summary.followUps.today})`}
+          hint="Follow-ups, ligações, e-mails e tarefas com data."
+          items={summary.followUps.items}
+          empty="Nenhum follow-up vencido nem vencendo hoje."
         />
         <UpcomingCard
           icon={ClipboardCheck}
@@ -460,6 +475,53 @@ function OpportunityCard({
         <Link href="/pipeline" className="block pt-1 text-xs text-gold-fg hover:underline">
           Ver todas as {list.total} no pipeline
         </Link>
+      )}
+    </PanelCard>
+  )
+}
+
+function ActivityCard({
+  icon,
+  title,
+  hint,
+  items,
+  empty,
+}: {
+  icon: LucideIcon
+  title: string
+  hint?: string
+  items: ActivitySummaryItem[]
+  empty: string
+}) {
+  return (
+    <PanelCard icon={icon} title={title} hint={hint}>
+      {items.length === 0 ? (
+        <EmptyLine>{empty}</EmptyLine>
+      ) : (
+        <ul className="divide-y divide-foreground/5">
+          {items.map((item) => (
+            <li key={item.id} className="flex items-start gap-3 py-2.5">
+              <ActivityToggle id={item.id} title={item.title} done={false} />
+              <Link href="/atividades" className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-foreground">{item.title}</span>
+                <span
+                  className={cn(
+                    "block truncate text-xs",
+                    item.overdue ? "text-red-700 dark:text-red-300" : "text-muted-foreground"
+                  )}
+                >
+                  {[
+                    (item.overdue ? shortDateTime : timeOnly).format(new Date(item.dueDate)),
+                    ACTIVITY_TYPE_LABELS[item.type],
+                    item.companyName,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </PanelCard>
   )

@@ -107,6 +107,13 @@ export function periodWindow(key: PeriodKey, today: Day): PeriodWindow {
   }
 }
 
+/** Os 7 dias, de segunda a domingo, da semana a `offset` semanas de hoje. */
+export function weekDays(today: Day, offset = 0): Day[] {
+  const weekday = new Date(toUtc(today)).getUTCDay()
+  const monday = addDays(today, -((weekday + 6) % 7) + offset * 7)
+  return Array.from({ length: 7 }, (_, index) => addDays(monday, index))
+}
+
 export function dayKey({ year, month, day }: Day): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
 }

@@ -7,6 +7,7 @@ import {
   KanbanSquare,
   LayoutDashboard,
   ListChecks,
+  ListTodo,
   Settings,
   Users,
   Zap,
@@ -28,7 +29,7 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-// Modulos ainda nao construidos (Clientes 360, Atividades, SALEIA, Report) entram
+// Modulos ainda nao construidos (SALEIA, Report) entram
 // no menu quando tiverem tela; nenhum item leva a pagina inexistente.
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -37,6 +38,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Meu Dia", href: "/meu-dia", icon: CalendarCheck },
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { title: "Negociações", href: "/pipeline", icon: KanbanSquare },
+      { title: "Atividades", href: "/atividades", icon: ListTodo },
     ],
   },
   {
