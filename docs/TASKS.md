@@ -19,7 +19,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
-| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done no SALE-IA V.1.4.196 (local, nao publicada) |
+| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; sem envios ate o relatorio automatico do SALE-IA voltar a funcionar) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | proxima |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
@@ -31,6 +31,13 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Decidir o controle de novas contas antes de configurar o login Google.
 
 ## Tarefa: V2-7.2 - SALEIA no SALE-IA
+
+### Estado
+SALE-IA V.1.4.196 (commit `241f4a3`) publicado em 2026-11-06, com `reunioes_ativas = 0`; validado (ativo, sem reinicio extra, journal sem erro, `/health` 1.4.196). `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` gravados no `.env` do SALE-IA (organizacao NEX-ALS), com o segredo decifrado na propria VPS, sem passar pelo chat. Teste em producao sem gravar dados: evento assinado e invalido recebeu 400 (assinatura aceita) e segredo errado, 401. As 41 sessoes existentes ficaram `anterior` e nao serao enviadas.
+
+**Bloqueio no SALE-IA, anterior a esta tarefa:** nenhuma sessao tem relatorio automatico `ok`. Desde 2026-10-27 todo relatorio falha com `StatementError` ("Datetime values must have timezone information"). Como o envio sai do relatorio, nenhuma reuniao chega ao SOS ate essa correcao, que e tarefa do SALE-IA.
+
+**Seguranca:** no teste, carregar o `.env` do SALE-IA pelo bash exibiu no chat o comeco de um token do Grafana Cloud (linha 22). Esse token precisa ser trocado.
 
 ### Resultado
 Feita no repositorio do SALE-IA (V.1.4.196; detalhe no `CHANGELOG.md` de la). Nenhum arquivo do SOS mudou alem desta documentacao.

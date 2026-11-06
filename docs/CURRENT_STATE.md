@@ -2,7 +2,7 @@
 
 **Versao atual:** V.1.25.0 em producao (`salesos-web:14`)
 **Data:** 2026-11-06
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6 e V2-7.1 publicadas; V2-7.2 concluida no SALE-IA (V.1.4.196, nao publicada); proxima: V2-7.3
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7.1 e V2-7.2 (no SALE-IA) publicadas; proxima: V2-7.3
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
@@ -17,7 +17,7 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-7.2 (concluida em 2026-11-06 no repositorio do SALE-IA, V.1.4.196, nao publicada): o SALE-IA envia cada reuniao com relatorio automatico ao SOS, com fila e reenvio. Liga com `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` no `.env` do SALE-IA.
+  - V2-7.2 (SALE-IA V.1.4.196, publicada em 2026-11-06): o SALE-IA envia cada reuniao com relatorio automatico ao SOS, com fila e reenvio, ja configurado para a NEX-ALS. Nada chegou ainda: o relatorio automatico do SALE-IA falha desde 2026-10-27 (bug do SALE-IA, ver `docs/TASKS.md`).
   - V2-7.1 (publicada em 2026-11-06): recebimento das reunioes analisadas pelo SALE-IA (webhook com HMAC, contrato em `docs/INTEGRACAO_SALEIA.md`), conexao em Configuracoes, tela `/saleia` e reunioes na empresa e na negociacao. O SALE-IA ainda nao envia (V2-7.2).
   - V2-6 (publicada em 2026-11-06): atividades com responsavel, tela `/atividades` com lista e agenda semanal, atividades na negociacao e na empresa, reunioes e follow-ups no Meu Dia e aviso de atividades atrasadas.
   - V2-5 (publicada em 2026-11-05): visao 360 da empresa, edicao de empresa e contato.
@@ -275,7 +275,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-7.2** - O SALE-IA envia ao SOS cada reuniao analisada (V.1.4.196 do SALE-IA), com fila, reenvio e assinatura conferida contra o SOS local. Concluida em 2026-11-06; falta o deploy do SALE-IA e configurar o endereco e o segredo no `.env` dele.
+**Tarefa V2-7.2** - O SALE-IA envia ao SOS cada reuniao analisada (V.1.4.196 do SALE-IA), com fila, reenvio e assinatura conferida contra o SOS local e de producao. Publicada e configurada em 2026-11-06; os envios dependem de corrigir o relatorio automatico do SALE-IA.
 
 **Tarefa V2-7.1** - SALEIA no SOS: contrato, recebimento assinado com HMAC, vinculo automatico, conexao em Configuracoes, tela SALEIA e reunioes na empresa e na negociacao. 287 testes automatizados. Publicada em 2026-11-06 (`salesos-web:14`); falta o envio pelo SALE-IA (V2-7.2).
 
@@ -322,13 +322,14 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
 - Conferir as telas da V2-6 em navegador.
 - Descrever a tela de Atividades em `docs/GUIA_DE_USO.md`.
-- Publicar o SALE-IA V.1.4.196 e configurar `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` no `.env` dele; depois, seguir com a V2-7.3.
+- No SALE-IA (tarefa de la): corrigir o relatorio automatico, que falha desde 2026-10-27; sem ele nenhuma reuniao chega ao SOS. Trocar o token do Grafana Cloud exposto no chat.
+- Seguir com a V2-7.3.
 - Seguir as FASES V2-8 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Antes: publicar o SALE-IA V.1.4.196 (com confirmacao e sem reuniao ativa) e configurar o envio. Depois, Tarefa V2-7.3: aceitar recomendacoes como atividade, aplicar a etapa sugerida e levar as recomendacoes ao Meu Dia.
+Tarefa V2-7.3: aceitar recomendacoes como atividade, aplicar a etapa sugerida e levar as recomendacoes ao Meu Dia.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

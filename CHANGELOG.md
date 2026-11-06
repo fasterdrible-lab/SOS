@@ -1,6 +1,7 @@
 # CHANGELOG — SalesOS
 
 ## Tarefa V2-7.2 — 2026-11-06 (no SALE-IA, sem nova versao do SOS)
+- SALE-IA V.1.4.196 publicado e configurado em 2026-11-06 para a organizacao NEX-ALS. Nenhum envio ainda: o relatorio automatico do SALE-IA falha desde 2026-10-27.
 - O SALE-IA (V.1.4.196, repositorio proprio) passa a enviar ao SOS cada reuniao com relatorio pos-reuniao automatico, seguindo `docs/INTEGRACAO_SALEIA.md`, com fila e reenvio. Ver o `CHANGELOG.md` do SALE-IA.
 - No SOS mudou so a documentacao: `docs/TASKS.md`, `docs/CURRENT_STATE.md` e `CHANGELOG.md`.
 
