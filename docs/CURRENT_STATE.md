@@ -7,7 +7,7 @@
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, adiante de `main` desde a V2-6. A producao roda exatamente esse codigo (V2-7.1, commit `30e767a`).
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub desde 2026-11-06. A producao roda o codigo da V2-7.1 (commit `30e767a`); os commits seguintes sao so documentacao.
 - **Producao:** imagem `salesos-web:14` desde 2026-11-06, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 9 migrations aplicadas (a ultima, `20261106122753_saleia_integration`, aditiva). Imagem `salesos-web:13` mantida na VPS: para reverter, basta voltar `WEB_TAG`. A integracao SALEIA foi conectada em producao na organizacao NEX-ALS em 2026-11-06; nenhum evento recebido ainda.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
