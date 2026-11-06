@@ -25,8 +25,11 @@ Cada pessoa tem um papel em cada cliente. Uma mudança de papel vale na hora, se
 | Definir metas | ✓ | ✓ | — |
 | Criar planos de ação e tarefas | ✓ | ✓ | — |
 | Atualizar status de tarefas | ✓ | ✓ | ✓ |
+| Atividades | todas | todas | só as próprias |
+| Atribuir atividade a outra pessoa | ✓ | ✓ | — |
+| Reuniões da SALEIA | todas | todas | só as das próprias negociações |
 | IA SDR e Consultor Digital | ✓ | ✓ | — |
-| Configurações (chaves de IA) | ✓ | — | — |
+| Configurações (chaves de IA e conexão com a SALEIA) | ✓ | — | — |
 | Criar novos clientes | ✓ | — | — |
 
 Quem cria um cliente vira administrador dele. Itens que o seu papel não pode abrir não aparecem no menu.
@@ -50,9 +53,11 @@ Mostra o mês corrente no horário de Brasília. O vendedor vê os próprios nú
 | Negociações esfriando | Abertas há mais de 14 dias sem mudar de etapa |
 | Fechamento previsto vencido | Abertas com data prevista de fechamento já passada |
 | Tarefas atrasadas e de hoje | Tarefas pendentes dos planos de ação |
+| Reuniões de hoje | Atividades do tipo reunião marcadas para hoje |
+| Follow-ups atrasados e de hoje | Follow-ups, ligações, e-mails e tarefas com data vencida ou para hoje. O círculo à esquerda conclui |
 | Leads quentes do IA SDR | Conversas qualificadas ainda não vistas (gestor e administrador) |
 
-Reuniões, follow-ups, fechamento do dia e recomendações da SALEIA aparecem como "em breve" até os módulos correspondentes ficarem prontos. Nenhum número é inventado.
+Fechamento do dia e recomendações da SALEIA aparecem como "em breve" até os módulos correspondentes ficarem prontos. Nenhum número é inventado.
 
 ### Definir metas
 
@@ -79,6 +84,8 @@ Em **Empresas**, clique no nome para abrir a visão completa daquele cliente da 
 
 Use **Editar** para corrigir os dados da empresa e o lápis ao lado de um contato para editá-lo. **Novo contato**, nessa tela, já cria o contato na empresa. Um contato com negociações em outra empresa não pode trocar de empresa.
 
+A mesma tela mostra as **Atividades** da empresa (com **Nova atividade** já ligada a ela) e as **reuniões analisadas pela SALEIA**.
+
 ## Negociações
 
 - Cada cliente tem o funil padrão **Vendas** (Prospecção, Qualificação, Proposta, Negociação) e pode ter outros. No topo de Negociações, escolha o funil, o que mostrar (em andamento, ganhas, perdidas ou todas), o dono e a ordem, procure por título, empresa ou contato e alterne entre quadro e lista.
@@ -93,13 +100,34 @@ Use **Editar** para corrigir os dados da empresa e o lápis ao lado de um contat
 - Toda mudança de etapa fica no histórico, com quem mudou e quando.
 - Se duas pessoas mudarem a mesma negociação ao mesmo tempo, a segunda recebe o aviso para atualizar a página.
 - Ao escolher um contato ligado a uma empresa, a negociação fica nessa empresa. Um contato de outra empresa é recusado.
+- A página da negociação também mostra as atividades dela, com **Nova atividade**, e as reuniões analisadas pela SALEIA.
+
+## Atividades
+
+Reuniões, follow-ups, ligações, e-mails, tarefas e notas, no menu **Atividades**.
+
+- **Nova atividade:** escolha o tipo, a data e a hora, o título e, se quiser, a negociação, a empresa e o contato. Reunião e follow-up exigem data. Nota é o registro de algo que já aconteceu e nasce concluída.
+- Ao escolher uma negociação, a empresa e o contato dela vêm junto. Empresa, contato e negociação de empresas diferentes são recusados.
+- **Lista:** separa em atrasadas, hoje, próximas, sem data e concluídas. **Agenda:** mostra a semana de segunda a domingo, com as setas para ir e voltar.
+- O círculo à esquerda conclui ou reabre; o lápis edita ou remove.
+- Quem cria é o responsável. Gestor e administrador podem atribuir a outra pessoa e filtrar por responsável; o vendedor vê e altera só as próprias.
+- Atividades atrasadas aparecem no sino de notificações.
+
+## SALEIA
+
+Depois de cada reunião, a SALEIA analisa a conversa e envia ao SalesOS o resumo, as recomendações, as objeções, as dores, os sinais de compra, os pontos de atenção e, quando for o caso, a etapa sugerida para a negociação.
+
+- **Conectar** (administrador): em **Configurações**, seção **Integrações de sistemas**, cartão **SALEIA**, clique em **Conectar**. A tela mostra o endereço e o segredo uma única vez; eles vão para a configuração da SALEIA. **Gerar novo segredo** invalida o anterior na hora. **Desconectar** faz a SALEIA parar de enviar; as reuniões já recebidas continuam.
+- O SalesOS liga cada reunião à negociação, ao contato (pelo e-mail) ou à empresa (pelo nome dito na reunião). Uma negociação só é escolhida quando a empresa tem exatamente uma em andamento.
+- **Menu SALEIA:** lista as reuniões recebidas. Gestor e administrador têm o filtro **Sem empresa**, para as reuniões que não encontraram empresa. Clique no título para ver o resumo completo, os pontos agrupados, as frases do cliente que sustentam cada ponto e os participantes.
+- Nada muda nas negociações sozinho: as sugestões só informam. Aceitar uma recomendação como atividade e aplicar a etapa sugerida vêm na próxima etapa (V2-7.3).
 
 ## Busca, notificações e tema
 
 - **Busca:** clique em **Buscar...** no topo ou tecle `Ctrl+K` (`Cmd+K` no Mac) ou `/`. Procura negociações, empresas, contatos e planos de ação do cliente ativo, a partir de 2 letras. Use as setas e `Enter` para abrir. O vendedor encontra só as próprias negociações. Os acentos precisam coincidir.
-- **Notificações:** o sino mostra quantas pendências existem: leads qualificados ainda não vistos (gestor e administrador), tarefas atrasadas, fechamentos vencidos e negociações esfriando. Elas somem sozinhas quando a pendência é resolvida.
+- **Notificações:** o sino mostra quantas pendências existem: leads qualificados ainda não vistos (gestor e administrador), atividades atrasadas, tarefas de plano atrasadas, fechamentos vencidos e negociações esfriando. Elas somem sozinhas quando a pendência é resolvida.
 - **Tema:** o botão do sol (ou da lua) alterna entre escuro e claro. A escolha fica salva no navegador.
 
 ## O que ainda não existe
 
-Atividades e agenda; integração com a SALEIA; Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.
+Ações sobre as sugestões da SALEIA (V2-7.3); Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.

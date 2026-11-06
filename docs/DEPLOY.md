@@ -161,6 +161,27 @@ Requer a senha de criptografia guardada fora da VPS.
 
 Esse caminho completo ainda não foi executado. A restauração de um arquivo criptografado foi testada, mas com destino local.
 
+## Integração SALEIA
+
+O SALE-IA (mesma VPS, `/opt/saleia`) envia cada reunião analisada para `POST /api/integrations/saleia/{organizationId}/events`. Contrato em `docs/INTEGRACAO_SALEIA.md`.
+
+| Lado | Onde fica |
+|---|---|
+| SalesOS | Tabela `saleia_integrations` (uma por organização; segredo criptografado com `INTEGRATION_ENCRYPTION_KEY`). Hoje: organização NEX-ALS |
+| SALE-IA | `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` em `/opt/saleia/.env`; fila em `sessoes.salesos_status`, `salesos_tentativas`, `salesos_em`, `salesos_detalhe` |
+
+**Trocar o segredo.** Em Configurações → SALEIA → **Gerar novo segredo** o anterior deixa de valer na hora, então atualize o `.env` do SALE-IA logo em seguida e reinicie o SALE-IA (só com `reunioes_ativas = 0`; regras de deploy no `CLAUDE.md` do SALE-IA). Para não copiar o segredo pelo chat, decifre-o na própria VPS: leia `"secretEncrypted"` de `saleia_integrations`, decifre dentro do container `web` (AES-256-GCM, chave SHA-256 de `INTEGRATION_ENCRYPTION_KEY`, formato `iv.tag.dados` em base64), confira que termina com `"secretHint"` e grave no `.env` do SALE-IA. Nunca carregue o `.env` do SALE-IA com `source` ou `.`: há linhas que não são shell, e o erro exibe valores.
+
+**Conferir o envio**, no SALE-IA:
+
+```bash
+journalctl -u saleia --since today | grep '\[SalesOS\]'
+```
+
+Cada envio registra `ok`, `erro` (rede, 5xx ou 429; reenvia em 5 min, 30 min, 2 h e 6 h) ou `recusado` (400 ou 401; não reenvia). Sessões existentes antes da V.1.4.196 ficaram `anterior` e não são enviadas. O envio sai do relatório automático do SALE-IA: sessão sem relatório `ok` nunca é enviada.
+
+**Testar a assinatura sem gravar dados:** enviar um corpo assinado com `"version": 2`. Resposta 400 = assinatura aceita; 401 = segredo ou relógio errado.
+
 ## Diagnóstico
 
 ```bash
@@ -180,3 +201,5 @@ certbot certificates
 | 502 no IA SDR ou no Consultor | A Anthropic recusou a chamada: o log mostra o status (`Anthropic API respondeu 401`); confira a chave em `/configuracoes` |
 | "Acesso restrito" ou 403 | O papel do usuário não tem a permissão (ver `docs/GUIA_DE_USO.md`) |
 | Erro 500 com `code: INTERNAL` | Procure a linha com `"level":"error"` no log: ela traz a rota (`scope`) e o tipo do erro |
+| Nenhuma reunião chega da SALEIA | Integração desconectada ou segredo trocado (o SALE-IA registra `recusado` com `HTTP 401`); `SALESOS_EVENTS_*` ausentes no `.env` do SALE-IA; ou o relatório automático do SALE-IA não ficou `ok` (em 06/11/2026 ele falhava desde 27/10) |
+| Reunião da SALEIA "sem empresa" | O nome da empresa dito na reunião não coincide com nenhuma empresa cadastrada; o SALE-IA não envia e-mails dos participantes |
