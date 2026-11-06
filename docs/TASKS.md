@@ -18,7 +18,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
-| V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (local, nao publicada) |
+| V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | proxima |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | todo |
 | V2-8 | Report Diario | todo |
@@ -31,6 +31,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Decidir o controle de novas contas antes de configurar o login Google.
 
 ## Tarefa: V2-7.1 - SALEIA no SOS
+
+### Estado
+Commit `30e767a`, CI aprovado. Publicada em 2026-11-06 (`salesos-web:14`), depois do backup `salesos-20261106-170337` (local e externo); migration `20261106122753_saleia_integration` aplicada em producao. Em producao, a rota do webhook responde 401 sem assinatura, sem redirecionar para o login. A integracao ainda nao foi conectada em producao.
 
 ### Decisao (usuario, 2026-11-06)
 A V2-7 foi dividida em tres subtarefas: 7.1 so no SOS (contrato, recebimento, tabelas e telas, testado com eventos simulados); 7.2 no SALE-IA (enviar os eventos, com deploy proprio); 7.3 acoes sobre recomendacoes e etapa sugerida, e Meu Dia. O SALE-IA envia ao SOS por webhook assinado com HMAC. Dados: reuniao e resumo, recomendacoes, evidencias e sinais, e etapa sugerida, sempre aplicada por uma pessoa.

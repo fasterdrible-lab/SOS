@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.25.0] — 2026-11-06 (concluida localmente, nao publicada)
+## [V.1.25.0] — 2026-11-06 (publicada em producao, imagem `salesos-web:14`)
 
 ### Tarefa V2-7.1 — SALEIA no SOS
 - Contrato da integracao em `docs/INTEGRACAO_SALEIA.md`: o SALE-IA envia cada reuniao analisada (resumo, participantes, recomendacoes, objecoes, sinais de compra, dores, evidencias e etapa sugerida) por webhook assinado com HMAC-SHA256.
@@ -11,7 +11,7 @@
 - Vendedor ve so as reunioes das proprias negociacoes. Nova permissao `saleia:read`.
 - Testes: `saleia-rules.test.mjs` (13) e `saleia.integration.mjs` (16).
 
-**Migration:** `20261106122753_saleia_integration` (aditiva: tres tabelas e dois enums). Aplicada em desenvolvimento.
+**Migration:** `20261106122753_saleia_integration` (aditiva: tres tabelas e dois enums). Aplicada em desenvolvimento e em producao.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261106122753_saleia_integration/migration.sql`

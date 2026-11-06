@@ -1,14 +1,14 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.24.0 em producao (`salesos-web:13`)
+**Versao atual:** V.1.25.0 em producao (`salesos-web:14`)
 **Data:** 2026-11-06
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6 publicadas; V2-7.1 concluida localmente (nao publicada); proxima: V2-7.2
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6 e V2-7.1 publicadas; proxima: V2-7.2
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, adiante de `main` desde a V2-6 (commit `8ab7d65`). A V2-7.1 (V.1.25.0) esta concluida localmente, sem commit e sem publicacao, com a migration aditiva `20261106122753_saleia_integration`, aplicada so em desenvolvimento.
-- **Producao:** imagem `salesos-web:13` desde 2026-11-06, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 8 migrations aplicadas (a ultima, `20261105000000_activity_owner`, aditiva). Imagem `salesos-web:12` mantida na VPS: para reverter, basta voltar `WEB_TAG`.
+- **Codigo:** branch `feat/saleos-v2`, adiante de `main` desde a V2-6. A producao roda exatamente esse codigo (V2-7.1, commit `30e767a`).
+- **Producao:** imagem `salesos-web:14` desde 2026-11-06, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 9 migrations aplicadas (a ultima, `20261106122753_saleia_integration`, aditiva). Imagem `salesos-web:13` mantida na VPS: para reverter, basta voltar `WEB_TAG`. A integracao SALEIA ainda nao foi conectada em producao.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -17,14 +17,14 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-7.1 (concluida em 2026-11-06, nao publicada): recebimento das reunioes analisadas pelo SALE-IA (webhook com HMAC, contrato em `docs/INTEGRACAO_SALEIA.md`), conexao em Configuracoes, tela `/saleia` e reunioes na empresa e na negociacao. O SALE-IA ainda nao envia (V2-7.2).
+  - V2-7.1 (publicada em 2026-11-06): recebimento das reunioes analisadas pelo SALE-IA (webhook com HMAC, contrato em `docs/INTEGRACAO_SALEIA.md`), conexao em Configuracoes, tela `/saleia` e reunioes na empresa e na negociacao. O SALE-IA ainda nao envia (V2-7.2).
   - V2-6 (publicada em 2026-11-06): atividades com responsavel, tela `/atividades` com lista e agenda semanal, atividades na negociacao e na empresa, reunioes e follow-ups no Meu Dia e aviso de atividades atrasadas.
   - V2-5 (publicada em 2026-11-05): visao 360 da empresa, edicao de empresa e contato.
   - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
   - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
 - **Testes:** 118 unitarios e 169 de integracao, aprovados localmente com a V2-7.1; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
-- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261106-112944`, antes da publicacao da V2-6), `www.saleos.tech` com certificado.
+- **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261106-170337`, antes da publicacao da V2-7.1), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
 ## Historico anterior ao Prompt Mestre V2
@@ -255,7 +255,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Campos obrigatorios por etapa, ganhar exige valor (V2-4.3)
 - [x] Visao 360 da empresa, edicao de empresa e contato (V2-5)
 - [x] Atividades e follow-ups com responsavel, lista, agenda, Meu Dia e notificacoes (V2-6)
-- [x] Recebimento das reunioes analisadas pelo SALE-IA, tela SALEIA e reunioes na empresa e na negociacao (V2-7.1, local)
+- [x] Recebimento das reunioes analisadas pelo SALE-IA, tela SALEIA e reunioes na empresa e na negociacao (V2-7.1)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -274,7 +274,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-7.1** - SALEIA no SOS: contrato, recebimento assinado com HMAC, vinculo automatico, conexao em Configuracoes, tela SALEIA e reunioes na empresa e na negociacao. 287 testes automatizados. Concluida localmente em 2026-11-06; falta commit, publicacao e o envio pelo SALE-IA (V2-7.2).
+**Tarefa V2-7.1** - SALEIA no SOS: contrato, recebimento assinado com HMAC, vinculo automatico, conexao em Configuracoes, tela SALEIA e reunioes na empresa e na negociacao. 287 testes automatizados. Publicada em 2026-11-06 (`salesos-web:14`); falta o envio pelo SALE-IA (V2-7.2).
 
 **Tarefa V2-6** - Atividades e follow-ups: responsavel, tela com lista e agenda, atividades na negociacao e na empresa, Meu Dia e notificacoes. 258 testes automatizados. Publicada em 2026-11-06 (`salesos-web:13`); falta conferir as telas em navegador.
 
@@ -319,13 +319,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
 - Conferir as telas da V2-6 em navegador.
 - Descrever a tela de Atividades em `docs/GUIA_DE_USO.md`.
-- Publicar a V2-7.1 e seguir com a V2-7.2 (envio pelo SALE-IA) e a V2-7.3.
+- Seguir com a V2-7.2 (envio pelo SALE-IA, depois de conectar em Configuracoes) e a V2-7.3.
 - Seguir as FASES V2-8 a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Tarefa V2-7.2: o SALE-IA envia a reuniao analisada ao SOS, seguindo `docs/INTEGRACAO_SALEIA.md`. Muda o repositorio do SALE-IA e exige o deploy dele, com confirmacao e sem reuniao ativa. Antes, se autorizado, publicar a V2-7.1 no SOS.
+Tarefa V2-7.2: o SALE-IA envia a reuniao analisada ao SOS, seguindo `docs/INTEGRACAO_SALEIA.md`. Muda o repositorio do SALE-IA e exige o deploy dele, com confirmacao e sem reuniao ativa.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.
