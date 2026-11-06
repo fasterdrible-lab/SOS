@@ -14,6 +14,9 @@ export type AuditAction =
   | "pipeline.created"
   | "pipeline.updated"
   | "pipeline.archived"
+  | "saleia.connected"
+  | "saleia.secret-rotated"
+  | "saleia.disconnected"
 
 interface AuditEntry {
   organizationId: string

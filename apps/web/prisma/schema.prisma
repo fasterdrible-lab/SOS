@@ -33,6 +33,9 @@ model Organization {
   salesGoals      SalesGoal[]
   pipelines       Pipeline[]
   pipelineStages  PipelineStage[]
+  saleiaIntegration SaleiaIntegration?
+  saleiaMeetings  SaleiaMeeting[]
+  saleiaInsights  SaleiaInsight[]
 
   @@map("organizations")
 }
@@ -136,6 +139,7 @@ model Company {
   leads         Lead[]
   opportunities Opportunity[]
   activities    Activity[]
+  saleiaMeetings SaleiaMeeting[]
 
   @@index([organizationId])
   @@map("companies")
@@ -157,6 +161,7 @@ model Contact {
   leads         Lead[]
   opportunities Opportunity[]
   activities    Activity[]
+  saleiaMeetings SaleiaMeeting[]
 
   @@index([organizationId])
   @@map("contacts")
@@ -220,6 +225,7 @@ model Opportunity {
   stage        PipelineStage @relation(fields: [stageId], references: [id], onDelete: NoAction)
   activities   Activity[]
   stageHistory OpportunityStageHistory[]
+  saleiaMeetings SaleiaMeeting[]
 
   @@index([organizationId])
   @@index([organizationId, ownerId])
@@ -427,6 +433,85 @@ model ApiIntegration {
   @@map("api_integrations")
 }
 
+// ─── SALEIA (V2-7) ────────────────────────────────────────────────────────────
+// O SALE-IA envia reunioes analisadas (docs/INTEGRACAO_SALEIA.md). Uma
+// instalacao do SALE-IA alimenta uma organizacao. O SOS e a fonte de verdade
+// comercial: nada daqui muda negociacoes sozinho.
+
+model SaleiaIntegration {
+  id              String    @id @default(cuid())
+  organizationId  String    @unique
+  /// Segredo HMAC compartilhado com o SALE-IA, criptografado (lib/security/crypto.ts).
+  secretEncrypted String    @db.Text
+  /// Ultimos 4 caracteres, para reconhecer o segredo na tela.
+  secretHint      String
+  lastEventAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("saleia_integrations")
+}
+
+model SaleiaMeeting {
+  id              String    @id @default(cuid())
+  organizationId  String
+  /// Id da reuniao no SALE-IA; reenviar a mesma reuniao atualiza este registro.
+  externalId      String
+  title           String
+  startedAt       DateTime
+  durationMinutes Int?
+  /// [{ name, email }]
+  participants    Json
+  summary         String    @db.Text
+  companyId       String?
+  contactId       String?
+  opportunityId   String?
+  /// Quando o SALE-IA concluiu a ultima analise.
+  analyzedAt      DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company?      @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  opportunity  Opportunity?  @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+  insights     SaleiaInsight[]
+
+  @@unique([organizationId, externalId])
+  @@index([organizationId, startedAt])
+  @@index([companyId])
+  @@index([opportunityId])
+  @@map("saleia_meetings")
+}
+
+model SaleiaInsight {
+  id             String              @id @default(cuid())
+  organizationId String
+  meetingId      String
+  kind           SaleiaInsightKind
+  text           String              @db.Text
+  /// Trecho da conversa que sustenta o insight.
+  quote          String?             @db.Text
+  /// Etapa sugerida, pelo nome (STAGE_SUGGESTION).
+  stageName      String?
+  /// Prazo sugerido (RECOMMENDATION).
+  dueDate        DateTime?
+  /// Decisao humana (V2-7.3). Reenviar a reuniao so substitui os ainda OPEN.
+  status         SaleiaInsightStatus @default(OPEN)
+  position       Int
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  meeting      SaleiaMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId])
+  @@index([organizationId, kind, status])
+  @@map("saleia_insights")
+}
+
 // ─── IA SDR ──────────────────────────────────────────────────────────────────
 
 model SdrConversation {
@@ -565,6 +650,21 @@ enum TaskStatus {
   IN_PROGRESS
   DONE
   CANCELLED
+}
+
+enum SaleiaInsightKind {
+  RECOMMENDATION
+  OBJECTION
+  BUYING_SIGNAL
+  PAIN
+  EVIDENCE
+  STAGE_SUGGESTION
+}
+
+enum SaleiaInsightStatus {
+  OPEN
+  ACCEPTED
+  DISMISSED
 }
 
 enum ApiProvider {

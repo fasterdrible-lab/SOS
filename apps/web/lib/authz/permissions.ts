@@ -27,6 +27,7 @@ const PERMISSIONS = {
   "activities:read": EVERYONE,
   "activities:write": EVERYONE,
   "activities:assign": MANAGERS,
+  "saleia:read": EVERYONE,
   "diagnostics:write": EVERYONE,
   "action-plans:read": EVERYONE,
   "action-plans:write": MANAGERS,

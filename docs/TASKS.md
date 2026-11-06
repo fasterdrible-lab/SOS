@@ -18,7 +18,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
-| V2-7 | Integracao SALEIA | proxima |
+| V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (local, nao publicada) |
+| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | proxima |
+| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | todo |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
@@ -27,6 +29,29 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-7.1 - SALEIA no SOS
+
+### Decisao (usuario, 2026-11-06)
+A V2-7 foi dividida em tres subtarefas: 7.1 so no SOS (contrato, recebimento, tabelas e telas, testado com eventos simulados); 7.2 no SALE-IA (enviar os eventos, com deploy proprio); 7.3 acoes sobre recomendacoes e etapa sugerida, e Meu Dia. O SALE-IA envia ao SOS por webhook assinado com HMAC. Dados: reuniao e resumo, recomendacoes, evidencias e sinais, e etapa sugerida, sempre aplicada por uma pessoa.
+
+### Resultado
+- Contrato em `docs/INTEGRACAO_SALEIA.md`: evento `meeting.analyzed` versao 1, assinatura HMAC-SHA256 sobre `timestamp.corpo`, janela de 5 minutos, ate 256 KB, exemplo em Python.
+- Migration aditiva `20261106122753_saleia_integration`: `SaleiaIntegration` (segredo criptografado, final do segredo, ultimo evento), `SaleiaMeeting` (unica por organizacao e `externalId`) e `SaleiaInsight` (tipo, texto, trecho, etapa, prazo e status para a 7.3).
+- `POST /api/integrations/saleia/[organizationId]/events`, publica (liberada em `lib/auth.config.ts`) e autenticada pela assinatura (`lib/saleia/signature.ts`). Organizacao sem conexao e assinatura invalida respondem o mesmo 401. Reenviar a reuniao atualiza o registro e troca so os insights ainda `OPEN` (`lib/saleia/service.ts`).
+- Vinculo (`matchMeeting`, `lib/saleia/rules.ts`): negociacao informada, contato pelo e-mail do participante ou empresa pelo nome, sempre dentro da organizacao. Sem negociacao informada, so liga quando a empresa tem exatamente uma em andamento.
+- Conexao: `GET/POST/DELETE /api/settings/saleia` (administrador), com auditoria `saleia.connected`, `saleia.secret-rotated` e `saleia.disconnected`, sem o segredo. Cartao "SALEIA" em Configuracoes mostra endereco e segredo uma unica vez.
+- Leitura: `GET /api/saleia/meetings` (`?vinculo=sem`) e `GET /api/saleia/meetings/[id]`, permissao nova `saleia:read`. Vendedor ve so as reunioes das proprias negociacoes; gestor e administrador veem todas, inclusive as sem vinculo.
+- Telas: `/saleia` (menu "SALEIA", com filtro "Sem empresa") e `/saleia/[id]` (resumo, insights agrupados com trechos, participantes); reunioes na visao 360 da empresa (no lugar do "em breve") e no detalhe da negociacao.
+- Testes: `npm run check` (118 unitarios; novo `saleia-rules.test.mjs`, 13) e `npm run test:integration` (169, em 48 suites; nova `saleia.integration.mjs`, 16).
+
+### Limitacoes conhecidas
+- O SALE-IA ainda nao envia nada (V2-7.2): o recebimento so foi exercitado com eventos simulados nos testes.
+- Sem acoes sobre os insights: aceitar recomendacao, aplicar etapa sugerida e o Meu Dia ficam para a V2-7.3.
+- Nao ha como ligar manualmente uma reuniao "sem empresa"; o vinculo e recalculado a cada reenvio.
+- A rota publica nao tem limite por IP no nginx (a do IA SDR tem). A assinatura e o limite de 256 KB protegem a gravacao, mas nao o processamento das requisicoes recusadas.
+- Sem protecao contra repeticao dentro da janela de 5 minutos alem da idempotencia por `externalId`: repetir o mesmo evento so regrava os mesmos dados.
+- Sem verificacao em navegador real: as telas foram conferidas pelo HTML nos testes de integracao.
 
 ## Tarefa: V2-6 - Atividades e follow-ups
 

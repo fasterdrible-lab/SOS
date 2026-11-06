@@ -9,6 +9,7 @@ import {
   ListChecks,
   ListTodo,
   Settings,
+  Sparkles,
   Users,
   Zap,
   type LucideIcon,
@@ -29,7 +30,7 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-// Modulos ainda nao construidos (SALEIA, Report) entram
+// Modulos ainda nao construidos (Report) entram
 // no menu quando tiverem tela; nenhum item leva a pagina inexistente.
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -51,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Inteligência",
     items: [
+      { title: "SALEIA", href: "/saleia", icon: Sparkles, permission: "saleia:read" },
       { title: "IA SDR", href: "/sdr", icon: Zap, permission: "sdr:read" },
       {
         title: "Consultor Digital",

@@ -6,6 +6,7 @@ import { decryptSecret, maskSecret } from "@/lib/security/crypto"
 import { API_PROVIDERS } from "@/lib/validations/api-integration"
 
 import { IntegrationCard } from "./integration-card"
+import { SaleiaCard } from "./saleia-card"
 
 const PROVIDER_INFO: Record<
   (typeof API_PROVIDERS)[number],
@@ -30,9 +31,15 @@ export default async function ConfiguracoesPage() {
     return <AccessDenied />
   }
 
-  const integrations = organizationId
-    ? await prisma.apiIntegration.findMany({ where: { organizationId } })
-    : []
+  const [integrations, saleia] = organizationId
+    ? await Promise.all([
+        prisma.apiIntegration.findMany({ where: { organizationId } }),
+        prisma.saleiaIntegration.findUnique({
+          where: { organizationId },
+          select: { secretHint: true, lastEventAt: true },
+        }),
+      ])
+    : [[], null]
 
   const integrationsByProvider = new Map(
     integrations.map((integration) => [integration.provider, integration])
@@ -72,6 +79,20 @@ export default async function ConfiguracoesPage() {
               )
             })}
           </div>
+
+          {organizationId && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold text-foreground">Integrações de sistemas</h2>
+              <div className="grid gap-4 md:grid-cols-2">
+                <SaleiaCard
+                  connected={Boolean(saleia)}
+                  secretHint={saleia?.secretHint ?? null}
+                  lastEventAt={saleia?.lastEventAt?.toISOString() ?? null}
+                  endpoint={`/api/integrations/saleia/${organizationId}/events`}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>

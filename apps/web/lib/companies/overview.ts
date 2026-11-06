@@ -3,9 +3,11 @@ import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/per
 import { summarizeOpportunities, type CompanySummary } from "@/lib/companies/summary"
 import { prisma } from "@/lib/db"
 import { describeHistoryChange, type OpportunityStatus } from "@/lib/opportunities/rules"
+import { listSaleiaMeetings, type SaleiaMeetingItem } from "@/lib/saleia/service"
 
 const TIMELINE_LIMIT = 15
 const ACTIVITY_LIMIT = 20
+const MEETING_LIMIT = 10
 
 export interface CompanyOverview {
   id: string
@@ -38,6 +40,8 @@ export interface CompanyOverview {
   }[]
   /** Pendentes primeiro; no escopo do papel. */
   activities: ActivityItem[]
+  /** Reunioes do SALE-IA ligadas a empresa, mais recentes primeiro; no escopo do papel. */
+  saleiaMeetings: SaleiaMeetingItem[]
   /** Nulo quando o papel nao acompanha o IA SDR. */
   leads: { id: string; name: string; source: string | null; status: string; createdAt: string }[] | null
   /** Ligado pelo nome da empresa: `Diagnostic` nao referencia `Company`. */
@@ -59,7 +63,8 @@ export async function getCompanyOverview(input: {
 
   const scoped = { organizationId, companyId: id, ...opportunityScope(role, userId) }
 
-  const [activities, opportunities, contacts, leads, diagnostic, history] = await Promise.all([
+  const [saleiaMeetings, activities, opportunities, contacts, leads, diagnostic, history] = await Promise.all([
+    listSaleiaMeetings({ organizationId, userId, role, where: { companyId: id }, take: MEETING_LIMIT }),
     listActivities({
       organizationId,
       userId,
@@ -137,6 +142,7 @@ export async function getCompanyOverview(input: {
     })),
     contacts,
     activities,
+    saleiaMeetings,
     leads:
       leads?.map((lead) => ({ ...lead, status: lead.status as string, createdAt: lead.createdAt.toISOString() })) ??
       null,

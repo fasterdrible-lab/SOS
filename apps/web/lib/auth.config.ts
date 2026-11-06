@@ -25,8 +25,10 @@ export const authConfig: NextAuthConfig = {
       const isSdrPublicRoute =
         nextUrl.pathname.startsWith("/sdr/") ||
         nextUrl.pathname.startsWith("/api/sdr")
+      // Eventos do SALE-IA: autenticados pela assinatura HMAC, nao por sessao.
+      const isSaleiaWebhook = nextUrl.pathname.startsWith("/api/integrations/saleia/")
 
-      if (isApiAuth || isSdrPublicRoute) return true
+      if (isApiAuth || isSdrPublicRoute || isSaleiaWebhook) return true
       if (isAuthRoute) {
         if (isLoggedIn) return Response.redirect(new URL("/meu-dia", nextUrl))
         return true

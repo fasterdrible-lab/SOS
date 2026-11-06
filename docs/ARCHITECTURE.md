@@ -46,6 +46,7 @@ SalesOS
 ```
 Meu Dia (página inicial)            → /meu-dia
 Atividades e follow-ups             → /atividades (lista e agenda semanal)
+SALEIA (reuniões analisadas)        → /saleia
 Módulo 1 — Diagnóstico Comercial    → /diagnostico
 Módulo 2 — CRM Inteligente          → /empresas (visão 360 em /empresas/[id]), /contatos, /pipeline (Negociações)
 Módulo 3 — IA SDR                   → /sdr (console) e /sdr/[organizationId] (widget público)
@@ -56,7 +57,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-Próximos módulos do Prompt Mestre V2 (`docs/TASKS.md`): SALEIA Intelligence e Report Diário. Entram no menu apenas quando tiverem tela.
+Próximo módulo do Prompt Mestre V2 (`docs/TASKS.md`): Report Diário. Entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -83,6 +84,8 @@ Organization (tenant)
   └── Pipeline (funil; um padrao por organizacao) └── PipelineStage (etapa, ordem, probabilidade)
   └── OpportunityStageHistory (toda mudanca de etapa ou status, com responsavel)
   └── SalesGoal (meta mensal da equipe ou de um vendedor)
+  └── SaleiaIntegration (segredo HMAC; uma por organizacao)
+  └── SaleiaMeeting (reuniao analisada pelo SALE-IA) └── SaleiaInsight (recomendacao, objecao, sinal, dor, evidencia, etapa sugerida)
 ```
 
 ## Fluxos Principais
@@ -137,6 +140,19 @@ Vinculos: checkActivityLinks (lib/activities/service.ts) confere na organizacao 
 Regras puras (lib/activities/rules.ts): reuniao e follow-up exigem data | nota nasce concluida
   grupos atrasadas/hoje/proximas/sem data/concluidas pelo dia de Brasilia | agenda: weekDays (seg-dom)
 Reflexos: detalhe da negociacao, visao 360 da empresa, Meu Dia (reunioes de hoje, follow-ups) e sino
+```
+
+### Integracao SALEIA
+```
+Contrato: docs/INTEGRACAO_SALEIA.md (meeting.analyzed v1). O SOS e a fonte de verdade comercial.
+SALE-IA -> POST /api/integrations/saleia/{organizationId}/events (publica, fora da sessao)
+  X-Saleia-Timestamp + X-Saleia-Signature = HMAC-SHA256(segredo, "timestamp.corpo"), janela de 300 s, ate 256 KB
+  sem conexao ou assinatura errada: o mesmo 401 | segredo criptografado em SaleiaIntegration
+-> ingestSaleiaEvent (lib/saleia/service.ts): vinculo por matchMeeting (negociacao > e-mail do contato > nome
+  da empresa; negociacao so se for a unica em andamento da empresa) e upsert por (organizationId, externalId)
+  reenvio troca apenas os insights OPEN
+Leitura: saleiaMeetingScope (vendedor: reunioes das proprias negociacoes) em /saleia, empresa e negociacao
+Conexao: /api/settings/saleia (integrations:manage), auditada sem o segredo
 ```
 
 ### Dashboard Executivo
@@ -241,4 +257,5 @@ Consultor pertence a N organizações (OrganizationMember, N:N)
 | Tema por cookie lido no servidor, sem `next-themes` | Página chega no tema certo, sem piscar e sem dependência nova (V2-2.2) |
 | Status separado da etapa, etapas em tabela | Funis configuráveis por cliente; ganha/perdida não ocupam coluna (V2-4.1) |
 | Etapa removida é arquivada, não apagada | O histórico e as encerradas continuam apontando para ela (V2-4.1) |
+| SALE-IA envia ao SOS por webhook assinado | Chega na hora e o SOS não precisa de acesso ao SALE-IA; reaproveita o padrão HMAC que o SALE-IA já usa com o Tactiq (V2-7) |
 | Notificações derivadas, sem tabela | Nunca ficam desatualizadas em relação ao dado; "marcar como lida" fica para quando houver eventos (V2-2.2) |

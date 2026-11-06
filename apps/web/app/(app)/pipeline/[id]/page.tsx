@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { listActivities } from "@/lib/activities/service"
+import { listSaleiaMeetings } from "@/lib/saleia/service"
 import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils"
 
 import { ActivityFormDialog } from "../../atividades/activity-form-dialog"
 import { ActivityList } from "../../atividades/activity-list"
+import { MeetingList } from "../../saleia/meeting-list"
 import { OpportunityActions } from "./opportunity-actions"
 import { OpportunityEditDialog } from "./opportunity-edit-dialog"
 
@@ -55,7 +57,10 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
   const canReopen = hasPermission(role, "opportunities:reopen")
   const canEdit = opportunity.status === "OPEN" || canReopen
 
-  const [activities, pipelines, members, companies, contacts] = await Promise.all([
+  const [meetings, activities, pipelines, members, companies, contacts] = await Promise.all([
+    hasPermission(role, "saleia:read")
+      ? listSaleiaMeetings({ organizationId, userId, role, where: { opportunityId: opportunity.id }, take: 10 })
+      : [],
     listActivities({ organizationId, userId, role, where: { opportunityId: opportunity.id } }),
     getPipelines(organizationId),
     canAssign ? getDashboardMembers(organizationId) : null,
@@ -189,6 +194,17 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
                 <p className="py-1 text-sm text-muted-foreground">Nenhuma atividade nesta negociação.</p>
               ) : (
                 <ActivityList activities={activities} options={null} members={activityMembers} userId={userId} />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-foreground/5 bg-card py-0">
+            <CardContent className="space-y-2 p-5">
+              <h2 className="text-sm font-semibold text-foreground">Reuniões SALEIA ({meetings.length})</h2>
+              {meetings.length === 0 ? (
+                <p className="py-1 text-sm text-muted-foreground">Nenhuma reunião analisada pelo SALEIA nesta negociação.</p>
+              ) : (
+                <MeetingList meetings={meetings} showLinks={false} />
               )}
             </CardContent>
           </Card>

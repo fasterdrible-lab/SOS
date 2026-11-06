@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { ActivityFormDialog } from "../../atividades/activity-form-dialog"
 import { ActivityList } from "../../atividades/activity-list"
 import { ContactEditDialog } from "../../contatos/contact-edit-dialog"
+import { MeetingList } from "../../saleia/meeting-list"
 import { ContactFormDialog } from "../../contatos/contact-form-dialog"
 import { CompanyEditDialog } from "./company-edit-dialog"
 
@@ -248,17 +249,13 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
             )}
           </Panel>
 
-          <Card className="border-dashed border-foreground/10 bg-transparent py-0">
-            <CardContent className="flex items-start gap-3 p-5">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">SALEIA</p>
-                <p className="text-xs text-muted-foreground/80">
-                  Reuniões, análises e evidências desta empresa aparecem aqui quando a integração estiver conectada.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <Panel icon={Sparkles} title={`SALEIA (${company.saleiaMeetings.length})`}>
+            {company.saleiaMeetings.length === 0 ? (
+              <Empty>Nenhuma reunião analisada pelo SALEIA nesta empresa.</Empty>
+            ) : (
+              <MeetingList meetings={company.saleiaMeetings} showLinks={false} />
+            )}
+          </Panel>
         </div>
       </div>
     </main>

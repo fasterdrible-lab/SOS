@@ -1,5 +1,31 @@
 # CHANGELOG — SalesOS
 
+## [V.1.25.0] — 2026-11-06 (concluida localmente, nao publicada)
+
+### Tarefa V2-7.1 — SALEIA no SOS
+- Contrato da integracao em `docs/INTEGRACAO_SALEIA.md`: o SALE-IA envia cada reuniao analisada (resumo, participantes, recomendacoes, objecoes, sinais de compra, dores, evidencias e etapa sugerida) por webhook assinado com HMAC-SHA256.
+- Recebimento em `POST /api/integrations/saleia/{organizationId}/events`: confere a assinatura e a janela de 5 minutos, limita o corpo a 256 KB e grava de forma idempotente. Reenviar a reuniao atualiza o registro.
+- Vinculo automatico com o CRM: negociacao informada, contato pelo e-mail de um participante ou empresa pelo nome.
+- Configuracoes: cartao **SALEIA** para conectar, gerar novo segredo e desconectar (administrador). O segredo aparece uma vez e fica criptografado; as operacoes entram no `AuditLog`.
+- Tela **SALEIA** (`/saleia`, no menu) com as reunioes recebidas e o filtro "Sem empresa", e detalhe da reuniao com resumo, insights agrupados, trechos e participantes. Reunioes tambem na visao 360 da empresa (no lugar do "em breve") e no detalhe da negociacao.
+- Vendedor ve so as reunioes das proprias negociacoes. Nova permissao `saleia:read`.
+- Testes: `saleia-rules.test.mjs` (13) e `saleia.integration.mjs` (16).
+
+**Migration:** `20261106122753_saleia_integration` (aditiva: tres tabelas e dois enums). Aplicada em desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261106122753_saleia_integration/migration.sql`
+- `apps/web/lib/saleia/signature.ts`, `lib/saleia/rules.ts`, `lib/saleia/service.ts`, `lib/validations/saleia-event.ts`
+- `apps/web/app/api/integrations/saleia/[organizationId]/events/route.ts`, `app/api/settings/saleia/route.ts`, `app/api/saleia/meetings/route.ts`, `app/api/saleia/meetings/[id]/route.ts`
+- `apps/web/app/(app)/saleia/page.tsx`, `[id]/page.tsx`, `meeting-list.tsx`, `app/(app)/configuracoes/saleia-card.tsx`
+- `apps/web/tests/saleia-rules.test.mjs`, `apps/web/tests/saleia.integration.mjs`
+- `docs/INTEGRACAO_SALEIA.md`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/auth.config.ts`, `lib/authz/permissions.ts`, `lib/audit/record.ts`, `lib/navigation.ts`, `lib/companies/overview.ts`
+- `apps/web/app/(app)/configuracoes/page.tsx`, `app/(app)/empresas/[id]/page.tsx`, `app/(app)/pipeline/[id]/page.tsx`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.24.0] — 2026-11-05 (publicada em producao em 2026-11-06, imagem `salesos-web:13`)
 
 ### Tarefa V2-6 — Atividades e follow-ups
