@@ -17,7 +17,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-4.2 | Kanban: arrastar, filtros, lista, detalhe e edicao da negociacao | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-4.3 | Campos obrigatorios por etapa | done (em producao desde 2026-11-05, `salesos-web:11`) |
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
-| V2-6 | Atividades e follow-ups | done (local, nao publicada) |
+| V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7 | Integracao SALEIA | proxima |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
@@ -29,6 +29,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Decidir o controle de novas contas antes de configurar o login Google.
 
 ## Tarefa: V2-6 - Atividades e follow-ups
+
+### Estado
+Commit `8ab7d65`, CI aprovado. Publicada em 2026-11-06 (`salesos-web:13`), depois do backup `salesos-20261106-112944` (local e externo); migration `20261105000000_activity_owner` aplicada em producao.
 
 ### Resultado
 - `Activity` ganha `ownerId` (responsavel) e `companyId` (migration aditiva `20261105000000_activity_owner`, com indice por organizacao, dono e data). Atividades antigas ficam sem dono.
@@ -43,7 +46,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Testes: `npm run check` (105 unitarios; novo `activity-rules.test.mjs`, 14) e `npm run test:integration` (153, em 43 suites; nova `activities.integration.mjs`, 24).
 
 ### Limitacoes conhecidas
-- Sem verificacao em navegador real nesta tarefa: as telas foram conferidas pelo HTML nos testes de integracao.
+- Sem verificacao em navegador real nesta tarefa: as telas foram conferidas pelo HTML nos testes de integracao. Em producao, so as respostas HTTP sem sessao.
 - Criar, editar e remover atividade nao entram no `AuditLog`.
 - Sem lembrete por e-mail ou push, sem recorrencia e sem integracao com Google Agenda ou Outlook.
 - O seletor de negociacao da tela lista ate 200 negociacoes em andamento; a lista, ate 500 atividades.

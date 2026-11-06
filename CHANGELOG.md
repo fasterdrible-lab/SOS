@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.24.0] — 2026-11-05 (concluida localmente, nao publicada)
+## [V.1.24.0] — 2026-11-05 (publicada em producao em 2026-11-06, imagem `salesos-web:13`)
 
 ### Tarefa V2-6 — Atividades e follow-ups
 - Atividades (reuniao, follow-up, ligacao, e-mail, tarefa e nota) com responsavel, data, descricao e vinculo a negociacao, empresa e contato. Reuniao e follow-up exigem data; nota ja nasce concluida.
@@ -12,7 +12,7 @@
 - Notificacoes: novo aviso de atividades atrasadas; o aviso de tarefas dos planos passou a dizer "tarefas de plano atrasadas".
 - Testes: `activity-rules.test.mjs` (14) e `activities.integration.mjs` (24).
 
-**Migration:** `20261105000000_activity_owner` (aditiva: `ownerId`, `companyId` e indice). Aplicada em desenvolvimento.
+**Migration:** `20261105000000_activity_owner` (aditiva: `ownerId`, `companyId` e indice). Aplicada em desenvolvimento e em producao.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261105000000_activity_owner/migration.sql`
