@@ -19,8 +19,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
-| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | proxima |
-| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | todo |
+| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done no SALE-IA V.1.4.196 (local, nao publicada) |
+| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | proxima |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
@@ -29,6 +29,21 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-7.2 - SALEIA no SALE-IA
+
+### Resultado
+Feita no repositorio do SALE-IA (V.1.4.196; detalhe no `CHANGELOG.md` de la). Nenhum arquivo do SOS mudou alem desta documentacao.
+- Depois do relatorio pos-reuniao automatico do SALE-IA, uma fila (`api/salesos_envio.py`, colunas `sessoes.salesos_*`) envia o evento `meeting.analyzed` assinado. Rede, 5xx e 429 voltam para a fila com espera de 5 min, 30 min, 2 h e 6 h (5 tentativas); 400 e 401 nao sao reenviados.
+- Mapeamento (`agent/salesos_event_rules.py`), sem chamada de IA a mais: resumo executivo com propensao e probabilidade; proximos passos e "como avancar" viram recomendacoes; objecoes, dores, fatores positivos (sinais de compra, com a citacao) e negativos (atencao); etapa sugerida por palavra dos proximos passos (proposta -> Proposta; contrato, assinatura, fechamento, negociacao -> Negociacao). A empresa identificada na recapitulacao vai em `links.companyName`.
+- Ligado so com `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` no `.env` do SALE-IA. Reunioes anteriores ao deploy nao sao enviadas.
+- Testes no SALE-IA: `tests/test_salesos_envio.py` (21), com vetor de assinatura gerado pelo `lib/saleia/signature.ts` do SOS. Ponta a ponta contra o SOS local (organizacao descartavel): 201 na primeira entrega, 200 no reenvio, 401 com assinatura antiga ou segredo errado; reuniao ligada a empresa pelo nome, com 7 insights.
+
+### Limitacoes conhecidas
+- O SALE-IA nao guarda e-mail dos participantes: o vinculo depende do nome da empresa dito na reuniao (ou fica "sem empresa").
+- A etapa sugerida usa os nomes do funil padrao do SOS ("Proposta", "Negociacao"); um funil com outros nomes recebe a sugestao, mas a 7.3 precisa tratar nome inexistente.
+- So o relatorio automatico e enviado; o gerado manualmente no Dashboard do SALE-IA e o do webhook do Tactiq, nao.
+- O titulo usa a empresa ou o nome do cliente; sem nenhum dos dois, o titulo tecnico do SALE-IA (`Reuniao <meeting_id> - data UTC`).
 
 ## Tarefa: V2-7.1 - SALEIA no SOS
 
