@@ -19,7 +19,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
-| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; relatorio automatico corrigido na V.1.4.198, falta ver a 1a reuniao real chegar) |
+| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | proxima |
 | V2-8 | Report Diario | todo |
 | V2-9 | Configuracoes e administracao | todo |
@@ -35,7 +35,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 ### Estado
 SALE-IA V.1.4.196 (commit `241f4a3`) publicado em 2026-11-06, com `reunioes_ativas = 0`; validado (ativo, sem reinicio extra, journal sem erro, `/health` 1.4.196). `SALESOS_EVENTS_URL` e `SALESOS_EVENTS_SECRET` gravados no `.env` do SALE-IA (organizacao NEX-ALS), com o segredo decifrado na propria VPS, sem passar pelo chat. Teste em producao sem gravar dados: evento assinado e invalido recebeu 400 (assinatura aceita) e segredo errado, 401. As 41 sessoes existentes ficaram `anterior` e nao serao enviadas.
 
-**Bloqueio no SALE-IA, anterior a esta tarefa, resolvido:** desde 2026-10-27 todo relatorio automatico falhava no `INSERT INTO relatorio` ("Datetime values must have timezone information"), entao nada chegaria ao SOS. Causa: a VPS tem `sqlmodel 0.0.48` (o venv local, 0.0.38), que transforma `Relatorio.criado_em` sem coluna explicita em `UTCDateTime`. Corrigido no SALE-IA V.1.4.198 (`da75dfc`), em producao desde 2026-11-07 01:16 UTC, com teste que reproduz o erro com o sqlmodel da VPS. As 13 sessoes que falharam nao sao reprocessadas sozinhas e estao `anterior` para o SOS. Falta ver a primeira reuniao real chegar.
+**Bloqueio no SALE-IA, anterior a esta tarefa, resolvido:** desde 2026-10-27 todo relatorio automatico falhava no `INSERT INTO relatorio` ("Datetime values must have timezone information"), entao nada chegaria ao SOS. Causa: a VPS tem `sqlmodel 0.0.48` (o venv local, 0.0.38), que transforma `Relatorio.criado_em` sem coluna explicita em `UTCDateTime`. Corrigido no SALE-IA V.1.4.198 (`da75dfc`), em producao desde 2026-11-07 01:16 UTC (publicada por outra sessao do Claude), com teste que reproduz o erro com o sqlmodel da VPS.
+
+**Segundo bloqueio, achado em 2026-11-07:** a V.1.4.198 nao basta. Na VPS nova a coluna `relatorio.dados_json` nasceu `VARCHAR(255)` e um relatorio tem dezenas de milhares de caracteres (`DataError` 1406, o mesmo de 19-21/10). A tabela `relatorio` de producao tem 0 linhas. Corrigido no SALE-IA V.1.4.199 (MEDIUMTEXT e migracao no startup), provado no MySQL da VPS numa tabela temporaria; **ainda nao publicado**. Depois da publicacao: reprocessar as 13 sessoes com relatorio em erro (pedido do usuario), que continuam `anterior` para o SOS, e ver a primeira reuniao real chegar.
 
 **Seguranca:** no teste, carregar o `.env` do SALE-IA pelo bash exibiu no chat o comeco de um token do Grafana Cloud (linha 22). Esse token precisa ser trocado.
 
