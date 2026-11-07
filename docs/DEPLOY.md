@@ -201,5 +201,5 @@ certbot certificates
 | 502 no IA SDR ou no Consultor | A Anthropic recusou a chamada: o log mostra o status (`Anthropic API respondeu 401`); confira a chave em `/configuracoes` |
 | "Acesso restrito" ou 403 | O papel do usuário não tem a permissão (ver `docs/GUIA_DE_USO.md`) |
 | Erro 500 com `code: INTERNAL` | Procure a linha com `"level":"error"` no log: ela traz a rota (`scope`) e o tipo do erro |
-| Nenhuma reunião chega da SALEIA | Integração desconectada ou segredo trocado (o SALE-IA registra `recusado` com `HTTP 401`); `SALESOS_EVENTS_*` ausentes no `.env` do SALE-IA; ou o relatório automático do SALE-IA não ficou `ok` (em 06/11/2026 ele falhava desde 27/10) |
+| Nenhuma reunião chega da SALEIA | Integração desconectada ou segredo trocado (o SALE-IA registra `recusado` com `HTTP 401`); `SALESOS_EVENTS_*` ausentes no `.env` do SALE-IA; ou o relatório automático do SALE-IA não ficou `ok` (falhou de 27/10 a 06/11/2026 por causa do `sqlmodel` da VPS; corrigido na V.1.4.198) |
 | Reunião da SALEIA "sem empresa" | O nome da empresa dito na reunião não coincide com nenhuma empresa cadastrada; o SALE-IA não envia e-mails dos participantes |
