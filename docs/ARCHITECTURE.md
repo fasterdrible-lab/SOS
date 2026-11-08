@@ -153,6 +153,11 @@ SALE-IA -> POST /api/integrations/saleia/{organizationId}/events (publica, fora 
   reenvio troca apenas os insights OPEN
 Leitura: saleiaMeetingScope (vendedor: reunioes das proprias negociacoes) em /saleia, empresa e negociacao
 Conexao: /api/settings/saleia (integrations:manage), auditada sem o segredo
+Decisao (V2-7.3): POST /api/saleia/insights/[id] {accept|dismiss|reopen} -> decideSaleiaInsight (lib/saleia/decisions.ts)
+  so RECOMMENDATION e STAGE_SUGGESTION | status trocado so se ainda for o lido (409), na transacao da acao
+  recomendacao aceita -> Activity TASK (dono da negociacao ou quem aceitou) | etapa aceita -> planOpportunityChange
+  + writeOpportunityChange (lib/opportunities/change.ts, o mesmo do PATCH); nome da etapa sem acento/maiusculas
+  Meu Dia: insights OPEN acionaveis no escopo do papel | auditado (saleia.insight-*)
 ```
 
 ### Dashboard Executivo

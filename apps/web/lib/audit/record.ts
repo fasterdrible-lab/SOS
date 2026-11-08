@@ -17,6 +17,9 @@ export type AuditAction =
   | "saleia.connected"
   | "saleia.secret-rotated"
   | "saleia.disconnected"
+  | "saleia.insight-accepted"
+  | "saleia.insight-dismissed"
+  | "saleia.insight-reopened"
 
 interface AuditEntry {
   organizationId: string

@@ -24,7 +24,7 @@ export interface SaleiaMeetingItem {
   analyzedAt: string
   company: { id: string; name: string } | null
   contact: { id: string; name: string } | null
-  opportunity: { id: string; title: string } | null
+  opportunity: { id: string; title: string; status: string; stageId: string; pipelineId: string } | null
   insights: SaleiaInsightItem[]
 }
 
@@ -42,7 +42,7 @@ export function saleiaMeetingScope(role: string | null | undefined, userId: stri
 const meetingInclude = {
   company: { select: { id: true, name: true } },
   contact: { select: { id: true, name: true } },
-  opportunity: { select: { id: true, title: true } },
+  opportunity: { select: { id: true, title: true, status: true, stageId: true, pipelineId: true } },
   insights: true,
 } as const
 

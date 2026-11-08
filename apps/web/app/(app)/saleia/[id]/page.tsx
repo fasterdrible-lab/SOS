@@ -7,10 +7,18 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
-import { INSIGHT_LABELS, INSIGHT_ORDER } from "@/lib/saleia/rules"
+import { loadPipelineStages } from "@/lib/saleia/decisions"
+import {
+  INSIGHT_LABELS,
+  INSIGHT_ORDER,
+  STAGE_STATE_MESSAGES,
+  isActionable,
+  stageSuggestionState,
+} from "@/lib/saleia/rules"
 import { getSaleiaMeeting } from "@/lib/saleia/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 
+import { InsightActions } from "../insight-actions"
 import { formatMeetingDate } from "../meeting-list"
 
 const dateOnly = new Intl.DateTimeFormat("pt-BR", { timeZone: BUSINESS_TIME_ZONE, day: "2-digit", month: "2-digit", year: "numeric" })
@@ -25,6 +33,19 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
   const { id } = await params
   const meeting = await getSaleiaMeeting({ organizationId, userId, role: session.user.role, id })
   if (!meeting) notFound()
+
+  const stages = meeting.opportunity
+    ? await loadPipelineStages(organizationId, meeting.opportunity.pipelineId)
+    : []
+  const stageStates = new Map(
+    meeting.insights
+      .filter((insight) => insight.kind === "STAGE_SUGGESTION")
+      .map((insight) => [
+        insight.id,
+        stageSuggestionState({ suggested: insight.stageName, opportunity: meeting.opportunity, stages }),
+      ])
+  )
+  const currentStage = stages.find((stage) => stage.id === meeting.opportunity?.stageId)
 
   const groups = INSIGHT_ORDER.map((kind) => ({
     kind,
@@ -80,13 +101,23 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
                     {INSIGHT_LABELS[group.kind]} ({group.items.length})
                   </h2>
                   <ul className="divide-y divide-foreground/5">
-                    {group.items.map((insight) => (
-                      <li key={insight.id} className="space-y-1 py-2.5">
+                    {group.items.map((insight) => {
+                      const stageState = stageStates.get(insight.id)
+                      const blocked =
+                        stageState && ["no-opportunity", "closed", "missing"].includes(stageState.state)
+                          ? STAGE_STATE_MESSAGES[stageState.state]
+                          : null
+                      return (
+                      <li key={insight.id} className="space-y-1 py-2.5" data-insight-status={insight.status}>
                         <p className="flex flex-wrap items-center gap-2 text-sm text-foreground">
                           <span className="min-w-0 break-words">{insight.text}</span>
                           {insight.stageName && <Badge variant="outline">{insight.stageName}</Badge>}
                           {insight.status !== "OPEN" && (
-                            <Badge variant="outline">{insight.status === "ACCEPTED" ? "Aceita" : "Descartada"}</Badge>
+                            <Badge variant="outline">
+                              {insight.status === "ACCEPTED"
+                                ? insight.kind === "RECOMMENDATION" ? "Virou atividade" : insight.kind === "STAGE_SUGGESTION" ? "Aplicada" : "Aceita"
+                                : "Descartada"}
+                            </Badge>
                           )}
                         </p>
                         {insight.quote && (
@@ -97,8 +128,26 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
                         {insight.dueDate && (
                           <p className="text-xs text-muted-foreground">Prazo sugerido: {dateOnly.format(new Date(insight.dueDate))}</p>
                         )}
+                        {stageState && insight.status === "OPEN" && (
+                          <p className="text-xs text-muted-foreground">
+                            {currentStage && stageState.state !== "no-opportunity" && stageState.state !== "closed"
+                              ? `Etapa atual: ${currentStage.name}. `
+                              : ""}
+                            {STAGE_STATE_MESSAGES[stageState.state]}
+                          </p>
+                        )}
+                        {isActionable(insight.kind) && (
+                          <InsightActions
+                            id={insight.id}
+                            kind={insight.kind as "RECOMMENDATION" | "STAGE_SUGGESTION"}
+                            status={insight.status}
+                            stageName={stageState && "stageName" in stageState ? stageState.stageName : insight.stageName}
+                            blockedReason={blocked}
+                          />
+                        )}
                       </li>
-                    ))}
+                      )
+                    })}
                   </ul>
                 </CardContent>
               </Card>

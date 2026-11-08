@@ -1,7 +1,16 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { matchMeeting, participantEmails, sortInsights } from "../lib/saleia/rules.ts"
+import {
+  ACTIVITY_TITLE_MAX,
+  matchMeeting,
+  normalizeStageName,
+  participantEmails,
+  planInsightDecision,
+  recommendationActivity,
+  sortInsights,
+  stageSuggestionState,
+} from "../lib/saleia/rules.ts"
 import {
   SECRET_PREFIX,
   generateSaleiaSecret,
@@ -130,5 +139,90 @@ describe("apoio", () => {
       sorted.map((item) => `${item.kind}:${item.position}`),
       ["RECOMMENDATION:1", "RECOMMENDATION:2", "OBJECTION:1", "EVIDENCE:0"]
     )
+  })
+})
+
+describe("decisoes sobre os insights (V2-7.3)", () => {
+  it("aceita ou descarta so recomendacao e etapa sugerida em aberto", () => {
+    assert.deepEqual(planInsightDecision({ kind: "RECOMMENDATION", status: "OPEN", action: "accept" }), {
+      ok: true,
+      from: "OPEN",
+      to: "ACCEPTED",
+    })
+    assert.deepEqual(planInsightDecision({ kind: "STAGE_SUGGESTION", status: "OPEN", action: "dismiss" }), {
+      ok: true,
+      from: "OPEN",
+      to: "DISMISSED",
+    })
+    assert.equal(planInsightDecision({ kind: "OBJECTION", status: "OPEN", action: "accept" }).status, 422)
+    assert.equal(planInsightDecision({ kind: "RECOMMENDATION", status: "ACCEPTED", action: "dismiss" }).status, 409)
+    assert.equal(planInsightDecision({ kind: "RECOMMENDATION", status: "DISMISSED", action: "accept" }).status, 409)
+  })
+
+  it("so desfaz o descarte; aceito e definitivo", () => {
+    assert.deepEqual(planInsightDecision({ kind: "RECOMMENDATION", status: "DISMISSED", action: "reopen" }), {
+      ok: true,
+      from: "DISMISSED",
+      to: "OPEN",
+    })
+    assert.equal(planInsightDecision({ kind: "RECOMMENDATION", status: "ACCEPTED", action: "reopen" }).status, 409)
+    assert.equal(planInsightDecision({ kind: "RECOMMENDATION", status: "OPEN", action: "reopen" }).status, 409)
+  })
+})
+
+describe("etapa sugerida", () => {
+  const stages = [
+    { id: "s1", name: "Prospecção", position: 1, archived: false },
+    { id: "s3", name: "Proposta", position: 3, archived: false },
+    { id: "s4", name: "Negociação", position: 4, archived: false },
+    { id: "s5", name: "Contrato", position: 5, archived: true },
+  ]
+  const open = (stageId) => ({ status: "OPEN", stageId })
+
+  it("compara nomes sem acento, maiusculas nem espacos", () => {
+    assert.equal(normalizeStageName("  Negociação  Final "), "negociacao final")
+    assert.deepEqual(stageSuggestionState({ suggested: "NEGOCIACAO", opportunity: open("s3"), stages }), {
+      state: "forward",
+      stageId: "s4",
+      stageName: "Negociação",
+    })
+  })
+
+  it("indica etapa atual, anterior, inexistente ou arquivada", () => {
+    assert.equal(stageSuggestionState({ suggested: "Proposta", opportunity: open("s3"), stages }).state, "current")
+    assert.equal(stageSuggestionState({ suggested: "Prospeccao", opportunity: open("s3"), stages }).state, "backward")
+    assert.equal(stageSuggestionState({ suggested: "Demonstracao", opportunity: open("s3"), stages }).state, "missing")
+    assert.equal(stageSuggestionState({ suggested: "Contrato", opportunity: open("s3"), stages }).state, "missing")
+    assert.equal(stageSuggestionState({ suggested: null, opportunity: open("s3"), stages }).state, "missing")
+  })
+
+  it("sem negociacao ou com ela encerrada nao ha etapa a aplicar", () => {
+    assert.equal(stageSuggestionState({ suggested: "Proposta", opportunity: null, stages }).state, "no-opportunity")
+    assert.equal(
+      stageSuggestionState({ suggested: "Proposta", opportunity: { status: "WON", stageId: "s4" }, stages }).state,
+      "closed"
+    )
+  })
+})
+
+describe("atividade da recomendacao", () => {
+  const base = { quote: null, dueDate: null, meetingTitle: "Reuniao Acme", meetingDate: "05/11/2026" }
+
+  it("vira tarefa com o prazo sugerido e a origem na descricao", () => {
+    const due = new Date("2026-11-10T12:00:00Z")
+    const activity = recommendationActivity({ ...base, text: "Enviar  proposta\nrevisada", quote: "Mande ate sexta", dueDate: due })
+    assert.equal(activity.type, "TASK")
+    assert.equal(activity.title, "Enviar proposta revisada")
+    assert.equal(activity.dueDate, due)
+    assert.match(activity.description, /Reuniao Acme.*SALEIA, 05\/11\/2026/)
+    assert.match(activity.description, /Trecho: "Mande ate sexta"/)
+  })
+
+  it("corta titulo longo e guarda o texto inteiro na descricao", () => {
+    const text = "a".repeat(300)
+    const activity = recommendationActivity({ ...base, text })
+    assert.equal(activity.title.length, ACTIVITY_TITLE_MAX)
+    assert.ok(activity.title.endsWith("…"))
+    assert.ok(activity.description.includes(text))
   })
 })

@@ -7,6 +7,7 @@ import {
   conversionRate,
   type GoalProgress,
 } from "@/lib/meu-dia/goal-progress"
+import { saleiaMeetingScope } from "@/lib/saleia/service"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
 import {
   businessDaysOfMonth,
@@ -72,6 +73,20 @@ export interface MyDaySummary {
   hotLeads: number | null
   meetingsToday: { total: number; items: ActivitySummaryItem[] }
   followUps: { overdue: number; today: number; items: ActivitySummaryItem[] }
+  /** Recomendacoes e etapas sugeridas do SALEIA esperando decisao; nulo sem `saleia:read`. */
+  saleia: { total: number; items: SaleiaPendingItem[] } | null
+}
+
+export interface SaleiaPendingItem {
+  id: string
+  kind: "RECOMMENDATION" | "STAGE_SUGGESTION"
+  text: string
+  stageName: string | null
+  dueDate: string | null
+  meetingId: string
+  meetingTitle: string
+  meetingStartedAt: string
+  companyName: string | null
 }
 
 const opportunitySelect = {
@@ -141,6 +156,13 @@ export async function getMyDaySummary(input: {
     type: { notIn: ["MEETING" as const, "NOTE" as const] },
     dueDate: { lt: today.end },
   }
+  const canSeeSaleia = hasPermission(role, "saleia:read")
+  const saleiaWhere = {
+    organizationId,
+    status: "OPEN" as const,
+    kind: { in: ["RECOMMENDATION" as const, "STAGE_SUGGESTION" as const] },
+    meeting: saleiaMeetingScope(role, userId),
+  }
   const activitySelect = {
     id: true,
     type: true,
@@ -183,6 +205,8 @@ export async function getMyDaySummary(input: {
     followUps,
     followUpsOverdue,
     followUpsTotal,
+    saleiaItems,
+    saleiaTotal,
   ] = await Promise.all([
     prisma.salesGoal.findUnique({
       where: {
@@ -257,6 +281,22 @@ export async function getMyDaySummary(input: {
     }),
     prisma.activity.count({ where: { ...followUpWhere, dueDate: { lt: today.start } } }),
     prisma.activity.count({ where: followUpWhere }),
+    canSeeSaleia
+      ? prisma.saleiaInsight.findMany({
+          where: saleiaWhere,
+          select: {
+            id: true,
+            kind: true,
+            text: true,
+            stageName: true,
+            dueDate: true,
+            meeting: { select: { id: true, title: true, startedAt: true, company: { select: { name: true } } } },
+          },
+          orderBy: [{ meeting: { startedAt: "desc" } }, { position: "asc" }],
+          take: LIST_LIMIT,
+        })
+      : [],
+    canSeeSaleia ? prisma.saleiaInsight.count({ where: saleiaWhere }) : 0,
   ])
 
   const revenue = Number(wonMonth._sum.value ?? 0)
@@ -296,5 +336,21 @@ export async function getMyDaySummary(input: {
       today: followUpsTotal - followUpsOverdue,
       items: followUps.map(toActivity),
     },
+    saleia: canSeeSaleia
+      ? {
+          total: saleiaTotal,
+          items: saleiaItems.map((insight) => ({
+            id: insight.id,
+            kind: insight.kind as SaleiaPendingItem["kind"],
+            text: insight.text,
+            stageName: insight.stageName,
+            dueDate: insight.dueDate?.toISOString() ?? null,
+            meetingId: insight.meeting.id,
+            meetingTitle: insight.meeting.title,
+            meetingStartedAt: insight.meeting.startedAt.toISOString(),
+            companyName: insight.meeting.company?.name ?? null,
+          })),
+        }
+      : null,
   }
 }

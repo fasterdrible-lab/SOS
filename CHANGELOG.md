@@ -1,5 +1,29 @@
 # CHANGELOG — SalesOS
 
+## [V.1.26.0] — 2026-11-08 (pronta, nao publicada)
+
+### Tarefa V2-7.3 — SALEIA: decidir recomendacoes e etapa sugerida
+- Na reuniao do SALEIA, cada recomendacao tem **Criar atividade** e **Descartar**: aceitar cria uma tarefa com o prazo sugerido, ligada a negociacao (ou a empresa) da reuniao, para o dono da negociacao, com a reuniao e o trecho na descricao.
+- A etapa sugerida tem **Mover para <etapa>**: aplica pelas regras do funil (campos exigidos, encerrada), com historico em nome de quem aceitou. Acentos e maiusculas nao importam ("Negociacao" acha "Negociação"); etapa que nao existe no funil, reuniao sem negociacao ou negociacao encerrada sao recusadas com o motivo na tela.
+- Descartar pode ser desfeito; aceitar e definitivo. Duas pessoas aceitando ao mesmo tempo nao duplicam a atividade.
+- Meu Dia: o cartao "Recomendacoes da SALEIA" mostra as pendentes no escopo do papel, com os mesmos botoes, no lugar do aviso de integracao nao conectada.
+- Decisoes auditadas (`saleia.insight-accepted`, `saleia.insight-dismissed`, `saleia.insight-reopened`).
+- Interno: a gravacao da mudanca de etapa do `PATCH /api/opportunities/[id]` passou para `lib/opportunities/change.ts`, compartilhada.
+- Testes: 7 unitarios em `saleia-rules.test.mjs` e `saleia-actions.integration.mjs` (13).
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/lib/saleia/decisions.ts`, `lib/opportunities/change.ts`, `lib/validations/saleia-insight.ts`
+- `apps/web/app/api/saleia/insights/[id]/route.ts`, `app/(app)/saleia/insight-actions.tsx`
+- `apps/web/tests/saleia-actions.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/lib/saleia/rules.ts`, `lib/saleia/service.ts`, `lib/audit/record.ts`, `lib/meu-dia/summary.ts`
+- `apps/web/app/api/opportunities/[id]/route.ts`, `app/(app)/saleia/[id]/page.tsx`, `app/(app)/meu-dia/page.tsx`
+- `apps/web/tests/saleia-rules.test.mjs`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## Tarefa V2-7.2 — 2026-11-06 (no SALE-IA, sem nova versao do SOS)
 - SALE-IA V.1.4.196 publicado e configurado em 2026-11-06 para a organizacao NEX-ALS. Nenhum envio ainda: o relatorio automatico do SALE-IA nao grava desde a VPS nova (21/10). Duas causas: datas sem fuso com o `sqlmodel` 0.0.48 (V.1.4.198, publicada em 2026-11-07) e a coluna `relatorio.dados_json` em `VARCHAR(255)` (V.1.4.199, pronta e nao publicada).
 - O SALE-IA (V.1.4.196, repositorio proprio) passa a enviar ao SOS cada reuniao com relatorio pos-reuniao automatico, seguindo `docs/INTEGRACAO_SALEIA.md`, com fila e reenvio. Ver o `CHANGELOG.md` do SALE-IA.

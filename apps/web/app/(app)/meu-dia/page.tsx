@@ -29,6 +29,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
 import { ActivityToggle } from "../atividades/activity-toggle"
+import { InsightActions } from "../saleia/insight-actions"
 import { GoalDialog, type GoalMember } from "./goal-dialog"
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" })
@@ -318,20 +319,48 @@ export default async function MeuDiaPage() {
         />
       </section>
 
-      <section aria-label="Inteligência SALEIA">
-        <Card className="border-dashed border-foreground/10 bg-transparent py-0">
-          <CardContent className="flex items-start gap-3 p-5">
-            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-gold-fg" />
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Recomendações da SALEIA</p>
-              <p className="text-sm text-muted-foreground">
-                A integração com a SALEIA ainda não está conectada. Quando estiver, as
-                recomendações das reuniões aparecem aqui com origem, data e evidência.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      {summary.saleia && (
+        <section aria-label="Inteligência SALEIA">
+          <PanelCard
+            icon={Sparkles}
+            title={`Recomendações da SALEIA (${summary.saleia.total})`}
+            hint="Das reuniões analisadas. Nada é aplicado sem a sua decisão."
+          >
+            {summary.saleia.items.length === 0 ? (
+              <EmptyLine>Nenhuma recomendação esperando decisão.</EmptyLine>
+            ) : (
+              <ul className="divide-y divide-foreground/5">
+                {summary.saleia.items.map((item) => (
+                  <li key={item.id} className="space-y-1.5 py-2.5" data-saleia-insight={item.id}>
+                    <p className="text-sm text-foreground">
+                      <span className="mr-2 text-xs font-medium uppercase tracking-wide text-gold-fg">
+                        {item.kind === "RECOMMENDATION" ? "Recomendação" : "Etapa sugerida"}
+                      </span>
+                      <span className="break-words">{item.text}</span>
+                    </p>
+                    <Link href={`/saleia/${item.meetingId}`} className="block truncate text-xs text-muted-foreground hover:text-foreground">
+                      {[
+                        item.meetingTitle,
+                        shortDate.format(new Date(item.meetingStartedAt)),
+                        item.companyName,
+                        item.dueDate ? `prazo ${shortDate.format(new Date(item.dueDate))}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </Link>
+                    <InsightActions id={item.id} kind={item.kind} status="OPEN" stageName={item.stageName} />
+                  </li>
+                ))}
+              </ul>
+            )}
+            {summary.saleia.total > summary.saleia.items.length && (
+              <Link href="/saleia" className="block pt-1 text-xs text-gold-fg hover:underline">
+                Ver as reuniões no SALEIA
+              </Link>
+            )}
+          </PanelCard>
+        </section>
+      )}
     </main>
   )
 }

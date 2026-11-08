@@ -20,8 +20,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
-| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | proxima |
-| V2-8 | Report Diario | todo |
+| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, pronta e nao publicada) |
+| V2-8 | Report Diario | proxima |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
 
@@ -29,6 +29,30 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-7.3 - SALEIA: decidir recomendacoes e etapa sugerida
+
+### Estado
+Pronta localmente em 2026-11-08 (V.1.26.0), sem migration. Nao publicada nem commitada: a publicacao depende de autorizacao.
+
+### Resultado
+- `POST /api/saleia/insights/[id]` com `{ action: "accept" | "dismiss" | "reopen" }` (`lib/saleia/decisions.ts`). So recomendacao e etapa sugerida pedem decisao (os outros tipos respondem 422). Aceito e definitivo; descartado pode ser reaberto. A troca de status e condicionada ao status lido, na mesma transacao da acao: duas pessoas aceitando ao mesmo tempo geram uma atividade e um 409.
+- Aceitar recomendacao cria uma tarefa (`recommendationActivity`, `lib/saleia/rules.ts`) com o prazo sugerido, o texto como titulo (cortado em 160, inteiro na descricao), a reuniao e o trecho na descricao. Vinculo pela negociacao da reuniao (empresa e contato herdados) ou, sem ela, pela empresa e contato da reuniao. Responsavel: o dono da negociacao; sem negociacao ou sem dono, quem aceitou.
+- Aceitar etapa sugerida move a negociacao pelas regras de sempre (`planOpportunityChange`: campos exigidos, encerrada, etapa arquivada), com historico em nome de quem aceitou. O nome e comparado sem acento, maiusculas nem espacos (`normalizeStageName`: "Negociacao" do SALE-IA acha "Negociação"). Etapa inexistente no funil, reuniao sem negociacao ou negociacao encerrada: 422, e o insight continua em aberto (pode ser descartado). Se a negociacao ja esta na etapa, so marca como aceita.
+- A gravacao da mudanca de etapa saiu do `PATCH /api/opportunities/[id]` para `lib/opportunities/change.ts` (`writeOpportunityChange`, `toStageRef`), usada pelos dois.
+- Escopo: o de leitura das reunioes (`saleiaMeetingScope`); fora dele, 404. Auditoria `saleia.insight-accepted`, `saleia.insight-dismissed` e `saleia.insight-reopened`, com reuniao, tipo e atividade ou etapa, sem texto.
+- Tela da reuniao: botoes "Criar atividade", "Mover para <etapa>", "Descartar" e "Desfazer descarte" (`app/(app)/saleia/insight-actions.tsx`); a etapa sugerida mostra a etapa atual e se avanca, volta, ja esta nela ou nao existe (aplicar fica desabilitado quando nao da). Selos "Virou atividade", "Aplicada" e "Descartada".
+- Meu Dia: o aviso "SALEIA nao conectada" deu lugar a "Recomendacoes da SALEIA", com as 5 mais recentes em aberto (recomendacoes e etapas sugeridas) no escopo do papel, total, origem e os mesmos botoes. Tambem em `GET /api/meu-dia` (`summary.saleia`).
+- Testes: `npm run check` (125 unitarios; `saleia-rules.test.mjs` com 7 novos) e `npm run test:integration` (182, em 52 suites; nova `saleia-actions.integration.mjs`, 13).
+
+### Limitacoes conhecidas
+- Sem dados reais: o SALE-IA ainda nao entrega reunioes (V.1.4.199 nao publicada); testado com reunioes inseridas no banco.
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
+- A atividade criada nao guarda referencia ao insight (sem migration); a ligacao fica no `AuditLog` e na descricao da atividade.
+- Aceitar nao permite editar titulo, prazo ou responsavel antes de criar: edita-se depois em Atividades.
+- Recomendacoes pendentes nao entram no sino de notificacoes.
+- Ainda nao ha como ligar manualmente uma reuniao "sem empresa" a uma negociacao; ate la, a etapa sugerida dela nao pode ser aplicada.
+- `docs/GUIA_DE_USO.md` nao descreve as acoes.
 
 ## Tarefa: V2-7.2 - SALEIA no SALE-IA
 
@@ -74,7 +98,7 @@ A V2-7 foi dividida em tres subtarefas: 7.1 so no SOS (contrato, recebimento, ta
 
 ### Limitacoes conhecidas
 - O SALE-IA ainda nao envia nada (V2-7.2): o recebimento so foi exercitado com eventos simulados nos testes.
-- Sem acoes sobre os insights: aceitar recomendacao, aplicar etapa sugerida e o Meu Dia ficam para a V2-7.3.
+- ~~Sem acoes sobre os insights: aceitar recomendacao, aplicar etapa sugerida e o Meu Dia ficam para a V2-7.3~~: feito na V2-7.3.
 - Nao ha como ligar manualmente uma reuniao "sem empresa"; o vinculo e recalculado a cada reenvio.
 - A rota publica nao tem limite por IP no nginx (a do IA SDR tem). A assinatura e o limite de 256 KB protegem a gravacao, mas nao o processamento das requisicoes recusadas.
 - Sem protecao contra repeticao dentro da janela de 5 minutos alem da idempotencia por `externalId`: repetir o mesmo evento so regrava os mesmos dados.

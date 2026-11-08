@@ -7,6 +7,7 @@ import { denyUnless } from "@/lib/authz/guard"
 import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { recordAudit } from "@/lib/audit/record"
+import { StaleOpportunityError, toStageRef, writeOpportunityChange } from "@/lib/opportunities/change"
 import { serializeOpportunity } from "@/lib/opportunities/create"
 import { getOpportunityDetail } from "@/lib/opportunities/detail"
 import {
@@ -16,8 +17,6 @@ import {
 } from "@/lib/opportunities/rules"
 import { findStage } from "@/lib/pipelines/service"
 import { opportunityChangeSchema, opportunityEditSchema } from "@/lib/validations/opportunity"
-
-class StaleStageError extends Error {}
 
 export const GET = withApiErrors("GET /api/opportunities/[id]", async (
   _request: Request,
@@ -218,13 +217,7 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
   const transition = planOpportunityChange({
     current: {
       status: current.status,
-      stage: {
-        id: currentStage.id,
-        pipelineId: currentStage.pipelineId,
-        probability: currentStage.probability,
-        archived: currentStage.archivedAt !== null,
-        requiredFields: currentStage.requiredFields,
-      },
+      stage: toStageRef(currentStage),
       data: {
         value: Number(current.value),
         companyId: current.companyId,
@@ -251,27 +244,12 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
 
   try {
     const opportunity = await prisma.$transaction(async (tx) => {
-      // So aplica se etapa e status ainda forem os lidos: duas mudancas simultaneas
-      // nao podem gerar historico com origem errada.
-      const { count } = await tx.opportunity.updateMany({
-        where: { id, organizationId, stageId: existing.stageId, status: existing.status },
-        data: change,
-      })
-
-      if (count === 0) throw new StaleStageError()
-
-      await tx.opportunityStageHistory.create({
-        data: {
-          organizationId,
-          opportunityId: id,
-          fromStageId: existing.stageId,
-          fromStatus: existing.status,
-          toStageId: change.stageId,
-          toStatus: change.status,
-          changedById: session.user.id,
-          lostReason: change.lostReason,
-          changedAt: change.stageChangedAt,
-        },
+      await writeOpportunityChange(tx, {
+        organizationId,
+        opportunityId: id,
+        from: { stageId: existing.stageId, status: existing.status },
+        change,
+        changedById: session.user.id,
       })
 
       return tx.opportunity.findUniqueOrThrow({ where: { id } })
@@ -279,7 +257,7 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
 
     return NextResponse.json({ opportunity: serializeOpportunity(opportunity) })
   } catch (error) {
-    if (error instanceof StaleStageError) {
+    if (error instanceof StaleOpportunityError) {
       return apiError("CONFLICT", "A oportunidade foi alterada por outra pessoa. Atualize a pagina.")
     }
 

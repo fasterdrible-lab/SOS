@@ -96,3 +96,123 @@ export function sortInsights<T extends { kind: InsightKind; position: number }>(
     (a, b) => INSIGHT_ORDER.indexOf(a.kind) - INSIGHT_ORDER.indexOf(b.kind) || a.position - b.position
   )
 }
+
+// ─── Decisoes sobre os insights (V2-7.3) ─────────────────────────────────────
+
+export type InsightStatus = "OPEN" | "ACCEPTED" | "DISMISSED"
+export type InsightAction = "accept" | "dismiss" | "reopen"
+
+/** So recomendacao e etapa sugerida pedem decisao; o resto e informacao. */
+export const ACTIONABLE_KINDS: InsightKind[] = ["RECOMMENDATION", "STAGE_SUGGESTION"]
+
+export function isActionable(kind: InsightKind): boolean {
+  return ACTIONABLE_KINDS.includes(kind)
+}
+
+export type InsightDecision =
+  | { ok: true; from: InsightStatus; to: InsightStatus }
+  | { ok: false; status: 409 | 422; error: string }
+
+/**
+ * Aceitar ou descartar vale para insight em aberto; descartado pode voltar a
+ * ficar em aberto. Aceito e definitivo: a atividade ou a etapa ja foram aplicadas.
+ */
+export function planInsightDecision(input: { kind: InsightKind; status: InsightStatus; action: InsightAction }): InsightDecision {
+  const { kind, status, action } = input
+  if (!isActionable(kind)) {
+    return { ok: false, status: 422, error: "Este insight e informativo e nao pede decisao." }
+  }
+  if (action === "reopen") {
+    return status === "DISMISSED"
+      ? { ok: true, from: status, to: "OPEN" }
+      : { ok: false, status: 409, error: "So um insight descartado pode ser reaberto." }
+  }
+  if (status !== "OPEN") {
+    return { ok: false, status: 409, error: "Este insight ja foi decidido." }
+  }
+  return { ok: true, from: status, to: action === "accept" ? "ACCEPTED" : "DISMISSED" }
+}
+
+/** Compara nomes de etapa sem acento, maiusculas nem espacos repetidos ("Negociacao" = "Negociação"). */
+export function normalizeStageName(name: string): string {
+  return name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+}
+
+export type StageSuggestionState =
+  | { state: "no-opportunity" | "closed" | "missing" }
+  | { state: "current" | "forward" | "backward"; stageId: string; stageName: string }
+
+/**
+ * Onde a etapa sugerida cai no funil da negociacao ligada a reuniao. Etapas
+ * arquivadas nao contam como destino.
+ */
+export function stageSuggestionState(input: {
+  suggested: string | null
+  opportunity: { status: string; stageId: string } | null
+  stages: { id: string; name: string; position: number; archived: boolean }[]
+}): StageSuggestionState {
+  const { opportunity, stages } = input
+  if (!opportunity) return { state: "no-opportunity" }
+  if (opportunity.status !== "OPEN") return { state: "closed" }
+
+  const wanted = normalizeStageName(input.suggested ?? "")
+  const target = wanted ? stages.find((stage) => !stage.archived && normalizeStageName(stage.name) === wanted) : undefined
+  if (!target) return { state: "missing" }
+
+  const current = stages.find((stage) => stage.id === opportunity.stageId)
+  const state =
+    target.id === opportunity.stageId
+      ? "current"
+      : current && target.position < current.position
+        ? "backward"
+        : "forward"
+  return { state, stageId: target.id, stageName: target.name }
+}
+
+export const STAGE_STATE_MESSAGES: Record<StageSuggestionState["state"], string> = {
+  "no-opportunity": "A reunião não está ligada a uma negociação.",
+  closed: "A negociação está encerrada.",
+  missing: "O funil da negociação não tem esta etapa.",
+  current: "A negociação já está nesta etapa.",
+  forward: "Avança a negociação no funil.",
+  backward: "Volta a negociação para uma etapa anterior.",
+}
+
+export const ACTIVITY_TITLE_MAX = 160
+const ACTIVITY_DESCRIPTION_MAX = 2000
+
+/**
+ * Atividade criada ao aceitar uma recomendacao: tarefa com o prazo sugerido,
+ * titulo com o texto (cortado se preciso) e a origem na descricao.
+ */
+export function recommendationActivity(input: {
+  text: string
+  quote: string | null
+  dueDate: Date | null
+  meetingTitle: string
+  meetingDate: string
+}): { type: "TASK"; title: string; description: string; dueDate: Date | null } {
+  const text = input.text.replace(/\s+/g, " ").trim()
+  const cut = text.length > ACTIVITY_TITLE_MAX
+  const title = cut ? `${text.slice(0, ACTIVITY_TITLE_MAX - 1).trimEnd()}…` : text
+
+  const lines = [`Recomendação da reunião "${input.meetingTitle}" (SALEIA, ${input.meetingDate}).`]
+  if (cut) lines.push("", text)
+  if (input.quote) lines.push("", `Trecho: "${input.quote.trim()}"`)
+  const description = lines.join("\n")
+
+  return {
+    type: "TASK",
+    title,
+    description:
+      description.length > ACTIVITY_DESCRIPTION_MAX
+        ? `${description.slice(0, ACTIVITY_DESCRIPTION_MAX - 1)}…`
+        : description,
+    dueDate: input.dueDate,
+  }
+}
