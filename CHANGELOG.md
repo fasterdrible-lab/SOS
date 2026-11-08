@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.27.0] — 2026-11-08 (pronta, nao publicada)
+## [V.1.27.0] — 2026-11-08 (publicada em producao, imagem `salesos-web:15`)
 
 ### Tarefa V2-8.1 — Report Diario
 - Tela **Report** (`/report`, no menu): o dia de cada pessoa com reunioes realizadas, FUPs (follow-ups, ligacoes e e-mails), negociacoes avancadas, vendas e atividades pendentes, com as listas de cada um e as reunioes analisadas pelo SALEIA. Navegacao entre dias.
@@ -10,7 +10,7 @@
 - Fechamento auditado (`daily-report.closed`). Novas permissoes `reports:read` e `reports:team`.
 - Testes: `report-rules.test.mjs` (6) e `report.integration.mjs` (11).
 
-**Migration:** `20261108141235_daily_report` (aditiva: tabela `daily_reports`). Aplicada em desenvolvimento.
+**Migration:** `20261108141235_daily_report` (aditiva: tabela `daily_reports`). Aplicada em producao em 2026-11-08, depois do backup `salesos-20261108-233654`.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261108141235_daily_report/migration.sql`
@@ -24,7 +24,7 @@
 - `apps/web/app/(app)/meu-dia/page.tsx`
 - `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
 
-## [V.1.26.0] — 2026-11-08 (pronta, nao publicada)
+## [V.1.26.0] — 2026-11-08 (publicada em producao com a V.1.27.0, imagem `salesos-web:15`)
 
 ### Tarefa V2-7.3 — SALEIA: decidir recomendacoes e etapa sugerida
 - Na reuniao do SALEIA, cada recomendacao tem **Criar atividade** e **Descartar**: aceitar cria uma tarefa com o prazo sugerido, ligada a negociacao (ou a empresa) da reuniao, para o dono da negociacao, com a reuniao e o trecho na descricao.

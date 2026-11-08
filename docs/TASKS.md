@@ -20,8 +20,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
-| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, pronta e nao publicada) |
-| V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, pronta e nao publicada) |
+| V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, em producao desde 2026-11-08, `salesos-web:15`) |
+| V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.2 | Report: "So diagnostico" (oferta nao apresentada) com validacao humana; contrato SALEIA e envio pelo SALE-IA | proxima |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
@@ -37,7 +37,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 A V2-8 foi dividida em duas: 8.1 so no SOS (numeros do dia a partir do que ja existe, fechamento gravado e dias fechados); 8.2 "So diagnostico": campo opcional no contrato SALEIA (oferta apresentada e motivo), confirmar, reescrever ou contestar no SOS e, depois, o envio pelo SALE-IA. Cada vendedor fecha o proprio dia; gestor e administrador veem o dia e os dias fechados de todos. Referencia: captura local `telas 5 crm.jpeg` (fora do git).
 
 ### Estado
-Pronta localmente em 2026-11-08 (V.1.27.0), com a migration aditiva `20261108141235_daily_report`. Nao publicada.
+V.1.27.0, commit `24d2a7f`, CI aprovado. Publicada em 2026-11-08 (`salesos-web:15`, junto com a V2-7.3), depois do backup `salesos-20261108-233654` (local e externo); migration aditiva `20261108141235_daily_report` aplicada em producao. Em producao, `/report` sem sessao redireciona para o login.
 
 ### Resultado
 - Model `DailyReport` (organizacao, pessoa, dia `AAAA-MM-DD` de Brasilia, unico por pessoa e dia): retrato de reunioes, FUPs, negociacoes avancadas, vendas (quantidade e valor) e pendentes no momento do fechamento, mais a observacao.
@@ -59,7 +59,7 @@ Pronta localmente em 2026-11-08 (V.1.27.0), com a migration aditiva `20261108141
 ## Tarefa: V2-7.3 - SALEIA: decidir recomendacoes e etapa sugerida
 
 ### Estado
-Pronta localmente em 2026-11-08 (V.1.26.0), sem migration; commit local `f2cb375`, sem push. Nao publicada: a publicacao depende de autorizacao.
+V.1.26.0, sem migration, commit `f2cb375`. Publicada em 2026-11-08 junto com a V2-8.1 (`salesos-web:15`).
 
 ### Resultado
 - `POST /api/saleia/insights/[id]` com `{ action: "accept" | "dismiss" | "reopen" }` (`lib/saleia/decisions.ts`). So recomendacao e etapa sugerida pedem decisao (os outros tipos respondem 422). Aceito e definitivo; descartado pode ser reaberto. A troca de status e condicionada ao status lido, na mesma transacao da acao: duas pessoas aceitando ao mesmo tempo geram uma atividade e um 409.

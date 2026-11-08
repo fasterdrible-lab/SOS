@@ -1,14 +1,14 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.25.0 em producao (`salesos-web:14`)
+**Versao atual:** V.1.27.0 em producao (`salesos-web:15`)
 **Data:** 2026-11-08
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7.1 e V2-7.2 (no SALE-IA) publicadas; V2-7.3 (V.1.26.0) e V2-8.1 (V.1.27.0) prontas, nao publicadas; proxima: V2-8.2
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7 e V2-8.1 publicadas (V2-7.2 no SALE-IA); proxima: V2-8.2
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub desde 2026-11-06. A producao roda o codigo da V2-7.1 (commit `30e767a`). A V2-7.3 (V.1.26.0, commit local `f2cb375`, sem migration) e a V2-8.1 (V.1.27.0, migration aditiva `20261108141235_daily_report`) estao prontas localmente, sem push e sem publicacao.
-- **Producao:** imagem `salesos-web:14` desde 2026-11-06, `next` 16.4.3, `next-auth` 5.0.0-beta.32. 9 migrations aplicadas (a ultima, `20261106122753_saleia_integration`, aditiva). Imagem `salesos-web:13` mantida na VPS: para reverter, basta voltar `WEB_TAG`. A integracao SALEIA foi conectada em producao na organizacao NEX-ALS em 2026-11-06; nenhum evento recebido ainda.
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda o codigo da V2-8.1 (commit `24d2a7f`, CI aprovado), que inclui a V2-7.3 (`f2cb375`).
+- **Producao:** imagem `salesos-web:15` desde 2026-11-08, publicada depois do backup `salesos-20261108-233654` (local e externo). `next` 16.4.3, `next-auth` 5.0.0-beta.32. 10 migrations aplicadas (a ultima, `20261108141235_daily_report`, aditiva). Imagem `salesos-web:14` mantida na VPS: para reverter, basta voltar `WEB_TAG` (a tabela `daily_reports` fica sem uso). A integracao SALEIA foi conectada em producao na organizacao NEX-ALS em 2026-11-06; nenhum evento recebido ainda.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -17,8 +17,8 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-8.1 (pronta em 2026-11-08, nao publicada): Report Diario em `/report`, com reunioes, FUPs, negociacoes avancadas, vendas e pendentes do dia, fechamento do dia por cada pessoa e dias fechados. A V2-8 foi dividida (decisao do usuario): "So diagnostico" fica na V2-8.2.
-  - V2-7.3 (pronta em 2026-11-08, nao publicada): recomendacao do SALEIA vira atividade, etapa sugerida move a negociacao (sempre por decisao de uma pessoa), descartar e desfazer, e "Recomendacoes da SALEIA" no Meu Dia.
+  - V2-8.1 (publicada em 2026-11-08): Report Diario em `/report`, com reunioes, FUPs, negociacoes avancadas, vendas e pendentes do dia, fechamento do dia por cada pessoa e dias fechados. A V2-8 foi dividida (decisao do usuario): "So diagnostico" fica na V2-8.2.
+  - V2-7.3 (publicada em 2026-11-08): recomendacao do SALEIA vira atividade, etapa sugerida move a negociacao (sempre por decisao de uma pessoa), descartar e desfazer, e "Recomendacoes da SALEIA" no Meu Dia.
   - V2-7.2 (SALE-IA V.1.4.196, publicada em 2026-11-06): o SALE-IA envia cada reuniao com relatorio automatico ao SOS, com fila e reenvio, ja configurado para a NEX-ALS. O relatorio automatico do SALE-IA ainda nao grava em producao: a V.1.4.198 (publicada) tirou o erro de fuso, e a V.1.4.199 (pronta, nao publicada) aumenta a coluna `relatorio.dados_json`, que e `VARCHAR(255)` na VPS. Sem ela, nenhuma reuniao chega ao SOS.
   - V2-7.1 (publicada em 2026-11-06): recebimento das reunioes analisadas pelo SALE-IA (webhook com HMAC, contrato em `docs/INTEGRACAO_SALEIA.md`), conexao em Configuracoes, tela `/saleia` e reunioes na empresa e na negociacao. O SALE-IA ainda nao envia (V2-7.2).
   - V2-6 (publicada em 2026-11-06): atividades com responsavel, tela `/atividades` com lista e agenda semanal, atividades na negociacao e na empresa, reunioes e follow-ups no Meu Dia e aviso de atividades atrasadas.
@@ -268,8 +268,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Visao 360 da empresa, edicao de empresa e contato (V2-5)
 - [x] Atividades e follow-ups com responsavel, lista, agenda, Meu Dia e notificacoes (V2-6)
 - [x] Recebimento das reunioes analisadas pelo SALE-IA, tela SALEIA e reunioes na empresa e na negociacao (V2-7.1)
-- [x] Recomendacoes do SALEIA viram atividade, etapa sugerida aplicada por uma pessoa, pendentes no Meu Dia (V2-7.3, nao publicada)
-- [x] Report Diario: numeros do dia, fechamento por pessoa e dias fechados (V2-8.1, nao publicada)
+- [x] Recomendacoes do SALEIA viram atividade, etapa sugerida aplicada por uma pessoa, pendentes no Meu Dia (V2-7.3, publicada em 2026-11-08)
+- [x] Report Diario: numeros do dia, fechamento por pessoa e dias fechados (V2-8.1, publicada em 2026-11-08)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
