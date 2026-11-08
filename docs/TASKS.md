@@ -21,7 +21,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, pronta e nao publicada) |
-| V2-8 | Report Diario | proxima |
+| V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, pronta e nao publicada) |
+| V2-8.2 | Report: "So diagnostico" (oferta nao apresentada) com validacao humana; contrato SALEIA e envio pelo SALE-IA | proxima |
 | V2-9 | Configuracoes e administracao | todo |
 | V2-10 | Homologacao final | todo |
 
@@ -30,10 +31,35 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
 
+## Tarefa: V2-8.1 - Report Diario no SOS
+
+### Decisao (usuario, 2026-11-08)
+A V2-8 foi dividida em duas: 8.1 so no SOS (numeros do dia a partir do que ja existe, fechamento gravado e dias fechados); 8.2 "So diagnostico": campo opcional no contrato SALEIA (oferta apresentada e motivo), confirmar, reescrever ou contestar no SOS e, depois, o envio pelo SALE-IA. Cada vendedor fecha o proprio dia; gestor e administrador veem o dia e os dias fechados de todos. Referencia: captura local `telas 5 crm.jpeg` (fora do git).
+
+### Estado
+Pronta localmente em 2026-11-08 (V.1.27.0), com a migration aditiva `20261108141235_daily_report`. Nao publicada.
+
+### Resultado
+- Model `DailyReport` (organizacao, pessoa, dia `AAAA-MM-DD` de Brasilia, unico por pessoa e dia): retrato de reunioes, FUPs, negociacoes avancadas, vendas (quantidade e valor) e pendentes no momento do fechamento, mais a observacao.
+- Numeros do dia (`getDailyReport`, `lib/report/service.ts`), sempre da pessoa: reunioes = atividades de reuniao concluidas no dia; FUPs = follow-ups, ligacoes e e-mails concluidos; avancadas = negociacoes que essa pessoa levou, em andamento, a uma etapa de posicao maior no mesmo funil, uma vez por negociacao (`advancedOpportunityIds`, `lib/report/rules.ts`); vendas = ganhas no dia das quais e dona; pendentes = atividades com data no dia nao concluidas (sem notas). Reunioes do SALEIA do dia (das negociacoes da pessoa) aparecem a parte, sem somar.
+- API: `GET /api/reports/daily?dia=&vendedor=`, `POST /api/reports/daily` (`{ day?, notes? }`, so o proprio dia, hoje ou antes, uma vez: futuro 422, repetido 409, data invalida 400) e `GET /api/reports/daily/closed?vendedor=`. Permissoes novas `reports:read` (todos) e `reports:team` (gestor e administrador); vendedor que pede outra pessoa recebe o proprio; membro inexistente, 404. Fechar entra no `AuditLog` (`daily-report.closed`, so com o dia).
+- Tela `/report` (menu "Report"): abas "Meu dia" e "Dias fechados", navegacao entre dias (sem passar de hoje), pessoa para gestor e administrador, 5 numeros, listas (reunioes, reunioes SALEIA, FUPs, avancadas, vendas, pendentes) e o fechamento com observacao. Dia fechado mostra os numeros gravados e as listas como estao agora.
+- Meu Dia: o cartao "Fechar o dia" (antes "em breve") diz se o dia ja foi fechado ou leva ao Report.
+- Testes: `npm run check` (131 unitarios; novo `report-rules.test.mjs`, 6) e `npm run test:integration` (193, em 56 suites; nova `report.integration.mjs`, 11).
+
+### Limitacoes conhecidas
+- "So diagnostico" fica para a V2-8.2.
+- Fechado nao reabre nem edita a observacao; nao ha lembrete para quem nao fechou.
+- Reunioes contam as atividades concluidas; reuniao analisada pelo SALE-IA sem atividade correspondente nao entra no numero (aparece na lista a parte).
+- Negociacao avancada conta pela pessoa que moveu, venda pelo dono; trocar o dono depois nao muda dia ja fechado.
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
+- Os testes de integracao usam hoje e ontem de Brasilia: rodados perto da meia-noite podem falhar.
+- `docs/GUIA_DE_USO.md` nao descreve o Report.
+
 ## Tarefa: V2-7.3 - SALEIA: decidir recomendacoes e etapa sugerida
 
 ### Estado
-Pronta localmente em 2026-11-08 (V.1.26.0), sem migration. Nao publicada nem commitada: a publicacao depende de autorizacao.
+Pronta localmente em 2026-11-08 (V.1.26.0), sem migration; commit local `f2cb375`, sem push. Nao publicada: a publicacao depende de autorizacao.
 
 ### Resultado
 - `POST /api/saleia/insights/[id]` com `{ action: "accept" | "dismiss" | "reopen" }` (`lib/saleia/decisions.ts`). So recomendacao e etapa sugerida pedem decisao (os outros tipos respondem 422). Aceito e definitivo; descartado pode ser reaberto. A troca de status e condicionada ao status lido, na mesma transacao da acao: duas pessoas aceitando ao mesmo tempo geram uma atividade e um 409.

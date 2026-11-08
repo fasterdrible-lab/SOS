@@ -47,6 +47,7 @@ SalesOS
 Meu Dia (página inicial)            → /meu-dia
 Atividades e follow-ups             → /atividades (lista e agenda semanal)
 SALEIA (reuniões analisadas)        → /saleia
+Report Diário                       → /report (meu dia e dias fechados)
 Módulo 1 — Diagnóstico Comercial    → /diagnostico
 Módulo 2 — CRM Inteligente          → /empresas (visão 360 em /empresas/[id]), /contatos, /pipeline (Negociações)
 Módulo 3 — IA SDR                   → /sdr (console) e /sdr/[organizationId] (widget público)
@@ -57,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-Próximo módulo do Prompt Mestre V2 (`docs/TASKS.md`): Report Diário. Entram no menu apenas quando tiverem tela.
+Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-8.2, "Só diagnóstico" no Report. Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -86,6 +87,7 @@ Organization (tenant)
   └── SalesGoal (meta mensal da equipe ou de um vendedor)
   └── SaleiaIntegration (segredo HMAC; uma por organizacao)
   └── SaleiaMeeting (reuniao analisada pelo SALE-IA) └── SaleiaInsight (recomendacao, objecao, sinal, dor, evidencia, etapa sugerida)
+  └── DailyReport (dia fechado por uma pessoa: retrato dos numeros e observacao; unico por pessoa e dia)
 ```
 
 ## Fluxos Principais
@@ -158,6 +160,17 @@ Decisao (V2-7.3): POST /api/saleia/insights/[id] {accept|dismiss|reopen} -> deci
   recomendacao aceita -> Activity TASK (dono da negociacao ou quem aceitou) | etapa aceita -> planOpportunityChange
   + writeOpportunityChange (lib/opportunities/change.ts, o mesmo do PATCH); nome da etapa sem acento/maiusculas
   Meu Dia: insights OPEN acionaveis no escopo do papel | auditado (saleia.insight-*)
+```
+
+### Report Diario
+```
+/report e GET/POST /api/reports/daily, GET /api/reports/daily/closed (reports:read; outras pessoas: reports:team)
+getDailyReport (lib/report/service.ts): dia de Brasilia [inicio, fim) da pessoa, calculado na hora
+  reunioes = MEETING concluidas | FUPs = FOLLOW_UP, CALL, EMAIL concluidos | vendas = WON do dono no dia
+  avancadas = historico de quem moveu, OPEN -> OPEN para posicao maior no mesmo funil (advancedOpportunityIds)
+  pendentes = atividades com data no dia nao concluidas | reunioes SALEIA a parte
+Fechar: so o proprio dia, hoje ou antes, uma vez (canCloseDay) -> DailyReport com o retrato + AuditLog
+Dia fechado: numeros do retrato; listas ao vivo
 ```
 
 ### Dashboard Executivo

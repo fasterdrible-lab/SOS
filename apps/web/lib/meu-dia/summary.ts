@@ -9,8 +9,10 @@ import {
 } from "@/lib/meu-dia/goal-progress"
 import { saleiaMeetingScope } from "@/lib/saleia/service"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
+import { dayKey } from "@/lib/dashboard/period"
 import {
   businessDaysOfMonth,
+  calendarDateIn,
   dayRange,
   monthKey,
   monthRange,
@@ -75,6 +77,8 @@ export interface MyDaySummary {
   followUps: { overdue: number; today: number; items: ActivitySummaryItem[] }
   /** Recomendacoes e etapas sugeridas do SALEIA esperando decisao; nulo sem `saleia:read`. */
   saleia: { total: number; items: SaleiaPendingItem[] } | null
+  /** Quando o proprio dia de hoje foi fechado no Report (ISO), ou nulo. */
+  dayClosedAt: string | null
 }
 
 export interface SaleiaPendingItem {
@@ -207,6 +211,7 @@ export async function getMyDaySummary(input: {
     followUpsTotal,
     saleiaItems,
     saleiaTotal,
+    dayReport,
   ] = await Promise.all([
     prisma.salesGoal.findUnique({
       where: {
@@ -297,6 +302,10 @@ export async function getMyDaySummary(input: {
         })
       : [],
     canSeeSaleia ? prisma.saleiaInsight.count({ where: saleiaWhere }) : 0,
+    prisma.dailyReport.findUnique({
+      where: { organizationId_userId_day: { organizationId, userId, day: dayKey(calendarDateIn(now)) } },
+      select: { closedAt: true },
+    }),
   ])
 
   const revenue = Number(wonMonth._sum.value ?? 0)
@@ -352,5 +361,6 @@ export async function getMyDaySummary(input: {
           })),
         }
       : null,
+    dayClosedAt: dayReport?.closedAt.toISOString() ?? null,
   }
 }

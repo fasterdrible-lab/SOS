@@ -3,6 +3,7 @@ import {
   Building2,
   BrainCircuit,
   CalendarCheck,
+  ClipboardCheck,
   ClipboardList,
   KanbanSquare,
   LayoutDashboard,
@@ -30,8 +31,7 @@ export interface NavGroup {
   items: NavItem[]
 }
 
-// Modulos ainda nao construidos (Report) entram
-// no menu quando tiverem tela; nenhum item leva a pagina inexistente.
+// Modulos entram no menu quando tiverem tela; nenhum item leva a pagina inexistente.
 export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Operação",
@@ -40,6 +40,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { title: "Negociações", href: "/pipeline", icon: KanbanSquare },
       { title: "Atividades", href: "/atividades", icon: ListTodo },
+      { title: "Report", href: "/report", icon: ClipboardCheck, permission: "reports:read" },
     ],
   },
   {

@@ -1,5 +1,29 @@
 # CHANGELOG — SalesOS
 
+## [V.1.27.0] — 2026-11-08 (pronta, nao publicada)
+
+### Tarefa V2-8.1 — Report Diario
+- Tela **Report** (`/report`, no menu): o dia de cada pessoa com reunioes realizadas, FUPs (follow-ups, ligacoes e e-mails), negociacoes avancadas, vendas e atividades pendentes, com as listas de cada um e as reunioes analisadas pelo SALEIA. Navegacao entre dias.
+- **Fechar o dia**: cada pessoa fecha o proprio dia (hoje ou um dia passado), com observacao. Os numeros do momento ficam registrados e nao mudam depois.
+- Aba **Dias fechados**: o vendedor ve os proprios; gestor e administrador veem a equipe e escolhem a pessoa, tambem no dia.
+- Meu Dia: o cartao "Fechar o dia" mostra se o dia ja foi fechado ou leva ao Report.
+- Fechamento auditado (`daily-report.closed`). Novas permissoes `reports:read` e `reports:team`.
+- Testes: `report-rules.test.mjs` (6) e `report.integration.mjs` (11).
+
+**Migration:** `20261108141235_daily_report` (aditiva: tabela `daily_reports`). Aplicada em desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261108141235_daily_report/migration.sql`
+- `apps/web/lib/report/rules.ts`, `lib/report/service.ts`, `lib/report/access.ts`, `lib/validations/daily-report.ts`
+- `apps/web/app/api/reports/daily/route.ts`, `app/api/reports/daily/closed/route.ts`
+- `apps/web/app/(app)/report/page.tsx`, `report-filters.tsx`, `close-day-form.tsx`
+- `apps/web/tests/report-rules.test.mjs`, `apps/web/tests/report.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/authz/permissions.ts`, `lib/audit/record.ts`, `lib/navigation.ts`, `lib/meu-dia/summary.ts`
+- `apps/web/app/(app)/meu-dia/page.tsx`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.26.0] — 2026-11-08 (pronta, nao publicada)
 
 ### Tarefa V2-7.3 — SALEIA: decidir recomendacoes e etapa sugerida

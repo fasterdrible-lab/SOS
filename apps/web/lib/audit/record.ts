@@ -20,6 +20,7 @@ export type AuditAction =
   | "saleia.insight-accepted"
   | "saleia.insight-dismissed"
   | "saleia.insight-reopened"
+  | "daily-report.closed"
 
 interface AuditEntry {
   organizationId: string

@@ -36,6 +36,7 @@ model Organization {
   saleiaIntegration SaleiaIntegration?
   saleiaMeetings  SaleiaMeeting[]
   saleiaInsights  SaleiaInsight[]
+  dailyReports    DailyReport[]
 
   @@map("organizations")
 }
@@ -75,6 +76,7 @@ model User {
   opportunityStageChanges OpportunityStageHistory[]
   salesGoals         SalesGoal[] @relation("SalesGoalUser")
   salesGoalsUpdated  SalesGoal[] @relation("SalesGoalUpdatedBy")
+  dailyReports       DailyReport[]
 
   @@map("users")
 }
@@ -353,6 +355,34 @@ model SalesGoal {
 
   @@unique([organizationId, month, scopeKey])
   @@map("sales_goals")
+}
+
+// ─── REPORT DIÁRIO ───────────────────────────────────────────────────────────
+
+/// Dia fechado por um vendedor (V2-8.1): retrato dos numeros no momento do
+/// fechamento e a observacao dele. Fechado nao muda.
+model DailyReport {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  /// AAAA-MM-DD, no fuso de Brasilia.
+  day            String
+  meetingsDone   Int
+  followUpsDone  Int
+  advancedDeals  Int
+  salesCount     Int
+  salesRevenue   Decimal  @db.Decimal(14, 2)
+  /// Atividades com data no dia que ficaram pendentes ao fechar.
+  pendingCount   Int
+  notes          String?  @db.Text
+  closedAt       DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, day])
+  @@index([organizationId, day])
+  @@map("daily_reports")
 }
 
 // ─── DIAGNÓSTICO ─────────────────────────────────────────────────────────────

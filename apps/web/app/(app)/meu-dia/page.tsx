@@ -312,11 +312,18 @@ export default async function MeuDiaPage() {
           items={summary.followUps.items}
           empty="Nenhum follow-up vencido nem vencendo hoje."
         />
-        <UpcomingCard
-          icon={ClipboardCheck}
-          title="Fechar o dia"
-          text="As pendências do fechamento diário chegam com o Report Diário."
-        />
+        <PanelCard icon={ClipboardCheck} title="Fechar o dia">
+          {summary.dayClosedAt ? (
+            <EmptyLine>Seu dia foi fechado às {timeOnly.format(new Date(summary.dayClosedAt))}.</EmptyLine>
+          ) : (
+            <EmptyLine>
+              Confira reuniões, FUPs e vendas de hoje e registre o fechamento.{" "}
+              <Link href="/report" className="text-gold-fg hover:underline">
+                Abrir o Report
+              </Link>
+            </EmptyLine>
+          )}
+        </PanelCard>
       </section>
 
       {summary.saleia && (
@@ -553,19 +560,5 @@ function ActivityCard({
         </ul>
       )}
     </PanelCard>
-  )
-}
-
-function UpcomingCard({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
-  return (
-    <Card className="border-dashed border-foreground/10 bg-transparent py-0">
-      <CardContent className="space-y-1 p-5">
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-sm font-medium text-muted-foreground">{title}</h2>
-        </div>
-        <p className="text-xs text-muted-foreground/80">{text}</p>
-      </CardContent>
-    </Card>
   )
 }

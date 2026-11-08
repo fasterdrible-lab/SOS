@@ -28,6 +28,10 @@ const PERMISSIONS = {
   "activities:write": EVERYONE,
   "activities:assign": MANAGERS,
   "saleia:read": EVERYONE,
+  /** Ver e fechar o proprio dia. */
+  "reports:read": EVERYONE,
+  /** Ver o dia e os dias fechados de outras pessoas. */
+  "reports:team": MANAGERS,
   "diagnostics:write": EVERYONE,
   "action-plans:read": EVERYONE,
   "action-plans:write": MANAGERS,
