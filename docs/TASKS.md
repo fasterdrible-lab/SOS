@@ -54,7 +54,6 @@ V.1.27.0, commit `24d2a7f`, CI aprovado. Publicada em 2026-11-08 (`salesos-web:1
 - Negociacao avancada conta pela pessoa que moveu, venda pelo dono; trocar o dono depois nao muda dia ja fechado.
 - Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
 - Os testes de integracao usam hoje e ontem de Brasilia: rodados perto da meia-noite podem falhar.
-- `docs/GUIA_DE_USO.md` nao descreve o Report.
 
 ## Tarefa: V2-7.3 - SALEIA: decidir recomendacoes e etapa sugerida
 
@@ -78,7 +77,6 @@ V.1.26.0, sem migration, commit `f2cb375`. Publicada em 2026-11-08 junto com a V
 - Aceitar nao permite editar titulo, prazo ou responsavel antes de criar: edita-se depois em Atividades.
 - Recomendacoes pendentes nao entram no sino de notificacoes.
 - Ainda nao ha como ligar manualmente uma reuniao "sem empresa" a uma negociacao; ate la, a etapa sugerida dela nao pode ser aplicada.
-- `docs/GUIA_DE_USO.md` nao descreve as acoes.
 
 ## Tarefa: V2-7.2 - SALEIA no SALE-IA
 
@@ -153,7 +151,6 @@ Commit `8ab7d65`, CI aprovado. Publicada em 2026-11-06 (`salesos-web:13`), depoi
 - Sem lembrete por e-mail ou push, sem recorrencia e sem integracao com Google Agenda ou Outlook.
 - O seletor de negociacao da tela lista ate 200 negociacoes em andamento; a lista, ate 500 atividades.
 - Pre-venda no Dashboard (reunioes por vendedor) e o botao "Criar Tarefa" no cartao do quadro nao foram feitos.
-- `docs/GUIA_DE_USO.md` ainda nao descreve a tela de Atividades.
 
 ## Tarefa: V2-5 - Clientes 360
 

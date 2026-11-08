@@ -1,5 +1,10 @@
 # CHANGELOG — SalesOS
 
+## [Documentacao] — 2026-11-08 (sem mudanca no app; producao segue na V.1.27.0)
+- `docs/GUIA_DE_USO.md`: tela **Report** (numeros, fechar o dia, dias fechados), decisoes sobre as sugestoes da SALEIA (criar atividade, mover etapa, descartar), blocos novos do Meu Dia e papeis atualizados.
+- `docs/DEPLOY.md`: o que fazer quando o build local cai por falta de memoria do Docker Desktop.
+- `docs/TASKS.md` e `docs/CURRENT_STATE.md`: pendencias de documentacao resolvidas removidas.
+
 ## [V.1.27.0] — 2026-11-08 (publicada em producao, imagem `salesos-web:15`)
 
 ### Tarefa V2-8.1 — Report Diario

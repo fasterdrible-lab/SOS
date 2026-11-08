@@ -57,6 +57,8 @@ docker build -t salesos-web:<N> .
 docker save salesos-web:<N> | gzip -1 | ssh -i ~/.ssh/saleia_vps root@200.141.20.162 'gunzip | docker load'
 ```
 
+Se o build parar com `error reading from server: EOF` (em "Running TypeScript" ou "Collecting page data"), o Docker Desktop ficou sem memória e reiniciou: desligue os containers que não estão em uso e rode o build de novo. Use `set -o pipefail` se filtrar a saída com `tail`, senão a falha passa despercebida.
+
 O envio pode levar cerca de 10 minutos. Na VPS:
 
 ```bash

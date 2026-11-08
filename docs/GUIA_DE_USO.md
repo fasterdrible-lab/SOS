@@ -27,7 +27,9 @@ Cada pessoa tem um papel em cada cliente. Uma mudança de papel vale na hora, se
 | Atualizar status de tarefas | ✓ | ✓ | ✓ |
 | Atividades | todas | todas | só as próprias |
 | Atribuir atividade a outra pessoa | ✓ | ✓ | — |
-| Reuniões da SALEIA | todas | todas | só as das próprias negociações |
+| Reuniões da SALEIA e decisões sobre as sugestões | todas | todas | só as das próprias negociações |
+| Report: ver o dia e os dias fechados | de todos | de todos | só o próprio |
+| Fechar o dia | o próprio | o próprio | o próprio |
 | IA SDR e Consultor Digital | ✓ | ✓ | — |
 | Configurações (chaves de IA e conexão com a SALEIA) | ✓ | — | — |
 | Criar novos clientes | ✓ | — | — |
@@ -56,8 +58,10 @@ Mostra o mês corrente no horário de Brasília. O vendedor vê os próprios nú
 | Reuniões de hoje | Atividades do tipo reunião marcadas para hoje |
 | Follow-ups atrasados e de hoje | Follow-ups, ligações, e-mails e tarefas com data vencida ou para hoje. O círculo à esquerda conclui |
 | Leads quentes do IA SDR | Conversas qualificadas ainda não vistas (gestor e administrador) |
+| Recomendações da SALEIA | Recomendações e etapas sugeridas ainda sem decisão, das reuniões que você pode ver; clique para abrir a reunião |
+| Fechar o dia | Se o seu dia já foi fechado (e a que horas) ou o link **Abrir o Report** |
 
-Fechamento do dia e recomendações da SALEIA aparecem como "em breve" até os módulos correspondentes ficarem prontos. Nenhum número é inventado.
+Nenhum número é inventado: um bloco sem dados mostra que está vazio.
 
 ### Definir metas
 
@@ -120,7 +124,29 @@ Depois de cada reunião, a SALEIA analisa a conversa e envia ao SalesOS o resumo
 - **Conectar** (administrador): em **Configurações**, seção **Integrações de sistemas**, cartão **SALEIA**, clique em **Conectar**. A tela mostra o endereço e o segredo uma única vez; eles vão para a configuração da SALEIA. **Gerar novo segredo** invalida o anterior na hora. **Desconectar** faz a SALEIA parar de enviar; as reuniões já recebidas continuam.
 - O SalesOS liga cada reunião à negociação, ao contato (pelo e-mail) ou à empresa (pelo nome dito na reunião). Uma negociação só é escolhida quando a empresa tem exatamente uma em andamento.
 - **Menu SALEIA:** lista as reuniões recebidas. Gestor e administrador têm o filtro **Sem empresa**, para as reuniões que não encontraram empresa. Clique no título para ver o resumo completo, os pontos agrupados, as frases do cliente que sustentam cada ponto e os participantes.
-- Nada muda nas negociações sozinho: as sugestões só informam. Aceitar uma recomendação como atividade e aplicar a etapa sugerida vêm na próxima etapa (V2-7.3).
+- Nada muda nas negociações sozinho: toda sugestão espera a decisão de uma pessoa, na página da reunião.
+  - **Criar atividade** (recomendação): cria uma tarefa com o prazo sugerido, ligada à negociação da reunião (ou à empresa, se não houver negociação), para o dono da negociação. A descrição traz a reunião e a frase do cliente. A recomendação passa a mostrar **Virou atividade**.
+  - **Mover para <etapa>** (etapa sugerida): leva a negociação para a etapa sugerida, com as mesmas regras de quando você muda a etapa à mão (campos exigidos, negociação encerrada não muda). A tela avisa quando a etapa sugerida é a atual, fica para trás, não existe no funil ou a reunião não tem negociação.
+  - **Descartar** esconde a sugestão das pendentes; **Desfazer descarte** a traz de volta. Uma sugestão aceita não volta atrás: a atividade criada pode ser editada ou removida em Atividades, e a etapa pode ser mudada na negociação.
+  - Se duas pessoas decidirem ao mesmo tempo, só a primeira vale; a segunda recebe o aviso para atualizar a página.
+- As sugestões sem decisão aparecem no Meu Dia, em **Recomendações da SALEIA**.
+
+## Report
+
+O dia de cada pessoa em números, no menu **Report**. As datas seguem o horário de Brasília.
+
+| Número | O que conta |
+|---|---|
+| Reuniões realizadas | Atividades do tipo reunião concluídas no dia |
+| FUPs | Follow-ups, ligações e e-mails concluídos no dia |
+| Negociações avançadas | Negociações em andamento que a pessoa moveu para uma etapa à frente no mesmo funil (cada uma conta uma vez) |
+| Vendas | Negociações da pessoa ganhas no dia, com o valor |
+| Pendentes | Atividades com data no dia ainda não concluídas |
+
+- Abaixo dos números ficam as listas de cada um e as **reuniões analisadas pela SALEIA** no dia, que aparecem à parte e não somam nas reuniões realizadas.
+- As setas e o campo de data navegam entre os dias, até hoje. Gestor e administrador escolhem a pessoa; o vendedor vê só o próprio dia.
+- **Fechar o dia:** escreva as observações (opcional) e clique em **Fechar o dia**. Os números daquele momento ficam gravados e não mudam mais, mesmo que uma atividade seja concluída depois; as listas continuam mostrando como estão agora. Dá para fechar um dia passado que ficou esquecido. Cada pessoa fecha só o próprio dia, uma vez: um dia fechado não reabre e a observação não é editada.
+- **Dias fechados** (aba): os dias já fechados, com os números gravados e as observações. O vendedor vê os próprios; gestor e administrador veem a equipe e podem filtrar por pessoa.
 
 ## Busca, notificações e tema
 
@@ -130,4 +156,4 @@ Depois de cada reunião, a SALEIA analisa a conversa e envia ao SalesOS o resumo
 
 ## O que ainda não existe
 
-Ações sobre as sugestões da SALEIA (V2-7.3); Report Diário; tela de usuários e convites. A ordem está em `TASKS.md`.
+"Só diagnóstico" no Report (V2-8.2); lembrete para quem não fechou o dia; tela de usuários e convites. A ordem está em `TASKS.md`.
