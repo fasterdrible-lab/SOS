@@ -374,6 +374,8 @@ model DailyReport {
   salesRevenue   Decimal  @db.Decimal(14, 2)
   /// Atividades com data no dia que ficaram pendentes ao fechar.
   pendingCount   Int
+  /// Reunioes "so diagnostico" (V2-8.2), sem as contestadas. Dias fechados antes: 0.
+  diagnosisOnly  Int      @default(0)
   notes          String?  @db.Text
   closedAt       DateTime @default(now())
 
@@ -500,6 +502,16 @@ model SaleiaMeeting {
   opportunityId   String?
   /// Quando o SALE-IA concluiu a ultima analise.
   analyzedAt      DateTime
+  /// A analise diz se a oferta foi apresentada (V2-8.2); nulo = nao avaliado.
+  offerPresented  Boolean?
+  /// Motivo sugerido pela IA quando a oferta nao foi apresentada.
+  offerReason     String?   @db.Text
+  /// "So diagnostico": decisao humana. Reenviar a reuniao nao troca CONFIRMED nem CONTESTED.
+  diagnosisStatus SaleiaDiagnosisStatus?
+  /// Motivo confirmado ou reescrito por uma pessoa.
+  diagnosisReason String?   @db.Text
+  diagnosisDecidedById String?
+  diagnosisDecidedAt   DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -695,6 +707,13 @@ enum SaleiaInsightStatus {
   OPEN
   ACCEPTED
   DISMISSED
+}
+
+/// PENDING: a IA diz que a oferta nao foi apresentada e falta uma pessoa confirmar.
+enum SaleiaDiagnosisStatus {
+  PENDING
+  CONFIRMED
+  CONTESTED
 }
 
 enum ApiProvider {

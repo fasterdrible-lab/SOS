@@ -18,6 +18,7 @@ import {
 import { getSaleiaMeeting } from "@/lib/saleia/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 
+import { DiagnosisActions } from "../diagnosis-actions"
 import { InsightActions } from "../insight-actions"
 import { formatMeetingDate } from "../meeting-list"
 
@@ -68,6 +69,15 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
       ) : "—",
     },
     { label: "Contato", value: meeting.contact?.name ?? "—" },
+    {
+      label: "Oferta",
+      value:
+        meeting.diagnosis.offerPresented === null
+          ? "Não avaliada"
+          : meeting.diagnosis.offerPresented
+            ? "Apresentada"
+            : "Não apresentada",
+    },
     { label: "Analisada em", value: formatMeetingDate(meeting.analyzedAt) },
   ]
 
@@ -88,6 +98,21 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
               <p className="whitespace-pre-wrap text-sm text-muted-foreground">{meeting.summary}</p>
             </CardContent>
           </Card>
+
+          {meeting.diagnosis.offerPresented === false && meeting.diagnosis.status && (
+            <Card className="border-foreground/5 bg-card py-0" data-section="so-diagnostico">
+              <CardContent className="space-y-2 p-5">
+                <h2 className="text-sm font-semibold text-foreground">Só diagnóstico</h2>
+                <p className="text-sm text-muted-foreground">A análise diz que a oferta não foi apresentada nesta reunião.</p>
+                <DiagnosisActions
+                  meetingId={meeting.id}
+                  status={meeting.diagnosis.status}
+                  suggestedReason={meeting.diagnosis.suggestedReason}
+                  reason={meeting.diagnosis.reason}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {groups.length === 0 ? (
             <p className="rounded-xl border border-dashed border-foreground/10 p-6 text-center text-sm text-muted-foreground">

@@ -61,6 +61,14 @@ export const saleiaEventSchema = z.object({
     })
     .default({ opportunityId: null, companyName: null }),
   insights: z.array(insightSchema).max(50).default([]),
+  /** Opcional (V2-8.2): a oferta foi apresentada? Sem o campo, nao avaliado. */
+  offer: z
+    .object({
+      presented: z.boolean(),
+      reason: optionalText(2000),
+    })
+    .nullish()
+    .transform((value) => value ?? null),
 })
 
 export type SaleiaEvent = z.infer<typeof saleiaEventSchema>

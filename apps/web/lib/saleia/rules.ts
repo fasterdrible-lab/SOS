@@ -183,6 +183,68 @@ export const STAGE_STATE_MESSAGES: Record<StageSuggestionState["state"], string>
   backward: "Volta a negociação para uma etapa anterior.",
 }
 
+// ─── "So diagnostico" (V2-8.2) ───────────────────────────────────────────────
+
+export type DiagnosisStatus = "PENDING" | "CONFIRMED" | "CONTESTED"
+export type DiagnosisAction = "confirm" | "contest" | "reopen"
+
+/**
+ * Situacao do "so diagnostico" ao (re)receber a analise. A decisao de uma pessoa
+ * (confirmada ou contestada) nunca e trocada pela IA; sem decisao, segue a analise.
+ */
+export function diagnosisStatusOnIngest(input: {
+  offerPresented: boolean | null
+  current: DiagnosisStatus | null
+}): DiagnosisStatus | null {
+  if (input.current === "CONFIRMED" || input.current === "CONTESTED") return input.current
+  return input.offerPresented === false ? "PENDING" : null
+}
+
+export type DiagnosisDecision =
+  | { ok: true; from: DiagnosisStatus; to: DiagnosisStatus }
+  | { ok: false; status: 409 | 422; error: string }
+
+/**
+ * Confirmar (com o motivo, sugerido ou reescrito) ou contestar valem para o
+ * que falta confirmar; reabrir desfaz qualquer uma das duas.
+ */
+export function planDiagnosisDecision(input: {
+  offerPresented: boolean | null
+  status: DiagnosisStatus | null
+  action: DiagnosisAction
+}): DiagnosisDecision {
+  const { status, action } = input
+  if (input.offerPresented !== false || status === null) {
+    return { ok: false, status: 422, error: "A análise desta reunião não indica só diagnóstico." }
+  }
+  if (action === "reopen") {
+    return status === "PENDING"
+      ? { ok: false, status: 409, error: "Esta reunião ainda não foi decidida." }
+      : { ok: true, from: status, to: "PENDING" }
+  }
+  if (status !== "PENDING") return { ok: false, status: 409, error: "Esta reunião já foi decidida." }
+  return { ok: true, from: status, to: action === "confirm" ? "CONFIRMED" : "CONTESTED" }
+}
+
+/**
+ * Numeros do cartao "So diagnostico": contam as reunioes em que a oferta nao
+ * foi apresentada, menos as contestadas; "sem analise" = reunioes sem avaliacao.
+ */
+export function diagnosisSummary(
+  meetings: { offerPresented: boolean | null; diagnosisStatus: DiagnosisStatus | null }[]
+): { count: number; pending: number; unevaluated: number } {
+  let count = 0
+  let pending = 0
+  let unevaluated = 0
+  for (const meeting of meetings) {
+    if (meeting.offerPresented === null) unevaluated++
+    if (meeting.offerPresented !== false || meeting.diagnosisStatus === "CONTESTED") continue
+    count++
+    if (meeting.diagnosisStatus !== "CONFIRMED") pending++
+  }
+  return { count, pending, unevaluated }
+}
+
 export const ACTIVITY_TITLE_MAX = 160
 const ACTIVITY_DESCRIPTION_MAX = 2000
 

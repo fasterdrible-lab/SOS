@@ -4,6 +4,8 @@ import { addDays, dayKey, type Day } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
 import { isUniqueConstraintError } from "@/lib/opportunities/create"
 import { advancedOpportunityIds, canCloseDay, FOLLOW_UP_TYPES } from "@/lib/report/rules"
+import { diagnosisSummary } from "@/lib/saleia/rules"
+import { toDiagnosis, type SaleiaDiagnosis } from "@/lib/saleia/service"
 import { startOfCalendarDate } from "@/lib/time/business-calendar"
 
 export interface ReportListItem {
@@ -19,6 +21,8 @@ export interface ReportListItem {
 
 export interface ReportMetrics {
   meetingsDone: number
+  /** Reunioes do SALEIA em que a oferta nao foi apresentada, sem as contestadas (V2-8.2). */
+  diagnosisOnly: number
   followUpsDone: number
   advancedDeals: number
   salesCount: number
@@ -47,6 +51,13 @@ export interface DailyReportView {
     sales: ReportListItem[]
     pending: ReportListItem[]
   }
+  /** "So diagnostico": reunioes do SALEIA do dia em que a oferta nao foi apresentada. */
+  diagnosis: {
+    pending: number
+    /** Reunioes do SALEIA do dia sem avaliacao da oferta. */
+    unevaluated: number
+    items: (ReportListItem & { diagnosis: SaleiaDiagnosis })[]
+  }
   closed: ClosedReport | null
 }
 
@@ -61,6 +72,7 @@ function toClosed(row: {
   day: string
   userId: string
   meetingsDone: number
+  diagnosisOnly: number
   followUpsDone: number
   advancedDeals: number
   salesCount: number
@@ -76,6 +88,7 @@ function toClosed(row: {
     userId: row.userId,
     userName: row.user.name || row.user.email,
     meetingsDone: row.meetingsDone,
+    diagnosisOnly: row.diagnosisOnly,
     followUpsDone: row.followUpsDone,
     advancedDeals: row.advancedDeals,
     salesCount: row.salesCount,
@@ -109,7 +122,17 @@ export async function getDailyReport(input: {
     }),
     prisma.saleiaMeeting.findMany({
       where: { organizationId, startedAt: window, opportunity: { ownerId: userId } },
-      select: { id: true, title: true, startedAt: true, company },
+      select: {
+        id: true,
+        title: true,
+        startedAt: true,
+        company,
+        offerPresented: true,
+        offerReason: true,
+        diagnosisStatus: true,
+        diagnosisReason: true,
+        diagnosisDecidedAt: true,
+      },
       orderBy: { startedAt: "asc" },
       take: LIST_LIMIT,
     }),
@@ -174,12 +197,14 @@ export async function getDailyReport(input: {
   })
 
   const salesRevenue = sales.reduce((sum, sale) => sum + Number(sale.value), 0)
+  const diagnosis = diagnosisSummary(saleiaMeetings)
 
   return {
     day: key,
     userId,
     live: {
       meetingsDone: meetings.length,
+      diagnosisOnly: diagnosis.count,
       saleiaMeetings: saleiaMeetings.length,
       followUpsDone: followUps.length,
       advancedDeals: advanced.length,
@@ -226,6 +251,21 @@ export async function getDailyReport(input: {
         href: "/atividades",
       })),
     },
+    diagnosis: {
+      pending: diagnosis.pending,
+      unevaluated: diagnosis.unevaluated,
+      // Contestadas continuam na lista, para poder desfazer.
+      items: saleiaMeetings
+        .filter((row) => row.offerPresented === false && row.diagnosisStatus !== null)
+        .map((row) => ({
+          id: row.id,
+          title: row.title,
+          detail: row.company?.name ?? null,
+          at: row.startedAt.toISOString(),
+          href: `/saleia/${row.id}`,
+          diagnosis: toDiagnosis(row),
+        })),
+    },
     closed: closed ? toClosed(closed) : null,
   }
 }
@@ -249,6 +289,7 @@ export async function closeDailyReport(input: {
   const { live } = view
   const metrics: ReportMetrics = {
     meetingsDone: live.meetingsDone,
+    diagnosisOnly: live.diagnosisOnly,
     followUpsDone: live.followUpsDone,
     advancedDeals: live.advancedDeals,
     salesCount: live.salesCount,

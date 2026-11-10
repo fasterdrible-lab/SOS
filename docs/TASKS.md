@@ -22,14 +22,59 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, em producao desde 2026-11-08, `salesos-web:15`) |
-| V2-8.2 | Report: "So diagnostico" (oferta nao apresentada) com validacao humana; contrato SALEIA e envio pelo SALE-IA | proxima |
-| V2-9 | Configuracoes e administracao | todo |
+| V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, migration aditiva; falta publicar com autorizacao) |
+| V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, local; falta publicar com autorizacao, depois da V.1.4.199 e da V.1.28.0) |
+| V2-9 | Configuracoes e administracao | proxima |
 | V2-10 | Homologacao final | todo |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-8.3 - SALE-IA envia `offer`
+
+### Estado
+SALE-IA V.1.4.200, sem commit e nao publicada (repositorio do SALE-IA; detalhe no `CHANGELOG.md` de la). Nenhum arquivo do SOS mudou alem desta documentacao.
+
+### Resultado
+- O relatorio pos-reuniao automatico do SALE-IA (`PROMPT_RECAPITULACAO`, `api/main.py`) ganhou `"oferta": {"apresentada", "motivo_nao_apresentada"}`, na mesma chamada de IA: `true` quando o vendedor apresentou a solucao com valor, preco ou condicoes; `false` quando a reuniao ficou so no diagnostico; `null` quando nao da para afirmar.
+- `montar_oferta()` (`agent/salesos_event_rules.py`) transforma isso no `offer: {presented, reason}` do contrato. So booleano de verdade conta; texto ("true", "sim", o exemplo do schema) vira `null` ("nao avaliada" no SOS). O motivo vai so quando `false`, sem placeholder, ate 2.000 caracteres.
+- Testes no SALE-IA: 7 novos em `tests/test_salesos_envio.py` (28 no arquivo). Os quatro casos (sem campo, apresentada, nao apresentada com e sem motivo) passaram pelo validador Zod do SOS (`lib/validations/saleia-event.ts`). Suite completa do SALE-IA: 2.163 testes, OK.
+
+### Ordem de publicacao
+1. SOS V.1.28.0 (V2-8.2), com backup antes. Se o SALE-IA publicar antes, o SOS antigo ignora `offer`, sem erro, e as reunioes ficam "sem analise" ate serem reenviadas.
+2. SALE-IA V.1.4.199 (sem ela nenhum relatorio grava) e V.1.4.200, com `reunioes_ativas = 0`.
+
+### Limitacoes conhecidas
+- A classificacao e da IA, sem teste com transcricao real: so a pessoa, ao confirmar ou contestar no Report, valida. Vale olhar as primeiras reunioes reais.
+- Relatorios gerados antes da V.1.4.200 nao tem o campo: essas reunioes ficam "sem analise".
+- So o relatorio automatico e enviado (mesma limitacao da V2-7.2).
+
+## Tarefa: V2-8.2 - "So diagnostico" no SOS
+
+### Decisao
+Pela decisao de 2026-11-08 (abaixo, na V2-8.1), o envio pelo SALE-IA vem depois e em outro repositorio, com deploy proprio. Seguindo o padrao da V2-7.1/7.2, ficou separado como V2-8.3; a V2-8.2 e so o SOS, testada com eventos simulados. Referencia: captura local `telas 5 crm.jpeg`.
+
+### Estado
+V.1.28.0, sem commit. Migration aditiva `20261110120000_saleia_diagnosis_only`, aplicada so em desenvolvimento. Nao publicada.
+
+### Resultado
+- Contrato (`docs/INTEGRACAO_SALEIA.md`): campo opcional `offer: { presented, reason? }` no `meeting.analyzed` v1. Sem o campo, "nao avaliada"; `presented` invalido ou `reason` acima de 2.000, 400.
+- `SaleiaMeeting` ganha `offerPresented`, `offerReason` (sugestao da IA), `diagnosisStatus` (`PENDING`, `CONFIRMED`, `CONTESTED`), `diagnosisReason`, `diagnosisDecidedById` e `diagnosisDecidedAt`. `DailyReport` ganha `diagnosisOnly` (padrao 0).
+- Recebimento (`ingestSaleiaEvent`, `diagnosisStatusOnIngest`): oferta nao apresentada fica `PENDING`; reanalise antes da decisao segue a IA; depois de confirmada ou contestada, o reenvio nao muda a oferta nem a decisao.
+- `POST /api/saleia/meetings/[id]/diagnosis` com `{ action: "confirm", reason }`, `{ action: "contest" }` ou `{ action: "reopen" }` (`lib/saleia/diagnosis.ts`, `planDiagnosisDecision`). Escopo e permissao das reunioes (`saleia:read`, `saleiaMeetingScope`); fora dele, 404. Confirmar e contestar so o que falta confirmar, reabrir so o decidido (409); reuniao com oferta apresentada ou nao avaliada, 422. Troca condicionada ao status lido. Auditoria `saleia.diagnosis-confirmed`, `-contested` e `-reopened`, so com a reuniao.
+- Report: numero "So diagnostico" = reunioes SALEIA do dia (das negociacoes da pessoa) com a oferta nao apresentada, menos as contestadas (`diagnosisSummary`), com "% das realizadas", "falta confirmar" e "sem analise". Secao "So diagnostico" com a sugestao da IA, o texto editavel, "Confirmar o motivo", "Nao foi so diagnostico" e "Desfazer". O fechamento grava `diagnosisOnly`; dias fechados mostram o numero.
+- Tela da reuniao (`/saleia/[id]`): "Oferta" nos dados e o mesmo bloco de decisao, para reunioes que nao entram no Report de ninguem (sem negociacao).
+- Testes: `npm run check` (136 unitarios; 5 novos em `saleia-rules.test.mjs`) e `npm run test:integration` (201, em 58 suites; 5 novos em `report.integration.mjs`, 3 em `saleia.integration.mjs`, cuja suite "desconexao" passou para o fim).
+
+### Limitacoes conhecidas
+- O SALE-IA so envia `offer` a partir da V.1.4.200 (V2-8.3, nao publicada) e o relatorio automatico dele nem grava em producao (V.1.4.199 nao publicada): sem isso, o numero fica 0 e toda reuniao aparece "sem analise".
+- "% das realizadas" divide reunioes do SALEIA pelas reunioes concluidas em Atividades (fontes diferentes); limitado a 100%.
+- Dias fechados antes da migration mostram 0; o retrato guarda so o numero, nao o motivo.
+- "Falta confirmar" e ao vivo, mesmo em dia fechado; decidir depois de fechar nao muda o numero gravado.
+- Gestor e administrador tambem confirmam e contestam reunioes de vendedores; nao ha restricao ao dono.
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
 
 ## Tarefa: V2-8.1 - Report Diario no SOS
 
@@ -48,7 +93,7 @@ V.1.27.0, commit `24d2a7f`, CI aprovado. Publicada em 2026-11-08 (`salesos-web:1
 - Testes: `npm run check` (131 unitarios; novo `report-rules.test.mjs`, 6) e `npm run test:integration` (193, em 56 suites; nova `report.integration.mjs`, 11).
 
 ### Limitacoes conhecidas
-- "So diagnostico" fica para a V2-8.2.
+- ~~"So diagnostico" fica para a V2-8.2~~: feito na V2-8.2 (SOS); envio pelo SALE-IA na V2-8.3.
 - Fechado nao reabre nem edita a observacao; nao ha lembrete para quem nao fechou.
 - Reunioes contam as atividades concluidas; reuniao analisada pelo SALE-IA sem atividade correspondente nao entra no numero (aparece na lista a parte).
 - Negociacao avancada conta pela pessoa que moveu, venda pelo dono; trocar o dono depois nao muda dia ja fechado.

@@ -1,7 +1,15 @@
 import { getAccessLevel } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import type { Prisma } from "@/lib/generated/prisma/client"
-import { matchMeeting, participantEmails, sortInsights, type InsightKind, type MeetingMatch } from "@/lib/saleia/rules"
+import {
+  diagnosisStatusOnIngest,
+  matchMeeting,
+  participantEmails,
+  sortInsights,
+  type DiagnosisStatus,
+  type InsightKind,
+  type MeetingMatch,
+} from "@/lib/saleia/rules"
 import type { SaleiaEvent } from "@/lib/validations/saleia-event"
 
 export interface SaleiaInsightItem {
@@ -26,6 +34,32 @@ export interface SaleiaMeetingItem {
   contact: { id: string; name: string } | null
   opportunity: { id: string; title: string; status: string; stageId: string; pipelineId: string } | null
   insights: SaleiaInsightItem[]
+  diagnosis: SaleiaDiagnosis
+}
+
+/** "So diagnostico" (V2-8.2): o que a IA disse da oferta e a decisao humana. */
+export interface SaleiaDiagnosis {
+  offerPresented: boolean | null
+  suggestedReason: string | null
+  status: DiagnosisStatus | null
+  reason: string | null
+  decidedAt: string | null
+}
+
+export function toDiagnosis(row: {
+  offerPresented: boolean | null
+  offerReason: string | null
+  diagnosisStatus: DiagnosisStatus | null
+  diagnosisReason: string | null
+  diagnosisDecidedAt: Date | null
+}): SaleiaDiagnosis {
+  return {
+    offerPresented: row.offerPresented,
+    suggestedReason: row.offerReason,
+    status: row.diagnosisStatus,
+    reason: row.diagnosisReason,
+    decidedAt: row.diagnosisDecidedAt?.toISOString() ?? null,
+  }
 }
 
 /**
@@ -71,6 +105,7 @@ function toItem(row: MeetingRow): SaleiaMeetingItem {
       dueDate: insight.dueDate?.toISOString() ?? null,
       status: insight.status,
     })),
+    diagnosis: toDiagnosis(row),
   }
 }
 
@@ -184,12 +219,25 @@ export async function ingestSaleiaEvent(organizationId: string, event: SaleiaEve
     prisma.$transaction(async (tx) => {
       const existing = await tx.saleiaMeeting.findUnique({
         where: { organizationId_externalId: { organizationId, externalId: meeting.externalId } },
-        select: { id: true },
+        select: { id: true, diagnosisStatus: true },
       })
 
+      // "So diagnostico": depois que uma pessoa decidiu, a reanalise nao muda a oferta.
+      const current = existing?.diagnosisStatus ?? null
+      const decided = current === "CONFIRMED" || current === "CONTESTED"
+      const offer = decided
+        ? {}
+        : {
+            offerPresented: event.offer?.presented ?? null,
+            offerReason: event.offer && !event.offer.presented ? event.offer.reason : null,
+            diagnosisStatus: diagnosisStatusOnIngest({ offerPresented: event.offer?.presented ?? null, current }),
+          }
+
       const saved = existing
-        ? await tx.saleiaMeeting.update({ where: { id: existing.id }, data })
-        : await tx.saleiaMeeting.create({ data: { ...data, organizationId, externalId: meeting.externalId } })
+        ? await tx.saleiaMeeting.update({ where: { id: existing.id }, data: { ...data, ...offer } })
+        : await tx.saleiaMeeting.create({
+            data: { ...data, ...offer, organizationId, externalId: meeting.externalId },
+          })
 
       await tx.saleiaInsight.deleteMany({ where: { meetingId: saved.id, status: "OPEN" } })
       if (event.insights.length > 0) {

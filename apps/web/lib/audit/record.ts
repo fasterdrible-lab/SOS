@@ -20,6 +20,9 @@ export type AuditAction =
   | "saleia.insight-accepted"
   | "saleia.insight-dismissed"
   | "saleia.insight-reopened"
+  | "saleia.diagnosis-confirmed"
+  | "saleia.diagnosis-contested"
+  | "saleia.diagnosis-reopened"
   | "daily-report.closed"
 
 interface AuditEntry {

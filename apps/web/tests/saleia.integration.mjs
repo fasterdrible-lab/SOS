@@ -332,6 +332,46 @@ describe("telas", () => {
   })
 })
 
+
+describe("oferta e so diagnostico (V2-8.2)", () => {
+  const offerOf = async (externalId) => {
+    const row = await meetingOf(externalId)
+    return { offerPresented: row.offerPresented, offerReason: row.offerReason, diagnosisStatus: row.diagnosisStatus }
+  }
+
+  it("sem o campo, nao avaliada; campo invalido, 400", async () => {
+    assert.equal((await send(event("sem-oferta"))).status, 201)
+    assert.deepEqual(await offerOf("sem-oferta"), { offerPresented: null, offerReason: null, diagnosisStatus: null })
+    assert.equal((await send(event("oferta-ruim", { offer: { presented: "nao" } }))).status, 400)
+    assert.equal((await send(event("oferta-longa", { offer: { presented: false, reason: "x".repeat(2001) } }))).status, 400)
+  })
+
+  it("oferta nao apresentada fica para confirmar, com o motivo sugerido", async () => {
+    const body = event("diag", { offer: { presented: false, reason: "Faltou o decisor" } })
+    assert.equal((await send(body)).status, 201)
+    assert.deepEqual(await offerOf("diag"), { offerPresented: false, offerReason: "Faltou o decisor", diagnosisStatus: "PENDING" })
+
+    // Reanalise antes de alguem decidir: segue a IA.
+    assert.equal((await send(event("diag", { offer: { presented: true, reason: "ignorado" } }))).status, 200)
+    assert.deepEqual(await offerOf("diag"), { offerPresented: true, offerReason: null, diagnosisStatus: null })
+  })
+
+  it("reenviar nao muda o que uma pessoa ja decidiu", async () => {
+    assert.equal((await send(event("diag", { offer: { presented: false, reason: "Faltou o decisor" } }))).status, 200)
+    await db.query(
+      `update saleia_meetings set "diagnosisStatus" = 'CONFIRMED', "diagnosisReason" = 'Decisor ausente' where "organizationId" = $1 and "externalId" = 'diag'`,
+      [ORG]
+    )
+    assert.equal((await send(event("diag", { offer: { presented: true } }))).status, 200)
+    const row = await meetingOf("diag")
+    assert.equal(row.offerPresented, false)
+    assert.equal(row.offerReason, "Faltou o decisor")
+    assert.equal(row.diagnosisStatus, "CONFIRMED")
+    assert.equal(row.diagnosisReason, "Decisor ausente")
+  })
+})
+
+// Por ultimo: depois dela nenhum evento e aceito.
 describe("desconexao", () => {
   it("recusa eventos e mantem as reunioes recebidas", async () => {
     const admin = await login("admin")

@@ -3,7 +3,10 @@ import { describe, it } from "node:test"
 
 import {
   ACTIVITY_TITLE_MAX,
+  diagnosisStatusOnIngest,
+  diagnosisSummary,
   matchMeeting,
+  planDiagnosisDecision,
   normalizeStageName,
   participantEmails,
   planInsightDecision,
@@ -224,5 +227,49 @@ describe("atividade da recomendacao", () => {
     assert.equal(activity.title.length, ACTIVITY_TITLE_MAX)
     assert.ok(activity.title.endsWith("…"))
     assert.ok(activity.description.includes(text))
+  })
+})
+
+describe("so diagnostico (V2-8.2)", () => {
+  it("ao receber: a analise define enquanto ninguem decidiu", () => {
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: false, current: null }), "PENDING")
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: true, current: null }), null)
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: null, current: null }), null)
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: true, current: "PENDING" }), null)
+  })
+
+  it("ao receber: a decisao de uma pessoa nao muda", () => {
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: true, current: "CONFIRMED" }), "CONFIRMED")
+    assert.equal(diagnosisStatusOnIngest({ offerPresented: null, current: "CONTESTED" }), "CONTESTED")
+  })
+
+  it("confirmar e contestar so o que falta confirmar; reabrir so o decidido", () => {
+    const pending = { offerPresented: false, status: "PENDING" }
+    assert.deepEqual(planDiagnosisDecision({ ...pending, action: "confirm" }), { ok: true, from: "PENDING", to: "CONFIRMED" })
+    assert.deepEqual(planDiagnosisDecision({ ...pending, action: "contest" }), { ok: true, from: "PENDING", to: "CONTESTED" })
+    assert.equal(planDiagnosisDecision({ ...pending, action: "reopen" }).status, 409)
+
+    const confirmed = { offerPresented: false, status: "CONFIRMED" }
+    assert.equal(planDiagnosisDecision({ ...confirmed, action: "contest" }).status, 409)
+    assert.deepEqual(planDiagnosisDecision({ ...confirmed, action: "reopen" }), { ok: true, from: "CONFIRMED", to: "PENDING" })
+  })
+
+  it("reuniao com oferta apresentada ou nao avaliada nao pede decisao", () => {
+    assert.equal(planDiagnosisDecision({ offerPresented: true, status: null, action: "confirm" }).status, 422)
+    assert.equal(planDiagnosisDecision({ offerPresented: null, status: null, action: "contest" }).status, 422)
+  })
+
+  it("conta so diagnostico sem as contestadas, o que falta confirmar e as sem analise", () => {
+    assert.deepEqual(
+      diagnosisSummary([
+        { offerPresented: false, diagnosisStatus: "PENDING" },
+        { offerPresented: false, diagnosisStatus: "CONFIRMED" },
+        { offerPresented: false, diagnosisStatus: "CONTESTED" },
+        { offerPresented: true, diagnosisStatus: null },
+        { offerPresented: null, diagnosisStatus: null },
+      ]),
+      { count: 2, pending: 1, unevaluated: 1 }
+    )
+    assert.deepEqual(diagnosisSummary([]), { count: 0, pending: 0, unevaluated: 0 })
   })
 })

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 
 import { AccessDenied } from "@/components/access-denied"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
@@ -16,6 +17,7 @@ import {
 } from "@/lib/report/service"
 import { BUSINESS_TIME_ZONE, calendarDateIn } from "@/lib/time/business-calendar"
 
+import { DiagnosisActions } from "../saleia/diagnosis-actions"
 import { CloseDayForm } from "./close-day-form"
 import { ReportFilters } from "./report-filters"
 
@@ -100,11 +102,17 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
         )}
       </p>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Números do dia">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6" aria-label="Números do dia">
         <Stat
           title="Reuniões realizadas"
           value={numbers.meetingsDone}
           detail={report.live.saleiaMeetings > 0 ? plural(report.live.saleiaMeetings, "analisada pelo SALEIA", "analisadas pelo SALEIA") : "Reuniões concluídas em Atividades"}
+        />
+        <Stat
+          title="Só diagnóstico"
+          value={numbers.diagnosisOnly}
+          detail={diagnosisDetail(numbers.diagnosisOnly, numbers.meetingsDone, report.diagnosis)}
+          alert={report.diagnosis.pending > 0}
         />
         <Stat title="FUPs" value={numbers.followUpsDone} detail="Follow-ups, ligações e e-mails concluídos" />
         <Stat title="Negociações avançadas" value={numbers.advancedDeals} detail="Foram para uma etapa à frente" />
@@ -121,6 +129,40 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
         <p className="text-xs text-muted-foreground">
           Os números acima são os registrados no fechamento. As listas abaixo mostram o dia como está agora.
         </p>
+      )}
+
+      {report.diagnosis.items.length > 0 && (
+        <Card className="border-foreground/5 bg-card py-0" data-section="so-diagnostico">
+          <CardContent className="space-y-4 p-5">
+            <div className="space-y-1">
+              <h2 className="text-sm font-semibold text-foreground">Só diagnóstico ({numbers.diagnosisOnly})</h2>
+              <p className="text-sm text-muted-foreground">
+                A análise da reunião diz que a oferta não foi apresentada. A IA sugere o motivo; confirme ou reescreva com as
+                suas palavras, ou conteste se a reunião foi completa.
+              </p>
+            </div>
+            <ul className="divide-y divide-foreground/5">
+              {report.diagnosis.items.map((item) => (
+                <li key={item.id} className="space-y-2 py-3" data-diagnosis-status={item.diagnosis.status}>
+                  <p className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="min-w-0 break-words text-foreground">{item.title}</span>
+                    {item.detail && <span className="text-muted-foreground">· {item.detail}</span>}
+                    <Badge variant="outline">{DIAGNOSIS_LABELS[item.diagnosis.status ?? "PENDING"]}</Badge>
+                    <Link href={item.href ?? "#"} className="text-xs text-gold-fg hover:underline">
+                      Ver análise
+                    </Link>
+                  </p>
+                  <DiagnosisActions
+                    meetingId={item.id}
+                    status={item.diagnosis.status ?? "PENDING"}
+                    suggestedReason={item.diagnosis.suggestedReason}
+                    reason={item.diagnosis.reason}
+                  />
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -149,6 +191,18 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
       </Card>
     </main>
   )
+}
+
+const DIAGNOSIS_LABELS = { PENDING: "Falta confirmar", CONFIRMED: "Confirmado", CONTESTED: "Contestado" } as const
+
+/** "67% das realizadas · 1 falta confirmar · 1 sem análise". */
+function diagnosisDetail(count: number, meetingsDone: number, diagnosis: { pending: number; unevaluated: number }): string {
+  const parts = [
+    meetingsDone > 0 ? `${Math.min(100, Math.round((count / meetingsDone) * 100))}% das realizadas` : null,
+    diagnosis.pending > 0 ? `${diagnosis.pending} falta confirmar` : null,
+    diagnosis.unevaluated > 0 ? `${diagnosis.unevaluated} sem análise` : null,
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(" · ") : "Reuniões sem a oferta apresentada"
 }
 
 function Stat({ title, value, detail, alert }: { title: string; value: number; detail: string; alert?: boolean }) {
@@ -249,6 +303,7 @@ function ClosedList({ reports, showPerson }: { reports: ClosedReport[]; showPers
                 <p className="text-xs text-muted-foreground">
                   {[
                     plural(report.meetingsDone, "reunião", "reuniões"),
+                    report.diagnosisOnly > 0 ? `${report.diagnosisOnly} só diagnóstico` : null,
                     plural(report.followUpsDone, "FUP", "FUPs"),
                     plural(report.advancedDeals, "avançada", "avançadas"),
                     `${plural(report.salesCount, "venda", "vendas")} (${brl.format(report.salesRevenue)})`,

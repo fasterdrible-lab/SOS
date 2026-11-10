@@ -1,5 +1,35 @@
 # CHANGELOG — SalesOS
 
+## Tarefa V2-8.3 — 2026-11-10 (no SALE-IA, sem nova versao do SOS)
+- O SALE-IA (V.1.4.200, repositorio proprio, pronta e nao publicada) passa a dizer no relatorio automatico se a oferta foi apresentada e envia `offer: { presented, reason }` no `meeting.analyzed`. Ver o `CHANGELOG.md` do SALE-IA.
+- Eventos gerados pelo SALE-IA (sem campo, apresentada, nao apresentada com e sem motivo) conferidos contra o validador do SOS (`lib/validations/saleia-event.ts`).
+- Publicar depois da V.1.28.0 do SOS; o SOS em producao (V.1.27.0) ignora `offer`, sem erro.
+- No SOS mudou so a documentacao: `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/ARCHITECTURE.md`, `docs/INTEGRACAO_SALEIA.md` e `CHANGELOG.md`.
+
+## [V.1.28.0] — 2026-11-10 (pronta localmente, nao publicada)
+
+### Tarefa V2-8.2 — "So diagnostico" no Report
+- Report: novo numero **So diagnostico** — reunioes analisadas pelo SALEIA em que a oferta nao foi apresentada, com "% das realizadas", "falta confirmar" e "sem analise".
+- Secao **So diagnostico**: a IA sugere o motivo; a pessoa **confirma o motivo** (como veio ou reescrito), diz que **nao foi so diagnostico** (sai do numero) ou **desfaz**. O mesmo bloco aparece na tela da reuniao, que tambem mostra se a oferta foi apresentada.
+- Fechar o dia grava o numero; dias fechados o mostram.
+- Contrato SALEIA (`docs/INTEGRACAO_SALEIA.md`): campo opcional `offer: { presented, reason }`, ainda na versao 1. Depois de uma pessoa decidir, reenviar a reuniao nao muda a oferta nem a decisao.
+- Decisoes auditadas (`saleia.diagnosis-confirmed`, `saleia.diagnosis-contested`, `saleia.diagnosis-reopened`).
+- O envio de `offer` pelo SALE-IA fica para a V2-8.3.
+- Testes: 5 unitarios em `saleia-rules.test.mjs`; 5 em `report.integration.mjs` e 3 em `saleia.integration.mjs`.
+
+**Migration:** `20261110120000_saleia_diagnosis_only` (aditiva: enum `SaleiaDiagnosisStatus`, seis colunas nulas em `saleia_meetings` e `daily_reports.diagnosisOnly` com padrao 0). Aplicada so em desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261110120000_saleia_diagnosis_only/migration.sql`
+- `apps/web/lib/saleia/diagnosis.ts`, `lib/validations/saleia-diagnosis.ts`
+- `apps/web/app/api/saleia/meetings/[id]/diagnosis/route.ts`, `app/(app)/saleia/diagnosis-actions.tsx`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/validations/saleia-event.ts`, `lib/saleia/rules.ts`, `lib/saleia/service.ts`, `lib/report/service.ts`, `lib/audit/record.ts`
+- `apps/web/app/(app)/report/page.tsx`, `app/(app)/saleia/[id]/page.tsx`
+- `apps/web/tests/saleia-rules.test.mjs`, `tests/report.integration.mjs`, `tests/saleia.integration.mjs`
+- `docs/INTEGRACAO_SALEIA.md`, `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [Documentacao] — 2026-11-08 (sem mudanca no app; producao segue na V.1.27.0)
 - `docs/GUIA_DE_USO.md`: tela **Report** (numeros, fechar o dia, dias fechados), decisoes sobre as sugestoes da SALEIA (criar atividade, mover etapa, descartar), blocos novos do Meu Dia e papeis atualizados.
 - `docs/DEPLOY.md`: o que fazer quando o build local cai por falta de memoria do Docker Desktop.

@@ -1,6 +1,6 @@
 # Integração SALE-IA → SalesOS
 
-Contrato do evento que o SALE-IA envia ao SalesOS depois de analisar uma reunião. Versão 1, definida na tarefa V2-7.1. O envio pelo SALE-IA é a tarefa V2-7.2.
+Contrato do evento que o SALE-IA envia ao SalesOS depois de analisar uma reunião. Versão 1, definida na tarefa V2-7.1. O envio pelo SALE-IA é a tarefa V2-7.2. O campo opcional `offer` entrou na V2-8.2, sem mudar a versão: quem não o envia continua válido. O SALE-IA o envia desde a V.1.4.200 (V2-8.3).
 
 ## Princípios
 
@@ -58,7 +58,8 @@ X-Saleia-Signature: sha256=<hex>
     { "kind": "PAIN", "text": "Processo comercial manual" },
     { "kind": "EVIDENCE", "text": "Tem orçamento aprovado para o 1º trimestre" },
     { "kind": "STAGE_SUGGESTION", "text": "Cliente pediu proposta formal", "stageName": "Proposta" }
-  ]
+  ],
+  "offer": { "presented": false, "reason": "O decisor não estava na reunião; nova reunião marcada para apresentar a proposta." }
 }
 ```
 
@@ -76,6 +77,7 @@ X-Saleia-Signature: sha256=<hex>
 | `meeting.summary` | Até 20.000 caracteres |
 | `links.opportunityId` | Id da negociação no SalesOS, se o SALE-IA souber; opcional |
 | `links.companyName` | Nome da empresa; opcional |
+| `offer` | Opcional (V2-8.2), ainda na versão 1. `presented` (booleano, obrigatório no objeto): a oferta foi apresentada na reunião? `reason` (até 2.000): por que não foi, quando `presented` é `false`; ignorado quando `true`. Sem o campo, a reunião fica "não avaliada" |
 | `insights` | Até 50. `kind` pode ser `RECOMMENDATION`, `OBJECTION`, `BUYING_SIGNAL`, `PAIN`, `EVIDENCE` ou `STAGE_SUGGESTION`. `text` é obrigatório (até 2.000). `quote` (até 2.000) e `dueDate` são opcionais. `STAGE_SUGGESTION` exige `stageName` |
 
 ## Como o SalesOS liga a reunião ao CRM
@@ -87,6 +89,10 @@ O SalesOS tenta, nesta ordem:
 3. **Empresa** com o nome em `links.companyName`, sem diferenciar maiúsculas.
 
 Sem negociação informada, a reunião só é ligada a uma negociação quando a empresa tem exatamente uma negociação em andamento. Se nada coincidir, a reunião fica "sem empresa", visível para gestor e administrador em `/saleia`.
+
+## Só diagnóstico (V2-8.2)
+
+Quando `offer.presented` é `false`, a reunião conta como **só diagnóstico** no Report do dono da negociação e fica "falta confirmar". Uma pessoa confirma o motivo sugerido em `offer.reason` (ou o reescreve), ou contesta ("não foi só diagnóstico"), que tira a reunião do número. Depois dessa decisão, reenviar a reunião não muda `offer` nem a decisão; antes dela, a reanálise substitui.
 
 ## Respostas
 

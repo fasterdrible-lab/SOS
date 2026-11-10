@@ -91,6 +91,22 @@ before(async () => {
     )
   }
 
+  // Reunioes do SALEIA de hoje na negociacao do vendedor1 (V2-8.2): duas sem a
+  // oferta apresentada, uma com a oferta e uma sem avaliacao.
+  for (const [name, offerPresented, reason] of [
+    ["diag1", false, "Cliente pediu para voltar com o socio"],
+    ["diag2", false, "Reuniao interrompida"],
+    ["oferta", true, null],
+    ["sem-analise", null, null],
+  ]) {
+    await db.query(
+      `insert into saleia_meetings (id, "organizationId", "externalId", title, "startedAt", participants, summary, "opportunityId",
+         "analyzedAt", "offerPresented", "offerReason", "diagnosisStatus", "updatedAt")
+       values ($1, $2, $1, $1, $3, '[]', 'Resumo', $4, now(), $5, $6, $7, now())`,
+      [id(name), ORG, NOW.toISOString(), id("avanca"), offerPresented, reason, offerPresented === false ? "PENDING" : null]
+    )
+  }
+
   // Avancar e ganhar pela API, para gerar o historico como a tela gera.
   const seller = await login("vendedor1")
   const moved = await seller.json(`/api/opportunities/${id("avanca")}`, "PATCH", { stageId: stageIdOf(ORG, "QUALIFICATION") })
@@ -112,7 +128,8 @@ describe("numeros do dia", () => {
     assert.equal(body.report.userId, id("vendedor1"))
     assert.deepEqual(body.report.live, {
       meetingsDone: 1,
-      saleiaMeetings: 0,
+      diagnosisOnly: 2,
+      saleiaMeetings: 4,
       followUpsDone: 2,
       advancedDeals: 1,
       salesCount: 1,
@@ -146,6 +163,79 @@ describe("numeros do dia", () => {
   })
 })
 
+describe("so diagnostico (V2-8.2)", () => {
+  const decide = async (name, meeting, body) =>
+    json(await (await login(name)).json(`/api/saleia/meetings/${id(meeting)}/diagnosis`, "POST", body))
+  const diagnosis = async () => (await report("vendedor1")).body.report
+
+  it("lista as que falta confirmar com o motivo sugerido", async () => {
+    const view = await diagnosis()
+    assert.equal(view.diagnosis.pending, 2)
+    assert.equal(view.diagnosis.unevaluated, 1)
+    assert.deepEqual(view.diagnosis.items.map((item) => item.id).sort(), [id("diag1"), id("diag2")])
+    const first = view.diagnosis.items.find((item) => item.id === id("diag1"))
+    assert.equal(first.diagnosis.status, "PENDING")
+    assert.equal(first.diagnosis.suggestedReason, "Cliente pediu para voltar com o socio")
+  })
+
+  it("recusa fora do escopo, sem motivo e reuniao com a oferta apresentada", async () => {
+    assert.equal((await decide("vendedor2", "diag1", { action: "contest" })).status, 404)
+    assert.equal((await decide("outro", "diag1", { action: "contest" })).status, 404)
+    assert.equal((await decide("vendedor1", "diag1", { action: "confirm", reason: "   " })).status, 400)
+    assert.equal((await decide("vendedor1", "diag1", { action: "apagar" })).status, 400)
+    assert.equal((await decide("vendedor1", "oferta", { action: "confirm", reason: "x" })).status, 422)
+    assert.equal((await decide("vendedor1", "sem-analise", { action: "contest" })).status, 422)
+    assert.equal((await decide("vendedor1", "diag1", { action: "reopen" })).status, 409)
+  })
+
+  it("confirma com o motivo reescrito, uma vez", async () => {
+    const confirmed = await decide("vendedor1", "diag1", { action: "confirm", reason: "  Socio nao estava na reuniao  " })
+    assert.equal(confirmed.status, 200)
+    assert.deepEqual(confirmed.body.meeting.diagnosis, { status: "CONFIRMED", reason: "Socio nao estava na reuniao" })
+    assert.equal((await decide("vendedor1", "diag1", { action: "contest" })).status, 409)
+
+    const { rows } = await db.query(
+      `select "diagnosisReason", "diagnosisDecidedById", "offerReason" from saleia_meetings where id = $1`,
+      [id("diag1")]
+    )
+    assert.deepEqual(rows[0], {
+      diagnosisReason: "Socio nao estava na reuniao",
+      diagnosisDecidedById: id("vendedor1"),
+      offerReason: "Cliente pediu para voltar com o socio",
+    })
+  })
+
+  it("contestar tira do numero; desfazer devolve; gestor tambem decide", async () => {
+    assert.equal((await decide("vendedor1", "diag2", { action: "contest" })).status, 200)
+    let view = await diagnosis()
+    assert.equal(view.live.diagnosisOnly, 1)
+    assert.equal(view.diagnosis.pending, 0)
+    assert.equal(view.diagnosis.items.length, 2, "contestada continua na lista para desfazer")
+
+    assert.equal((await decide("gestor", "diag2", { action: "reopen" })).status, 200)
+    view = await diagnosis()
+    assert.equal(view.live.diagnosisOnly, 2)
+    assert.equal(view.diagnosis.pending, 1)
+
+    assert.equal((await decide("vendedor1", "diag2", { action: "contest" })).status, 200)
+    assert.equal((await diagnosis()).live.diagnosisOnly, 1)
+  })
+
+  it("decisoes auditadas so com a reuniao", async () => {
+    const { rows } = await db.query(
+      `select action, metadata from audit_logs where "organizationId" = $1 and action like 'saleia.diagnosis-%' order by "createdAt"`,
+      [ORG]
+    )
+    assert.deepEqual(rows.map((row) => row.action), [
+      "saleia.diagnosis-confirmed",
+      "saleia.diagnosis-contested",
+      "saleia.diagnosis-reopened",
+      "saleia.diagnosis-contested",
+    ])
+    assert.deepEqual(rows[0].metadata, { meetingId: id("diag1") })
+  })
+})
+
 describe("fechamento", () => {
   it("recusa data invalida e dia futuro", async () => {
     assert.equal((await close("vendedor1", { day: "2026-13-01" })).status, 400)
@@ -158,6 +248,7 @@ describe("fechamento", () => {
     assert.equal(closed.body.report.day, TODAY)
     assert.equal(closed.body.report.notes, "Cliente pediu desconto")
     assert.equal(closed.body.report.meetingsDone, 1)
+    assert.equal(closed.body.report.diagnosisOnly, 1)
     assert.equal(closed.body.report.pendingCount, 1)
     assert.equal(closed.body.report.salesRevenue, 1500)
 
@@ -223,6 +314,13 @@ describe("telas", () => {
     const closedDay = await html("vendedor1", "/report")
     assert.match(closedDay, /Dia fechado em/)
     assert.match(closedDay, /Cliente pediu desconto/)
+    assert.match(closedDay, /data-section="so-diagnostico"/)
+    assert.match(closedDay, /Motivo confirmado/)
+    assert.match(closedDay, /1 só diagnóstico|Só diagnóstico/)
+
+    const meeting = await html("vendedor1", `/saleia/${id("diag1")}`)
+    assert.match(meeting, /Não apresentada/)
+    assert.match(meeting, /Socio nao estava na reuniao/)
     assert.ok(closedDay.includes('href="/report"'))
 
     const open = await html("vendedor2", "/report")

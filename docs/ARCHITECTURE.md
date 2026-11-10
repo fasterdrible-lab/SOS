@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-8.2, "Só diagnóstico" no Report. Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9, Configurações e administração. Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -86,7 +86,7 @@ Organization (tenant)
   └── OpportunityStageHistory (toda mudanca de etapa ou status, com responsavel)
   └── SalesGoal (meta mensal da equipe ou de um vendedor)
   └── SaleiaIntegration (segredo HMAC; uma por organizacao)
-  └── SaleiaMeeting (reuniao analisada pelo SALE-IA) └── SaleiaInsight (recomendacao, objecao, sinal, dor, evidencia, etapa sugerida)
+  └── SaleiaMeeting (reuniao analisada pelo SALE-IA; oferta apresentada e decisao do "so diagnostico") └── SaleiaInsight (recomendacao, objecao, sinal, dor, evidencia, etapa sugerida)
   └── DailyReport (dia fechado por uma pessoa: retrato dos numeros e observacao; unico por pessoa e dia)
 ```
 
@@ -171,6 +171,10 @@ getDailyReport (lib/report/service.ts): dia de Brasilia [inicio, fim) da pessoa,
   pendentes = atividades com data no dia nao concluidas | reunioes SALEIA a parte
 Fechar: so o proprio dia, hoje ou antes, uma vez (canCloseDay) -> DailyReport com o retrato + AuditLog
 Dia fechado: numeros do retrato; listas ao vivo
+So diagnostico (V2-8.2): evento com offer.presented = false -> SaleiaMeeting.diagnosisStatus PENDING
+  POST /api/saleia/meetings/[id]/diagnosis {confirm+reason|contest|reopen} -> decideDiagnosis (lib/saleia/diagnosis.ts)
+  numero = reunioes SALEIA do dia da pessoa sem oferta, menos CONTESTED (diagnosisSummary); retrato em diagnosisOnly
+  reenvio depois de CONFIRMED/CONTESTED nao muda oferta nem decisao (diagnosisStatusOnIngest)
 ```
 
 ### Dashboard Executivo
