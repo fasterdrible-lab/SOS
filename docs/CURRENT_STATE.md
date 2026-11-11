@@ -1,8 +1,8 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.27.0 em producao (`salesos-web:15`); V.1.28.0 (V2-8.2) pronta localmente, sem commit e nao publicada; SALE-IA V.1.4.200 (V2-8.3) pronta localmente
-**Data:** 2026-11-10
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7 e V2-8.1 publicadas (V2-7.2 no SALE-IA); V2-8.2 e V2-8.3 prontas; proxima: V2-9
+**Versao atual:** V.1.27.0 em producao (`salesos-web:15`); V.1.28.0 (V2-8.2) e V.1.29.0 (V2-9.1) prontas localmente, sem commit e nao publicadas; SALE-IA V.1.4.200 (V2-8.3) pronta localmente
+**Data:** 2026-11-11
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7 e V2-8.1 publicadas (V2-7.2 no SALE-IA); V2-8.2, V2-8.3 e V2-9.1 prontas; proxima: V2-9.2 (equipes)
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
@@ -17,6 +17,7 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
+  - V2-9.1 (pronta em 2026-11-11, nao publicada): Configuracoes > Usuarios (convite por link de uso unico valido por 7 dias, troca de papel, remocao sem deixar a organizacao sem administrador, link de nova senha valido por 24 h) e Configuracoes > Auditoria (consulta do `AuditLog` com filtros). O login abre a ultima organizacao usada. Migrations aditivas `20261111120000_member_invites` e `20261111130000_password_resets`. A V2-9 foi dividida (decisao do usuario): equipes na 9.2, configuracoes comerciais na 9.3.
   - V2-8.2 (pronta em 2026-11-10, nao publicada): "So diagnostico" no SOS. Campo opcional `offer` no contrato SALEIA, migration aditiva `20261110120000_saleia_diagnosis_only`, confirmar (com o motivo da IA ou reescrito), contestar e desfazer, numero e secao no Report, retrato no fechamento. O envio de `offer` pelo SALE-IA ficou para a V2-8.3.
   - V2-8.3 (pronta em 2026-11-10, nao publicada): o relatorio automatico do SALE-IA (V.1.4.200) diz se a oferta foi apresentada e o envio ao SOS leva `offer`. Nenhum arquivo do SOS mudou alem da documentacao.
   - V2-8.1 (publicada em 2026-11-08): Report Diario em `/report`, com reunioes, FUPs, negociacoes avancadas, vendas e pendentes do dia, fechamento do dia por cada pessoa e dias fechados. A V2-8 foi dividida (decisao do usuario): "So diagnostico" fica na V2-8.2.
@@ -28,7 +29,7 @@
   - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
   - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 136 unitarios e 201 de integracao, aprovados localmente com a V2-8.2 em 2026-11-10; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
+- **Testes:** 147 unitarios e 216 de integracao, aprovados localmente com a V2-9.1 em 2026-11-11; o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261106-170337`, antes da publicacao da V2-7.1), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -211,6 +212,15 @@ apps/web/app/(app)/report/page.tsx                -> tela Report (meu dia e dias
 apps/web/lib/saleia/diagnosis.ts                  -> "so diagnostico": confirmar, contestar e desfazer (V2-8.2)
 apps/web/app/api/saleia/meetings/[id]/diagnosis/route.ts -> decisao do "so diagnostico"
 apps/web/app/(app)/saleia/diagnosis-actions.tsx   -> motivo editavel e botoes (Report e reuniao)
+apps/web/lib/members/rules.ts                     -> papeis atribuiveis, ultimo administrador e estado do convite (regra pura)
+apps/web/lib/members/token.ts                     -> token do convite e hash guardado no banco
+apps/web/lib/members/service.ts                   -> membros, convites, aceite, troca de papel e remocao
+apps/web/lib/audit/actions.ts, query.ts           -> acoes auditadas com rotulos e consulta paginada do AuditLog
+apps/web/app/api/settings/members/**, invites/**, audit/route.ts -> administracao (V2-9.1)
+apps/web/app/api/invites/[token]/route.ts         -> aceite publico do convite
+apps/web/app/(app)/configuracoes/usuarios/*, auditoria/page.tsx, settings-nav.tsx -> telas Usuarios e Auditoria
+apps/web/app/convite/[token]/*                    -> pagina publica do convite
+apps/web/app/redefinir-senha/[token]/*, app/api/password-resets/[token]/route.ts -> nova senha pelo link do administrador
 docs/INTEGRACAO_SALEIA.md                         -> contrato do evento SALE-IA -> SalesOS
 apps/web/tests/support.mjs                        -> cliente HTTP e travas de ambiente dos testes de integracao
 apps/web/tests/*.test.mjs                         -> testes unitarios (permissoes, etapas, erros, calendario, metas)
@@ -276,6 +286,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - [x] Recomendacoes do SALEIA viram atividade, etapa sugerida aplicada por uma pessoa, pendentes no Meu Dia (V2-7.3, publicada em 2026-11-08)
 - [x] Report Diario: numeros do dia, fechamento por pessoa e dias fechados (V2-8.1, publicada em 2026-11-08)
 - [x] "So diagnostico" no Report, com confirmacao, reescrita ou contestacao humana (V2-8.2, no SOS; nao publicada)
+- [x] Usuarios: convite por link, troca de papel e remocao; consulta da auditoria (V2-9.1; nao publicada)
 
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
@@ -284,7 +295,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`. Desde a V2-1.3, a recusa do provedor aparece no log com o status HTTP.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
-- Nao ha tela para convidar usuarios nem atribuir papeis: e feito por SQL (`docs/DEPLOY.md`). O `create-admin` cria todos com o nome "Admin".
+- Convidar usuarios, atribuir papeis e gerar link de nova senha ja tem tela (V2-9.1, nao publicada); ate a publicacao, continua por SQL e `create-admin` (`docs/DEPLOY.md`). Depois dela, o `create-admin` so e preciso para o primeiro administrador e para contas em mais de uma organizacao.
 - `npm audit --omit=dev`: 1 alerta critico, em dependencia da CLI do `shadcn`, que nao roda no app.
 - Backup externo: a conferencia do arquivo no bucket depende do painel do Backblaze, e baixar e restaurar um arquivo do bucket real ainda nao foi testado (a restauracao foi simulada com destino local).
 - A chave Backblaze `...0004`, em uso, foi enviada pelo chat (tarefa 10.9) e tem permissao de apagar arquivos do bucket. O Object Lock esta desativado.
@@ -294,6 +305,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-9.1** - Usuarios e auditoria: convite por link de uso unico (so o hash no banco), aceite com conta nova ou existente, troca de papel e remocao sem deixar a organizacao sem administrador, link de nova senha gerado pelo administrador, login na ultima organizacao usada e consulta do `AuditLog` em Configuracoes. 363 testes automatizados (147 + 216). Pronta em 2026-11-11 (V.1.29.0), com duas migrations aditivas; falta commit, publicacao (com autorizacao, depois da V.1.28.0) e conferir em navegador.
+
 **Tarefa V2-8.3** - O SALE-IA passa a enviar `offer` (oferta apresentada e motivo): campo novo no relatorio automatico, na mesma chamada de IA, e `montar_oferta()` no envio. 7 testes novos no SALE-IA; os eventos gerados passaram pelo validador do SOS. Pronta em 2026-11-10 (SALE-IA V.1.4.200); falta commit e publicacao (com autorizacao), depois da V.1.4.199 e da V.1.28.0.
 
 **Tarefa V2-8.2** - "So diagnostico" no SOS: campo opcional `offer` no contrato SALEIA, recebimento que preserva a decisao humana, confirmar/reescrever/contestar/desfazer, numero e secao no Report e retrato no fechamento. 337 testes automatizados (136 + 201). Pronta em 2026-11-10 (V.1.28.0), com migration aditiva; falta commit, publicacao (com autorizacao) e conferir em navegador.
@@ -349,12 +362,12 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Fazer um teste completo das telas em navegador com a conta real e com cada papel.
 - Conferir em navegador as telas da V2-6, da V2-7.3 (acoes na reuniao da SALEIA) e da V2-8.1 (Report).
 - Publicar o SALE-IA V.1.4.199 (com autorizacao e `reunioes_ativas = 0`), reprocessar as 13 sessoes com relatorio em erro (pedido do usuario) e conferir a primeira reuniao real chegando em `/saleia` (log do SALE-IA: `journalctl -u saleia | grep '\[SalesOS\]'`). Trocar o token do Grafana Cloud exposto no chat.
-- Publicar a V2-8.2 (com autorizacao e backup antes) e depois o SALE-IA V.1.4.199 e V.1.4.200 (V2-8.3); seguir com as FASES V2-9 e V2-10 (`docs/TASKS.md`).
+- Publicar a V2-8.2 e a V2-9.1 (com autorizacao e backup antes) e depois o SALE-IA V.1.4.199 e V.1.4.200 (V2-8.3); seguir com a V2-9.2, a V2-9.3 e a V2-10 (`docs/TASKS.md`).
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-Antes, se autorizado: publicar a V2-8.2 no SOS (backup antes) e, em seguida, o SALE-IA V.1.4.199 e V.1.4.200 (com `reunioes_ativas = 0`). Depois, FASE V2-9: Configuracoes e administracao (`docs/TASKS.md`).
+Antes, se autorizado: publicar a V2-8.2 e a V2-9.1 no SOS (backup antes; tres migrations aditivas) e, em seguida, o SALE-IA V.1.4.199 e V.1.4.200 (com `reunioes_ativas = 0`). Depois, V2-9.2: equipes, com o gestor vendo so a propria equipe (`docs/TASKS.md`).
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

@@ -51,12 +51,26 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
+        const userId = user.id as string
 
-        const member = await prisma.organizationMember.findFirst({
-          where: { userId: user.id as string },
-          orderBy: { createdAt: "asc" },
-          select: { organizationId: true, role: true },
+        // Abre a ultima organizacao usada (troca de cliente ou convite aceito);
+        // sem ela, ou se o vinculo sumiu, a mais antiga.
+        const last = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { lastOrganizationId: true },
         })
+        const member =
+          (last?.lastOrganizationId
+            ? await prisma.organizationMember.findUnique({
+                where: { organizationId_userId: { organizationId: last.lastOrganizationId, userId } },
+                select: { organizationId: true, role: true },
+              })
+            : null) ??
+          (await prisma.organizationMember.findFirst({
+            where: { userId },
+            orderBy: { createdAt: "asc" },
+            select: { organizationId: true, role: true },
+          }))
 
         token.organizationId = member?.organizationId ?? null
         token.role = member?.role ?? null

@@ -37,6 +37,8 @@ model Organization {
   saleiaMeetings  SaleiaMeeting[]
   saleiaInsights  SaleiaInsight[]
   dailyReports    DailyReport[]
+  invites         OrganizationInvite[]
+  passwordResets  PasswordReset[]
 
   @@map("organizations")
 }
@@ -55,6 +57,47 @@ model OrganizationMember {
   @@map("organization_members")
 }
 
+/// Convite por link de uso unico (V2-9.1). Guarda so o hash do token.
+model OrganizationInvite {
+  id             String    @id @default(cuid())
+  organizationId String
+  email          String
+  role           Role
+  tokenHash      String    @unique
+  invitedById    String?
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  acceptedUserId String?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invitedBy    User?        @relation("InviteSentBy", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@map("organization_invites")
+}
+
+/// Link de redefinicao de senha gerado por um administrador (V2-9.1). So o hash do token.
+model PasswordReset {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String
+  tokenHash      String    @unique
+  createdById    String?
+  expiresAt      DateTime
+  usedAt         DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("PasswordResetFor", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("PasswordResetBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@map("password_resets")
+}
+
 // ─── AUTENTICAÇÃO ────────────────────────────────────────────────────────────
 
 model User {
@@ -64,6 +107,8 @@ model User {
   emailVerified DateTime?
   image         String?
   passwordHash  String?
+  /// Ultima organizacao aberta: o login volta para ela (V2-9.1). Sem FK: se o vinculo sumir, vale a mais antiga.
+  lastOrganizationId String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -77,6 +122,9 @@ model User {
   salesGoals         SalesGoal[] @relation("SalesGoalUser")
   salesGoalsUpdated  SalesGoal[] @relation("SalesGoalUpdatedBy")
   dailyReports       DailyReport[]
+  invitesSent        OrganizationInvite[] @relation("InviteSentBy")
+  passwordResets     PasswordReset[]      @relation("PasswordResetFor")
+  passwordResetsSent PasswordReset[]      @relation("PasswordResetBy")
 
   @@map("users")
 }

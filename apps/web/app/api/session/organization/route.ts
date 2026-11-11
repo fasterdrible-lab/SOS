@@ -36,6 +36,11 @@ export const POST = withApiErrors("POST /api/session/organization", async (reque
   }
 
   await unstable_update({ user: { organizationId: member.organizationId } })
+  // O proximo login volta para esta organizacao (V2-9.1).
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { lastOrganizationId: member.organizationId },
+  })
 
   if (session.user.organizationId !== member.organizationId) {
     await recordAudit({

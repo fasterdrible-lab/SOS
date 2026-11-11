@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9, Configurações e administração. Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9.2, equipes. Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -72,6 +72,8 @@ O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-re
 ```
 Organization (tenant)
   └── User (N:N via OrganizationMember)
+  └── OrganizationInvite (convite por link: hash do token, papel, validade, aceite ou revogacao)
+  └── PasswordReset (link de nova senha gerado por um administrador: hash do token, validade, uso)
   └── Lead
   └── Company
   └── Contact
@@ -101,8 +103,16 @@ Login → NextAuth → Session com {userId, organizationId, role}
 ### Multiempresa
 ```
 Consultor cria Organization em /clientes → vira OrganizationMember (CONSULTANT)
-Convite de membros por email: planejado, ainda não implementado
-Usuários são criados por script (npm run create-admin): não há cadastro público
+Convite (V2-9.1): administrador gera link de uso unico (/convite/{token}, 7 dias) em Configuracoes > Usuarios
+  banco guarda so sha256(token) | aceite publico POST /api/invites/{token}: conta nova (nome + senha 12+)
+  ou existente (senha atual) -> OrganizationMember com o papel do convite, condicionado ao estado lido
+Papel e remocao: /api/settings/members/[id] (members:manage), vinculos travados (for update) na transacao
+  ninguem muda o proprio papel nem se remove | a organizacao nunca fica sem administrador (lib/members/rules.ts)
+Nova senha: administrador gera link /redefinir-senha/{token} (24 h, uso unico, so sha256 no banco) para
+  conta que pertence so a esta organizacao | POST /api/password-resets/{token} grava a senha
+Login: abre User.lastOrganizationId se o vinculo existe, senao a organizacao mais antiga;
+  gravado pelo aceite do convite e por POST /api/session/organization
+Primeiro administrador ainda por script (npm run create-admin): não há cadastro público
 Todas queries: WHERE organization_id = session.organizationId
 ```
 
@@ -113,6 +123,7 @@ A sessao le vinculo e papel do banco a cada auth(); o JWT nao e fonte de autoriz
 Rotas: denyUnless(role, permissao) -> 403. Matriz em lib/authz/permissions.ts
 Vendedor: oportunidades filtradas por ownerId (opportunityScope)
 Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
+  acoes e rotulos em lib/audit/actions.ts | consulta: /configuracoes/auditoria e GET /api/settings/audit (audit:read)
 ```
 
 ### Navegacao e Meu Dia

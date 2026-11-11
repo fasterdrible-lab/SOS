@@ -1,5 +1,35 @@
 # CHANGELOG — SalesOS
 
+## [V.1.29.0] — 2026-11-11 (pronta localmente, nao publicada)
+
+### Tarefa V2-9.1 — Usuarios, convites e auditoria
+- Configuracoes ganha abas: **Integracoes**, **Usuarios** e **Auditoria**.
+- **Convidar pessoa**: o administrador informa e-mail e papel (administrador, gestor ou vendedor) e recebe um link de uso unico, valido por 7 dias, para enviar por WhatsApp ou e-mail. O link aparece uma vez; o banco guarda so o hash. Novo convite para o mesmo e-mail cancela o anterior; convites em aberto podem ser cancelados.
+- Pagina publica **/convite/...**: quem nao tem conta cria com nome e senha (12+ caracteres); quem ja tem entra com a senha atual. Depois, abre direto o Meu Dia.
+- **Pessoas**: trocar o papel e remover da organizacao (a conta continua; negociacoes e atividades ficam). Ninguem muda o proprio papel nem remove a si mesmo, e a organizacao nunca fica sem administrador. Vale na hora, pela sessao revalidada no banco.
+- **Esqueceu a senha**: em Usuarios, o administrador gera um link de nova senha, valido por 24 horas e uma unica vez, e envia para a pessoa; a senha antiga vale ate o link ser usado. Nao vale para conta que participa de outras organizacoes. No login, o link **Esqueci a senha**, ao lado do campo Senha, explica como pedir.
+- **Login na ultima organizacao usada**: quem aceita convite de outra organizacao ja entra nela, e quem troca de cliente volta para o escolhido no proximo login (antes, sempre a mais antiga).
+- **Auditoria**: as operacoes sensiveis da organizacao, com quem fez e quando, filtro por acao e pessoa e paginas de 50.
+- Novas permissoes `members:manage` e `audit:read` (administrador). Novas acoes auditadas `member.invited`, `member.invite-revoked`, `member.joined`, `member.role-changed`, `member.removed`, `member.password-reset-created` e `member.password-reset`, sem e-mail nem token.
+- Testes: `member-rules.test.mjs` (11) e `members.integration.mjs` (15).
+
+**Migrations:** `20261111120000_member_invites` (aditiva: tabela `organization_invites`) e `20261111130000_password_resets` (aditiva: tabela `password_resets` e coluna nula `users.lastOrganizationId`). Aplicadas so em desenvolvimento.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261111120000_member_invites/migration.sql`, `20261111130000_password_resets/migration.sql`
+- `apps/web/app/api/settings/members/[id]/password-reset/route.ts`, `app/api/password-resets/[token]/route.ts`, `app/redefinir-senha/[token]/page.tsx`, `reset-form.tsx`
+- `apps/web/lib/members/rules.ts`, `token.ts`, `service.ts`, `session.ts`, `lib/validations/member.ts`
+- `apps/web/lib/audit/actions.ts`, `lib/audit/query.ts`
+- `apps/web/app/api/settings/members/route.ts`, `members/[id]/route.ts`, `invites/route.ts`, `invites/[id]/route.ts`, `audit/route.ts`, `app/api/invites/[token]/route.ts`
+- `apps/web/app/(app)/configuracoes/settings-nav.tsx`, `usuarios/page.tsx`, `usuarios/member-list.tsx`, `usuarios/invite-panel.tsx`, `auditoria/page.tsx`
+- `apps/web/app/convite/[token]/page.tsx`, `accept-form.tsx`
+- `apps/web/tests/member-rules.test.mjs`, `tests/members.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/authz/permissions.ts`, `lib/audit/record.ts`, `lib/auth.config.ts`, `lib/auth.ts`
+- `apps/web/app/(app)/configuracoes/page.tsx`, `app/(auth)/login/page.tsx`, `app/api/session/organization/route.ts`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## Tarefa V2-8.3 — 2026-11-10 (no SALE-IA, sem nova versao do SOS)
 - O SALE-IA (V.1.4.200, repositorio proprio, pronta e nao publicada) passa a dizer no relatorio automatico se a oferta foi apresentada e envia `offer: { presented, reason }` no `meeting.analyzed`. Ver o `CHANGELOG.md` do SALE-IA.
 - Eventos gerados pelo SALE-IA (sem campo, apresentada, nao apresentada com e sem motivo) conferidos contra o validador do SOS (`lib/validations/saleia-event.ts`).

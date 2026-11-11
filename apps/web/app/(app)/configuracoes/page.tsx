@@ -7,6 +7,7 @@ import { API_PROVIDERS } from "@/lib/validations/api-integration"
 
 import { IntegrationCard } from "./integration-card"
 import { SaleiaCard } from "./saleia-card"
+import { SettingsNav } from "./settings-nav"
 
 const PROVIDER_INFO: Record<
   (typeof API_PROVIDERS)[number],
@@ -49,6 +50,7 @@ export default async function ConfiguracoesPage() {
     <div className="flex flex-1 flex-col">
       <main className="flex-1 p-6">
         <div className="mx-auto max-w-5xl space-y-6">
+          {organizationId && <SettingsNav active="integracoes" />}
           <div>
             <h1 className="text-2xl font-semibold text-foreground">
               Integracoes de IA

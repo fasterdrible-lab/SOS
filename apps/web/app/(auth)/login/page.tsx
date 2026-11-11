@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showForgot, setShowForgot] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -99,7 +100,18 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgot((open) => !open)}
+                  aria-expanded={showForgot}
+                  aria-controls="forgot-password-help"
+                  className="text-xs text-gold-fg hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4A64F] rounded"
+                >
+                  Esqueci a senha
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -111,6 +123,18 @@ export default function LoginPage() {
                 className="bg-foreground/5 border-foreground/10 text-foreground placeholder:text-foreground/30 focus-visible:ring-[#D4A64F]"
               />
             </div>
+
+            {showForgot && (
+              <div
+                id="forgot-password-help"
+                role="status"
+                className="rounded-md border border-[#D4A64F]/30 bg-[#D4A64F]/10 px-3 py-2 text-sm text-foreground"
+              >
+                Peça ao administrador da sua empresa um link para criar uma nova senha. Ele gera o link em{" "}
+                <span className="font-medium">Configurações &gt; Usuários</span>, pelo botão da chave ao lado do seu
+                nome. O link vale por 24 horas.
+              </div>
+            )}
 
             {error && (
               <p className="text-sm text-red-600 dark:text-red-400 bg-red-400/10 rounded-md px-3 py-2">{error}</p>

@@ -24,13 +24,49 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, migration aditiva; falta publicar com autorizacao) |
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, local; falta publicar com autorizacao, depois da V.1.4.199 e da V.1.28.0) |
-| V2-9 | Configuracoes e administracao | proxima |
+| V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, migration aditiva; falta publicar com autorizacao) |
+| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | proxima |
+| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | todo |
 | V2-10 | Homologacao final | todo |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-9.1 - Usuarios, convites e auditoria
+
+### Decisao (usuario, 2026-11-11)
+A V2-9 foi dividida em tres: 9.1 usuarios (listar, convidar, trocar papel, remover) e consulta do `AuditLog`; 9.2 equipes; 9.3 configuracoes comerciais. Convite por **link de uso unico** com validade, enviado por quem convida (WhatsApp ou e-mail): o app nao envia e-mail.
+
+### Estado
+V.1.29.0, sem commit. Duas migrations aditivas, `20261111120000_member_invites` e `20261111130000_password_resets`, aplicadas so em desenvolvimento. Nao publicada; publicar depois (ou junto) da V.1.28.0.
+
+### Correcoes pedidas pelo usuario (2026-11-11)
+Duas falhas apontadas depois da primeira entrega e corrigidas na mesma versao:
+1. **Esqueci a senha:** nao havia como recuperar o acesso sem o servidor. Agora o administrador gera um link de nova senha em Usuarios, e o login diz a quem pedir.
+2. **Segunda organizacao:** quem aceitava convite de outra organizacao continuava abrindo a mais antiga, no aceite e em todo login. Agora o login abre a ultima organizacao usada (a do convite, depois a escolhida em "Trocar de cliente").
+
+### Resultado
+- Model `OrganizationInvite` (organizacao, e-mail normalizado, papel, `tokenHash` unico, quem convidou, validade, aceite, revogacao). O banco guarda so o SHA-256 do token de 256 bits (`lib/members/token.ts`); o link aparece uma unica vez para quem convida.
+- Regras puras (`lib/members/rules.ts`): papeis atribuiveis administrador (`ADMIN`), gestor (`MANAGER`) e vendedor (`MEMBER`); `OWNER` e `CONSULTANT` continuam valendo como administrador. Ninguem muda o proprio papel nem remove a si mesmo; a organizacao nunca fica sem administrador (`planRoleChange`, `planRemoval`). Convite vale 7 dias; estado aceito > revogado > expirado > pendente (`inviteState`).
+- API (permissao nova `members:manage`, administrador): `GET /api/settings/members` (pessoas e convites em aberto, sem link), `POST /api/settings/invites` (`{ email, role }`, 201 com `path`; membro existente 409; convite pendente para o mesmo e-mail e revogado), `DELETE /api/settings/invites/[id]` (ja aceito ou revogado 409), `PATCH /api/settings/members/[id]` (`{ role }`; mesmo papel 409, proprio papel 422) e `DELETE /api/settings/members/[id]` (remove so o vinculo; a conta continua). Fora da organizacao, 404. Troca e remocao travam os vinculos da organizacao (`for update`) na transacao.
+- Aceite publico (liberado em `lib/auth.config.ts`): pagina `/convite/[token]` e `POST /api/invites/[token]`. Conta nova: nome e senha de 12+ caracteres. Conta existente (e-mail sem diferenciar maiusculas): a senha atual, para provar que e a dona. Aceite condicionado ao estado lido (dois aceites geram um vinculo e um 409). Depois, a tela entra direto no Meu Dia.
+- Auditoria: `GET /api/settings/audit?acao=&pessoa=&depois=` (permissao nova `audit:read`, administrador), 50 por pagina, mais recente primeiro. Acoes e rotulos em `lib/audit/actions.ts` (`AUDIT_ACTION_LABELS`, que passa a definir o tipo `AuditAction`). Novas acoes `member.invited`, `member.invite-revoked`, `member.joined`, `member.role-changed` (`from`, `to`) e `member.removed`, sem e-mail nem token.
+- Nova senha: model `PasswordReset` (pessoa, organizacao de quem gerou, `tokenHash` unico, validade de 24 h, uso, revogacao). `POST /api/settings/members/[id]/password-reset` (`members:manage`) devolve o link `/redefinir-senha/{token}` uma vez; um link anterior nao usado deixa de valer. So para conta que pertence apenas a esta organizacao (`planPasswordReset`, 422): a senha de quem participa de outras daria acesso a elas. A pagina publica e `POST /api/password-resets/[token]` gravam a senha (12+ caracteres) uma vez, condicionado ao estado lido, e entram no Meu Dia. A senha antiga vale ate o link ser usado. Auditoria `member.password-reset-created` (por quem gerou) e `member.password-reset` (pela pessoa), sem o token. No login, o link "Esqueci a senha" ao lado do campo Senha explica que o link e pedido ao administrador (Configuracoes > Usuarios, botao da chave).
+- Ultima organizacao: `User.lastOrganizationId` (sem FK). O login (`lib/auth.ts`) abre essa organizacao se o vinculo ainda existe; senao, a mais antiga. Gravada pelo aceite do convite (na transacao) e por `POST /api/session/organization` (Trocar de cliente, Meus Clientes, novo cliente).
+- Telas: Configuracoes ganha abas Integracoes, **Usuarios** (`/configuracoes/usuarios`: convidar, link para copiar, convites em aberto com cancelar, pessoas com papel, link de nova senha e remover) e **Auditoria** (`/configuracoes/auditoria`: filtros por acao e pessoa, "Ver mais antigas").
+- Testes: `npm run check` (147 unitarios; novo `member-rules.test.mjs`, 11) e `npm run test:integration` (216, em 63 suites; nova `members.integration.mjs`, 15).
+
+### Limitacoes conhecidas
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
+- ~~Pessoa que entra numa segunda organizacao continua abrindo a primeira~~: corrigido (ultima organizacao usada).
+- ~~Nao ha "esqueci a senha"~~: corrigido com o link gerado pelo administrador. Nao e autoatendimento (o app nao envia e-mail): a pessoa precisa pedir. Conta em mais de uma organizacao (o consultor) e o proprio administrador sem outro administrador continuam pelo `create-admin`.
+- Gravar a senha nova nao encerra sessoes ja abertas com a senha antiga (o JWT continua valendo ate expirar).
+- Conta existente sem senha (so Google) nao consegue aceitar convite; o login Google nao esta configurado.
+- As rotas publicas de aceite e de nova senha nao tem limite por IP; o token de 256 bits impede adivinhar links, mas um convite valido para conta existente permite tentar senhas daquela conta.
+- Remover a pessoa mantem negociacoes e atividades com ela como dona (gestores continuam vendo); nao ha transferencia em lote.
+- Tentativas negadas (403) continuam fora do `AuditLog`; a auditoria nao exporta nem tem filtro por periodo.
 
 ## Tarefa: V2-8.3 - SALE-IA envia `offer`
 
@@ -253,7 +289,7 @@ Chrome headless com arrastar nativo (CDP), conferindo o banco: arrastar pelo car
 
 ### Limitacoes conhecidas
 - Edicao sem controle de concorrencia: vale a ultima gravacao.
-- Trocar o dono nao aparece no historico da negociacao, so no `AuditLog` (sem tela de consulta ate a V2-9).
+- Trocar o dono nao aparece no historico da negociacao, so no `AuditLog` (consultado em Configuracoes > Auditoria desde a V2-9.1).
 - Nao ha filtro por periodo de criacao nem o painel "Filtros" da referencia.
 - O botao "Criar Tarefa" do cartao da referencia depende da V2-6.
 - Quadro sem paginacao alem do limite de 500.
@@ -386,11 +422,11 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 - Controle negativo: com as protecoes desligadas em uma compilacao temporaria, 10 dos 23 testes de integracao falharam.
 
 ### Limitacoes conhecidas
-- Nao ha interface para atribuir papeis ou donos (V2-9). Oportunidades antigas e as criadas pelo IA SDR ficam sem dono, visiveis para gestor e administrador.
+- ~~Nao ha interface para atribuir papeis~~: feito na V2-9.1 (o dono da negociacao e trocado na edicao desde a V2-4.2). Oportunidades antigas e as criadas pelo IA SDR ficam sem dono, visiveis para gestor e administrador.
 - Empresas, contatos, diagnosticos e planos seguem visiveis para toda a organizacao. A contagem de leads no dashboard do vendedor tambem, pois `Lead` nao tem dono.
 - Sem equipes, o gestor ve toda a organizacao (V2-9).
 - A sidebar ainda mostra ao vendedor os itens restritos, que abrem a tela "Acesso restrito" (V2-2 reorganiza o menu).
-- Tentativas negadas nao entram no `AuditLog`, e nao ha tela de consulta (V2-9).
+- Tentativas negadas nao entram no `AuditLog`. ~~Nao ha tela de consulta~~: feita na V2-9.1.
 - A interface nao foi testada em navegador com cada papel.
 
 ## FASE 1 - Estrutura + Projeto Base concluida

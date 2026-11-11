@@ -84,7 +84,11 @@ Em scripts, use `</dev/null` nos comandos `docker compose run` e `exec`: sem iss
 
 ## Usuários
 
-O app não tem cadastro público. Para criar um usuário ou redefinir a senha, rode no terminal local, escolhendo letras e números, com pelo menos 12 caracteres:
+Desde a V.1.29.0 (V2-9.1), o administrador de cada cliente faz pelo app, em **Configurações > Usuários**: convida por link (7 dias), troca o papel, remove e gera link de nova senha (24 h) para quem esqueceu. Cada link aparece uma vez para quem gerou e é enviado por ele (WhatsApp ou e-mail); o app não envia e-mail. As operações ficam em **Configurações > Auditoria**.
+
+O terminal ainda é necessário para: criar o primeiro administrador de um banco novo; redefinir a senha de quem participa de mais de um cliente (a tela recusa, para que o administrador de um não entre na conta usada no outro); e redefinir a senha do único administrador de um cliente.
+
+O app não tem cadastro público. Para criar um usuário ou redefinir a senha pelo terminal, rode no terminal local, escolhendo letras e números, com pelo menos 12 caracteres:
 
 ```powershell
 ssh -t -i ~/.ssh/saleia_vps root@200.141.20.162 'cd /opt/salesos; read -rp Senha: P; docker compose run --rm --no-deps -e ADMIN_EMAIL=email@exemplo.com -e ADMIN_PASSWORD=$P web node scripts/create-admin.mjs'
@@ -94,7 +98,7 @@ O script cria o usuário com o nome "Admin" e sem vínculo com nenhum cliente. S
 
 ### Colocar um usuário em um cliente, com papel
 
-Ainda não há tela de convite (Tarefa V2-9.1). Até lá, depois de criar o usuário com o comando acima, abra o banco:
+Prefira o convite pela tela. O caminho por SQL fica para quando não houver administrador no cliente: depois de criar o usuário com o comando acima, abra o banco:
 
 ```powershell
 ssh -t -i ~/.ssh/saleia_vps root@200.141.20.162 'cd /opt/salesos; docker compose exec db psql -U salesos -d salesos'

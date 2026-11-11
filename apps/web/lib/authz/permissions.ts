@@ -39,6 +39,10 @@ const PERMISSIONS = {
   "sdr:read": MANAGERS,
   "consultant:use": MANAGERS,
   "integrations:manage": ADMINS,
+  /** Convidar, trocar papel e remover pessoas da organizacao. */
+  "members:manage": ADMINS,
+  /** Consultar o registro de auditoria. */
+  "audit:read": ADMINS,
   "organizations:create": ADMINS,
 } as const
 
