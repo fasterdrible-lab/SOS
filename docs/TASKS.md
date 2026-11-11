@@ -22,9 +22,9 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, em producao desde 2026-11-08, `salesos-web:15`) |
-| V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, migration aditiva; falta publicar com autorizacao) |
-| V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, local; falta publicar com autorizacao, depois da V.1.4.199 e da V.1.28.0) |
-| V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, migration aditiva; falta publicar com autorizacao) |
+| V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, em producao desde 2026-11-11, `salesos-web:16`) |
+| V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, local; falta publicar com autorizacao, depois da V.1.4.199; a V.1.28.0 ja esta em producao) |
+| V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | proxima |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | todo |
 | V2-10 | Homologacao final | todo |
@@ -40,7 +40,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 A V2-9 foi dividida em tres: 9.1 usuarios (listar, convidar, trocar papel, remover) e consulta do `AuditLog`; 9.2 equipes; 9.3 configuracoes comerciais. Convite por **link de uso unico** com validade, enviado por quem convida (WhatsApp ou e-mail): o app nao envia e-mail.
 
 ### Estado
-V.1.29.0, sem commit. Duas migrations aditivas, `20261111120000_member_invites` e `20261111130000_password_resets`, aplicadas so em desenvolvimento. Nao publicada; publicar depois (ou junto) da V.1.28.0.
+V.1.29.0, commit `a727a67`, CI aprovado. Publicada em 2026-11-11 (`salesos-web:16`, junto com a V.1.28.0), depois do backup `salesos-20261111-192322` (local e externo), com `reunioes_ativas = 0` no SALE-IA. Migrations aditivas `20261111120000_member_invites` e `20261111130000_password_resets` aplicadas em producao. Conferido em producao sem sessao: `/login` mostra "Esqueci a senha"; `/convite/...` e `/redefinir-senha/...` abrem sem login (token invalido: "Convite nao encontrado", API 404); `/configuracoes/usuarios` leva ao login.
 
 ### Correcoes pedidas pelo usuario (2026-11-11)
 Duas falhas apontadas depois da primeira entrega e corrigidas na mesma versao:
@@ -93,7 +93,7 @@ SALE-IA V.1.4.200, sem commit e nao publicada (repositorio do SALE-IA; detalhe n
 Pela decisao de 2026-11-08 (abaixo, na V2-8.1), o envio pelo SALE-IA vem depois e em outro repositorio, com deploy proprio. Seguindo o padrao da V2-7.1/7.2, ficou separado como V2-8.3; a V2-8.2 e so o SOS, testada com eventos simulados. Referencia: captura local `telas 5 crm.jpeg`.
 
 ### Estado
-V.1.28.0, sem commit. Migration aditiva `20261110120000_saleia_diagnosis_only`, aplicada so em desenvolvimento. Nao publicada.
+V.1.28.0, commit `41072db`. Publicada em 2026-11-11 junto com a V.1.29.0 (`salesos-web:16`); migration aditiva `20261110120000_saleia_diagnosis_only` aplicada em producao.
 
 ### Resultado
 - Contrato (`docs/INTEGRACAO_SALEIA.md`): campo opcional `offer: { presented, reason? }` no `meeting.analyzed` v1. Sem o campo, "nao avaliada"; `presented` invalido ou `reason` acima de 2.000, 400.

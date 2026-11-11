@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.29.0] — 2026-11-11 (pronta localmente, nao publicada)
+## [V.1.29.0] — 2026-11-11 (publicada em producao, imagem `salesos-web:16`)
 
 ### Tarefa V2-9.1 — Usuarios, convites e auditoria
 - Configuracoes ganha abas: **Integracoes**, **Usuarios** e **Auditoria**.
@@ -13,7 +13,7 @@
 - Novas permissoes `members:manage` e `audit:read` (administrador). Novas acoes auditadas `member.invited`, `member.invite-revoked`, `member.joined`, `member.role-changed`, `member.removed`, `member.password-reset-created` e `member.password-reset`, sem e-mail nem token.
 - Testes: `member-rules.test.mjs` (11) e `members.integration.mjs` (15).
 
-**Migrations:** `20261111120000_member_invites` (aditiva: tabela `organization_invites`) e `20261111130000_password_resets` (aditiva: tabela `password_resets` e coluna nula `users.lastOrganizationId`). Aplicadas so em desenvolvimento.
+**Migrations:** `20261111120000_member_invites` (aditiva: tabela `organization_invites`) e `20261111130000_password_resets` (aditiva: tabela `password_resets` e coluna nula `users.lastOrganizationId`). Aplicadas em producao em 2026-11-11, depois do backup `salesos-20261111-192322`.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261111120000_member_invites/migration.sql`, `20261111130000_password_resets/migration.sql`
@@ -36,7 +36,7 @@
 - Publicar depois da V.1.28.0 do SOS; o SOS em producao (V.1.27.0) ignora `offer`, sem erro.
 - No SOS mudou so a documentacao: `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/ARCHITECTURE.md`, `docs/INTEGRACAO_SALEIA.md` e `CHANGELOG.md`.
 
-## [V.1.28.0] — 2026-11-10 (pronta localmente, nao publicada)
+## [V.1.28.0] — 2026-11-10 (publicada em producao com a V.1.29.0 em 2026-11-11, imagem `salesos-web:16`)
 
 ### Tarefa V2-8.2 — "So diagnostico" no Report
 - Report: novo numero **So diagnostico** — reunioes analisadas pelo SALEIA em que a oferta nao foi apresentada, com "% das realizadas", "falta confirmar" e "sem analise".
@@ -47,7 +47,7 @@
 - O envio de `offer` pelo SALE-IA fica para a V2-8.3.
 - Testes: 5 unitarios em `saleia-rules.test.mjs`; 5 em `report.integration.mjs` e 3 em `saleia.integration.mjs`.
 
-**Migration:** `20261110120000_saleia_diagnosis_only` (aditiva: enum `SaleiaDiagnosisStatus`, seis colunas nulas em `saleia_meetings` e `daily_reports.diagnosisOnly` com padrao 0). Aplicada so em desenvolvimento.
+**Migration:** `20261110120000_saleia_diagnosis_only` (aditiva: enum `SaleiaDiagnosisStatus`, seis colunas nulas em `saleia_meetings` e `daily_reports.diagnosisOnly` com padrao 0). Aplicada em producao em 2026-11-11.
 
 **Arquivos criados:**
 - `apps/web/prisma/migrations/20261110120000_saleia_diagnosis_only/migration.sql`
