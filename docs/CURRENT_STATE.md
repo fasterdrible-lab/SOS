@@ -1,6 +1,6 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) pronta localmente
+**Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) em producao desde 2026-11-11
 **Data:** 2026-11-11
 **Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); proxima: V2-9.2 (equipes)
 
