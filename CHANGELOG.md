@@ -31,7 +31,8 @@
 - `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
 
 ## Tarefa V2-8.3 — 2026-11-10 (no SALE-IA, sem nova versao do SOS)
-- O SALE-IA (V.1.4.200, repositorio proprio, pronta e nao publicada) passa a dizer no relatorio automatico se a oferta foi apresentada e envia `offer: { presented, reason }` no `meeting.analyzed`. Ver o `CHANGELOG.md` do SALE-IA.
+- SALE-IA V.1.4.199 e V.1.4.200 publicados em 2026-11-11 (depois da V.1.29.0 do SOS).
+- O SALE-IA (V.1.4.200, repositorio proprio) passa a dizer no relatorio automatico se a oferta foi apresentada e envia `offer: { presented, reason }` no `meeting.analyzed`. Ver o `CHANGELOG.md` do SALE-IA.
 - Eventos gerados pelo SALE-IA (sem campo, apresentada, nao apresentada com e sem motivo) conferidos contra o validador do SOS (`lib/validations/saleia-event.ts`).
 - Publicar depois da V.1.28.0 do SOS; o SOS em producao (V.1.27.0) ignora `offer`, sem erro.
 - No SOS mudou so a documentacao: `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `docs/ARCHITECTURE.md`, `docs/INTEGRACAO_SALEIA.md` e `CHANGELOG.md`.

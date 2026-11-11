@@ -19,11 +19,11 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-5 | Clientes 360 | done (em producao desde 2026-11-05, `salesos-web:12`) |
 | V2-6 | Atividades e follow-ups | done (em producao desde 2026-11-06, `salesos-web:13`) |
 | V2-7.1 | SALEIA no SOS: contrato, recebimento assinado, tabelas e telas | done (em producao desde 2026-11-06, `salesos-web:14`) |
-| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, so volta a gravar com a V.1.4.199, ainda nao publicada) |
+| V2-7.2 | SALEIA no SALE-IA: enviar a reuniao analisada ao SOS | done (SALE-IA V.1.4.196 em producao desde 2026-11-06; o relatorio automatico, de que o envio depende, voltou a poder gravar com a V.1.4.199, publicada em 2026-11-11; falta ver a primeira reuniao real) |
 | V2-7.3 | SALEIA: aceitar recomendacoes (atividade), aplicar etapa sugerida, Meu Dia | done (V.1.26.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.1 | Report Diario no SOS: numeros do dia, fechamento e dias fechados | done (V.1.27.0, em producao desde 2026-11-08, `salesos-web:15`) |
 | V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, em producao desde 2026-11-11, `salesos-web:16`) |
-| V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, local; falta publicar com autorizacao, depois da V.1.4.199; a V.1.28.0 ja esta em producao) |
+| V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | proxima |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | todo |
@@ -71,7 +71,7 @@ Duas falhas apontadas depois da primeira entrega e corrigidas na mesma versao:
 ## Tarefa: V2-8.3 - SALE-IA envia `offer`
 
 ### Estado
-SALE-IA V.1.4.200, sem commit e nao publicada (repositorio do SALE-IA; detalhe no `CHANGELOG.md` de la). Nenhum arquivo do SOS mudou alem desta documentacao.
+SALE-IA V.1.4.200 (`fd09d16`), publicada em 2026-11-11 19:47 UTC junto com a V.1.4.199, com `reunioes_ativas = 0` (ativo, sem reinicio extra, journal sem erro, `/health` 1.4.200; `relatorio.dados_json` convertida para MEDIUMTEXT no startup). Logo depois: 0 relatorios gravados e 18 sessoes com relatorio em erro, ainda nao reprocessadas. Nenhum arquivo do SOS mudou alem desta documentacao.
 
 ### Resultado
 - O relatorio pos-reuniao automatico do SALE-IA (`PROMPT_RECAPITULACAO`, `api/main.py`) ganhou `"oferta": {"apresentada", "motivo_nao_apresentada"}`, na mesma chamada de IA: `true` quando o vendedor apresentou a solucao com valor, preco ou condicoes; `false` quando a reuniao ficou so no diagnostico; `null` quando nao da para afirmar.
