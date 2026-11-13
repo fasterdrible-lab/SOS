@@ -47,6 +47,8 @@ export async function listActivities(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   where?: Prisma.ActivityWhereInput
   orderBy?: Prisma.ActivityOrderByWithRelationInput[]
   take?: number
@@ -54,7 +56,7 @@ export async function listActivities(input: {
   const rows = await prisma.activity.findMany({
     where: {
       organizationId: input.organizationId,
-      ...activityScope(input.role, input.userId),
+      ...activityScope(input.role, input.userId, input.teamId),
       ...input.where,
     },
     include: activityInclude,
@@ -73,6 +75,8 @@ export async function checkActivityLinks(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   companyId: string | null
   contactId: string | null
   opportunityId: string | null
@@ -88,7 +92,7 @@ export async function checkActivityLinks(input: {
       : null,
     opportunityId
       ? prisma.opportunity.findFirst({
-          where: { id: opportunityId, organizationId, ...opportunityScope(input.role, input.userId) },
+          where: { id: opportunityId, organizationId, ...opportunityScope(input.role, input.userId, input.teamId) },
           select: { companyId: true, contactId: true },
         })
       : null,

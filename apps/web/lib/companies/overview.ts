@@ -55,20 +55,22 @@ export async function getCompanyOverview(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
 }): Promise<CompanyOverview | null> {
-  const { id, organizationId, userId, role } = input
+  const { id, organizationId, userId, role, teamId } = input
 
   const company = await prisma.company.findFirst({ where: { id, organizationId } })
   if (!company) return null
 
-  const scoped = { organizationId, companyId: id, ...opportunityScope(role, userId) }
+  const scoped = { organizationId, companyId: id, ...opportunityScope(role, userId, teamId) }
 
   const [saleiaMeetings, activities, opportunities, contacts, leads, diagnostic, history] = await Promise.all([
-    listSaleiaMeetings({ organizationId, userId, role, where: { companyId: id }, take: MEETING_LIMIT }),
+    listSaleiaMeetings({ organizationId, userId, role, teamId, where: { companyId: id }, take: MEETING_LIMIT }),
     listActivities({
       organizationId,
       userId,
-      role,
+      role, teamId,
       where: { companyId: id },
       orderBy: [{ completedAt: { sort: "asc", nulls: "first" } }, { dueDate: { sort: "asc", nulls: "last" } }],
       take: ACTIVITY_LIMIT,

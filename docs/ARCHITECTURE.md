@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9.2, equipes. Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9.3, configurações comerciais. Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -71,7 +71,8 @@ O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-re
 
 ```
 Organization (tenant)
-  └── User (N:N via OrganizationMember)
+  └── User (N:N via OrganizationMember; teamId opcional)
+  └── Team (equipe comercial; cada pessoa em no maximo uma por organizacao)
   └── OrganizationInvite (convite por link: hash do token, papel, validade, aceite ou revogacao)
   └── PasswordReset (link de nova senha gerado por um administrador: hash do token, validade, uso)
   └── Lead
@@ -122,6 +123,13 @@ OWNER, ADMIN, CONSULTANT -> administrador | MANAGER -> gestor | MEMBER -> vended
 A sessao le vinculo e papel do banco a cada auth(); o JWT nao e fonte de autorizacao
 Rotas: denyUnless(role, permissao) -> 403. Matriz em lib/authz/permissions.ts
 Vendedor: oportunidades filtradas por ownerId (opportunityScope)
+Equipes (V2-9.2): Team + OrganizationMember.teamId; a sessao leva teamId, relido do banco como o papel
+  so o gestor COM equipe e restrito (isTeamManager): opportunityScope(role, userId, teamId) devolve
+  NOT { owner: membro desta organizacao fora da equipe } -> passa a equipe, o sem dono e o ex-membro,
+  sem colidir com os OR dos filtros de texto | vale para negociacoes e atividades (activityScope)
+  reunioes SALEIA: sem negociacao OU negociacao no escopo (saleiaMeetingScope)
+  atribuir e seletores de pessoa: assigneeScope (so a equipe) | Dashboard e Report: so a equipe
+  gestor sem equipe e administrador veem tudo | cadastro: /api/settings/teams (members:manage), auditado
 Operacoes sensiveis: AuditLog, na mesma transacao quando possivel
   acoes e rotulos em lib/audit/actions.ts | consulta: /configuracoes/auditoria e GET /api/settings/audit (audit:read)
 ```

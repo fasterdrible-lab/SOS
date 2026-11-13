@@ -1,4 +1,4 @@
-import { getAccessLevel } from "@/lib/authz/permissions"
+import { getAccessLevel, isTeamManager, opportunityScope } from "@/lib/authz/permissions"
 import {
   averageCycleDays,
   buildFunnel,
@@ -94,9 +94,10 @@ export interface DashboardMember {
   name: string
 }
 
-export async function getDashboardMembers(organizationId: string): Promise<DashboardMember[]> {
+/** Com `teamId`, so as pessoas dessa equipe (gestor com equipe, V2-9.2). */
+export async function getDashboardMembers(organizationId: string, teamId?: string): Promise<DashboardMember[]> {
   const members = await prisma.organizationMember.findMany({
-    where: { organizationId },
+    where: { organizationId, ...(teamId ? { teamId } : {}) },
     select: { user: { select: { id: true, name: true, email: true } } },
     orderBy: { createdAt: "asc" },
   })
@@ -127,6 +128,8 @@ export async function getExecutiveDashboard(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   period: PeriodKey
   /** Ja validado como membro da organizacao. Ignorado para o vendedor. */
   sellerId?: string | null
@@ -147,8 +150,10 @@ export async function getExecutiveDashboard(input: {
 
   const ownerId = isSeller ? userId : (input.sellerId ?? null)
   const scope = isSeller ? "OWN" : ownerId ? "SELLER" : "ORGANIZATION"
-  // Papel desconhecido nao ve nada (mesma regra de opportunityScope).
-  const owner = level === null ? { ownerId: "__sem_acesso__" } : ownerId ? { ownerId } : {}
+  const teamManager = isTeamManager(role, input.teamId)
+  // Sem vendedor escolhido vale o escopo do papel: tudo, a equipe do gestor
+  // com equipe (e o que esta sem dono) ou nada para papel desconhecido.
+  const owner = level !== null && ownerId ? { ownerId } : opportunityScope(role, userId, input.teamId)
   const base = { organizationId, ...owner, ...(pipelineId ? { pipelineId } : {}) }
 
   const window = periodWindow(period, calendarDateIn(now))
@@ -200,7 +205,7 @@ export async function getExecutiveDashboard(input: {
       select: { opportunityId: true, toStageId: true, toStatus: true },
     }),
     // Leads nao tem dono nem funil: so entram na visao da organizacao inteira.
-    scope === "ORGANIZATION" && !pipelineId
+    scope === "ORGANIZATION" && !pipelineId && !teamManager
       ? prisma.lead.count({ where: { organizationId, createdAt: between(current) } })
       : null,
     prisma.opportunity.aggregate({ where: open, _sum: { value: true }, _count: true }),
@@ -221,7 +226,7 @@ export async function getExecutiveDashboard(input: {
       where: { organizationId, month: monthId },
       select: { scopeKey: true, amount: true },
     }),
-    input.members ?? getDashboardMembers(organizationId),
+    input.members ?? getDashboardMembers(organizationId, teamManager ? (input.teamId as string) : undefined),
   ])
 
   const sales = wonCurrent.map((sale) => ({
@@ -254,18 +259,23 @@ export async function getExecutiveDashboard(input: {
   const goalByScope = new Map(goals.map((goal) => [goal.scopeKey, Number(goal.amount)]))
   const businessDays = businessDaysOfMonth(now)
   const goalOf = (scopeKey: string) => goalByScope.get(scopeKey) ?? null
-  const paceGoal = goalOf(ownerId ?? ORGANIZATION_GOAL_SCOPE)
+  // Nao ha meta por equipe: o gestor com equipe ve as metas individuais dela.
+  const paceGoal = !ownerId && teamManager ? null : goalOf(ownerId ?? ORGANIZATION_GOAL_SCOPE)
   const paceProgress = computeGoalProgress({ goal: paceGoal, revenue: monthTotal, businessDays })
   const averageLast3Months = round2(Number(lastThreeMonths._sum.value ?? 0) / 3)
 
   const nameOf = (id: string) => members.find((member) => member.userId === id)?.name ?? "Ex-membro"
   const sellerGoals = new Map(
-    [...goalByScope].filter(([scopeKey]) => scopeKey !== ORGANIZATION_GOAL_SCOPE)
+    [...goalByScope].filter(
+      ([scopeKey]) =>
+        scopeKey !== ORGANIZATION_GOAL_SCOPE &&
+        (!teamManager || members.some((member) => member.userId === scopeKey))
+    )
   )
   const goalRows: GoalRow[] = ownerId
     ? [{ userId: ownerId, name: nameOf(ownerId), progress: paceProgress }]
     : [
-        ...(goalOf(ORGANIZATION_GOAL_SCOPE) !== null
+        ...(paceGoal !== null
           ? [{ userId: null, name: "Equipe", progress: paceProgress }]
           : []),
         ...[...sellerGoals].map(([sellerId, goal]) => ({

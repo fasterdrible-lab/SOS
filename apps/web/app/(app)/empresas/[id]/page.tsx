@@ -5,7 +5,7 @@ import { ArrowLeft, ClipboardList, History, KanbanSquare, ListTodo, Sparkles, Us
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
-import { hasPermission } from "@/lib/authz/permissions"
+import { hasPermission, assigneeScope } from "@/lib/authz/permissions"
 import { getCompanyOverview } from "@/lib/companies/overview"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
@@ -46,7 +46,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   if (!organizationId || !userId) notFound()
 
   const { id } = await params
-  const company = await getCompanyOverview({ id, organizationId, userId, role: session.user.role })
+  const company = await getCompanyOverview({ id, organizationId, userId, role: session.user.role, teamId: session.user.teamId })
 
   if (!company) notFound()
 
@@ -56,7 +56,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     }),
-    hasPermission(session.user.role, "activities:assign") ? getDashboardMembers(organizationId) : null,
+    hasPermission(session.user.role, "activities:assign") ? getDashboardMembers(organizationId, assigneeScope(session.user.role, session.user.teamId).teamId) : null,
   ])
   const activityMembers = members?.map((member) => ({ id: member.userId, name: member.name })) ?? null
 

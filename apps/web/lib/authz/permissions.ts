@@ -68,11 +68,64 @@ export function hasPermission(
  */
 export function opportunityScope(
   role: string | null | undefined,
-  userId: string
-): { ownerId?: string } {
+  userId: string,
+  teamId?: string | null
+): OwnerScope {
   const level = getAccessLevel(role)
-  if (level === "ADMIN" || level === "MANAGER") return {}
+  if (level === "ADMIN") return {}
+  if (level === "MANAGER") return teamId ? teamScope(teamId) : {}
   return { ownerId: level === "SELLER" ? userId : "__sem_acesso__" }
+}
+
+/** Filtro Prisma por dono, valido para negociacoes e atividades. */
+export interface OwnerScope {
+  ownerId?: string
+  NOT?: {
+    owner: {
+      members: {
+        some: {
+          organization: { teams: { some: { id: string } } }
+          OR: [{ teamId: null }, { teamId: { not: string } }]
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Gestor com equipe (V2-9.2): ve o que e da equipe e o que esta sem dono.
+ * Escrito como "nao e de alguem desta organizacao fora da minha equipe": o
+ * registro sem dono passa, e a chave NOT nao colide com os OR dos filtros de
+ * texto. O vinculo e conferido na organizacao da equipe, porque o dono pode
+ * pertencer a outras. Dono que ja saiu da organizacao tambem passa.
+ */
+function teamScope(teamId: string): OwnerScope {
+  return {
+    NOT: {
+      owner: {
+        members: {
+          some: {
+            organization: { teams: { some: { id: teamId } } },
+            OR: [{ teamId: null }, { teamId: { not: teamId } }],
+          },
+        },
+      },
+    },
+  }
+}
+
+/**
+ * Filtro de OrganizationMember para quem pode receber uma negociacao ou
+ * atividade: o gestor com equipe so atribui dentro dela, senao o registro
+ * sairia da propria visao.
+ */
+export function assigneeScope(role: string | null | undefined, teamId?: string | null): { teamId?: string } {
+  return isTeamManager(role, teamId) ? { teamId: teamId as string } : {}
+}
+
+/** Gestor limitado a uma equipe: so ele tem a visao restrita por equipe. */
+export function isTeamManager(role: string | null | undefined, teamId?: string | null): boolean {
+  return getAccessLevel(role) === "MANAGER" && Boolean(teamId)
 }
 
 /**

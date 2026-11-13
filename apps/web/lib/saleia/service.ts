@@ -1,4 +1,4 @@
-import { getAccessLevel } from "@/lib/authz/permissions"
+import { getAccessLevel, isTeamManager, opportunityScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import type { Prisma } from "@/lib/generated/prisma/client"
 import {
@@ -64,10 +64,18 @@ export function toDiagnosis(row: {
 
 /**
  * Reunioes nao tem dono: o vendedor ve as ligadas as proprias negociacoes;
- * gestor e administrador veem todas, inclusive as sem vinculo.
+ * gestor e administrador veem todas, inclusive as sem vinculo. O gestor com
+ * equipe (V2-9.2) ve as sem negociacao e as das negociacoes que enxerga.
  */
-export function saleiaMeetingScope(role: string | null | undefined, userId: string): Prisma.SaleiaMeetingWhereInput {
+export function saleiaMeetingScope(
+  role: string | null | undefined,
+  userId: string,
+  teamId: string | null | undefined
+): Prisma.SaleiaMeetingWhereInput {
   const level = getAccessLevel(role)
+  if (isTeamManager(role, teamId)) {
+    return { OR: [{ opportunityId: null }, { opportunity: opportunityScope(role, userId, teamId) }] }
+  }
   if (level === "ADMIN" || level === "MANAGER") return {}
   if (level === "SELLER") return { opportunity: { ownerId: userId } }
   return { id: "__sem_acesso__" }
@@ -113,12 +121,14 @@ export async function listSaleiaMeetings(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   where?: Prisma.SaleiaMeetingWhereInput
   take?: number
 }): Promise<SaleiaMeetingItem[]> {
   const rows = await prisma.saleiaMeeting.findMany({
     where: {
-      AND: [{ organizationId: input.organizationId }, saleiaMeetingScope(input.role, input.userId), input.where ?? {}],
+      AND: [{ organizationId: input.organizationId }, saleiaMeetingScope(input.role, input.userId, input.teamId), input.where ?? {}],
     },
     include: meetingInclude,
     orderBy: { startedAt: "desc" },
@@ -131,6 +141,7 @@ export async function getSaleiaMeeting(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  teamId: string | null
   id: string
 }): Promise<SaleiaMeetingItem | null> {
   const [meeting] = await listSaleiaMeetings({ ...input, where: { id: input.id }, take: 1 })

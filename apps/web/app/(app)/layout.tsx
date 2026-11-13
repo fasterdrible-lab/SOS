@@ -21,6 +21,7 @@ export default async function AppLayout({
 
   const userId = session?.user?.id
   const role = session?.user?.role ?? null
+  const teamId = session?.user?.teamId ?? null
   const theme = parseTheme((await cookies()).get(THEME_COOKIE)?.value)
 
   const [qualifiedLeadsCount, organization, notifications] = organizationId && userId
@@ -31,7 +32,7 @@ export default async function AppLayout({
           select: { name: true },
         }),
         hasPermission(role, "my-day:read")
-          ? getHeaderNotifications({ organizationId, userId, role })
+          ? getHeaderNotifications({ organizationId, userId, role, teamId })
           : null,
       ])
     : [0, null, null]

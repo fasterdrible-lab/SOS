@@ -25,7 +25,7 @@ export const GET = withApiErrors("GET /api/opportunities", async () => {
   const opportunities = await prisma.opportunity.findMany({
     where: {
       organizationId,
-      ...opportunityScope(session.user.role, session.user.id),
+      ...opportunityScope(session.user.role, session.user.id, session.user.teamId),
     },
     include: {
       company: { select: { id: true, name: true } },

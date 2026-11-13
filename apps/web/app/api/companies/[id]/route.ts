@@ -26,7 +26,7 @@ export const GET = withApiErrors("GET /api/companies/[id]", async (_request: Req
     id: (await params).id,
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
   })
 
   if (!company) return apiError("NOT_FOUND", "Empresa nao encontrada.")

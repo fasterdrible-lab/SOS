@@ -12,12 +12,14 @@ export async function getHeaderNotifications(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   now?: Date
 }): Promise<HeaderNotifications> {
-  const { organizationId, userId, role } = input
+  const { organizationId, userId, role, teamId } = input
   const now = input.now ?? new Date()
   const today = dayRange(now)
-  const open = { organizationId, ...opportunityScope(role, userId), status: "OPEN" as const }
+  const open = { organizationId, ...opportunityScope(role, userId, teamId), status: "OPEN" as const }
 
   const [hotLeads, overdueTasks, overdueActivities, overdueClose, cooling] = await Promise.all([
     hasPermission(role, "sdr:read") ? getUnseenQualifiedLeadsCount(organizationId) : null,
@@ -31,7 +33,7 @@ export async function getHeaderNotifications(input: {
     prisma.activity.count({
       where: {
         organizationId,
-        ...opportunityScope(role, userId),
+        ...opportunityScope(role, userId, teamId),
         completedAt: null,
         dueDate: { lt: today.start },
       },

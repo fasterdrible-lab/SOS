@@ -40,12 +40,14 @@ export async function getOpportunityDetail(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
 }): Promise<OpportunityDetail | null> {
   const row = await prisma.opportunity.findFirst({
     where: {
       id: input.id,
       organizationId: input.organizationId,
-      ...opportunityScope(input.role, input.userId),
+      ...opportunityScope(input.role, input.userId, input.teamId),
     },
     include: {
       pipeline: { select: { id: true, name: true } },

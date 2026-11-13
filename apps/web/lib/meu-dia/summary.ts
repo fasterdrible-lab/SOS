@@ -129,9 +129,11 @@ export async function getMyDaySummary(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   now?: Date
 }): Promise<MyDaySummary> {
-  const { organizationId, userId, role } = input
+  const { organizationId, userId, role, teamId } = input
   const now = input.now ?? new Date()
   const isSeller = getAccessLevel(role) === "SELLER"
   const month = monthKey(now)
@@ -139,7 +141,7 @@ export async function getMyDaySummary(input: {
   const today = dayRange(now)
   const coolingBefore = new Date(now.getTime() - COOLING_AFTER_DAYS * DAY_MS)
 
-  const scoped = { organizationId, ...opportunityScope(role, userId) }
+  const scoped = { organizationId, ...opportunityScope(role, userId, teamId) }
   const open = { ...scoped, status: "OPEN" as const }
   const proposalsWhere = { ...open, stage: { isProposal: true } }
   const coolingWhere = { ...open, stageChangedAt: { lt: coolingBefore } }
@@ -149,7 +151,7 @@ export async function getMyDaySummary(input: {
     status: { in: ["PENDING" as const, "IN_PROGRESS" as const] },
     dueDate: { lt: today.end },
   }
-  const pendingActivity = { organizationId, ...opportunityScope(role, userId), completedAt: null }
+  const pendingActivity = { organizationId, ...opportunityScope(role, userId, teamId), completedAt: null }
   const meetingWhere = {
     ...pendingActivity,
     type: "MEETING" as const,
@@ -165,7 +167,7 @@ export async function getMyDaySummary(input: {
     organizationId,
     status: "OPEN" as const,
     kind: { in: ["RECOMMENDATION" as const, "STAGE_SUGGESTION" as const] },
-    meeting: saleiaMeetingScope(role, userId),
+    meeting: saleiaMeetingScope(role, userId, teamId),
   }
   const activitySelect = {
     id: true,

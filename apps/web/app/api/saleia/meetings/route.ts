@@ -25,6 +25,7 @@ export const GET = withApiErrors("GET /api/saleia/meetings", async (request: Req
     organizationId,
     userId: session.user.id,
     role: session.user.role,
+    teamId: session.user.teamId,
     where: unlinked ? { companyId: null } : undefined,
     take: LIMIT,
   })

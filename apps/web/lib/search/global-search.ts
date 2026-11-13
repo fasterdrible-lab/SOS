@@ -30,9 +30,11 @@ export async function globalSearch(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   term: string
 }): Promise<SearchGroup[]> {
-  const { organizationId, userId, role, term } = input
+  const { organizationId, userId, role, teamId, term } = input
   const like = { contains: term, mode: "insensitive" as const }
   const take = SEARCH_RESULTS_PER_GROUP
 
@@ -60,7 +62,7 @@ export async function globalSearch(input: {
       ? prisma.opportunity.findMany({
           where: {
             organizationId,
-            ...opportunityScope(role, userId),
+            ...opportunityScope(role, userId, teamId),
             OR: [{ title: like }, { company: { name: like } }],
           },
           select: {

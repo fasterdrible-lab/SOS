@@ -24,7 +24,7 @@ export async function getConsultantClients(userId: string): Promise<ClientSummar
       const organizationId = membership.organization.id
 
       const [kpis, lastDiagnostic, tasksTotal, tasksDone] = await Promise.all([
-        getExecutiveKpis(organizationId, opportunityScope(membership.role, userId)),
+        getExecutiveKpis(organizationId, opportunityScope(membership.role, userId, membership.teamId)),
         prisma.diagnostic.findFirst({
           where: { organizationId },
           orderBy: { createdAt: "desc" },

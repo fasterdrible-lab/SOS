@@ -10,7 +10,7 @@ import {
 } from "@/lib/activities/rules"
 import { listActivities, type ActivityItem } from "@/lib/activities/service"
 import { auth } from "@/lib/auth"
-import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/permissions"
+import { getAccessLevel, hasPermission, opportunityScope, assigneeScope } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { addDays, dayKey, weekDays, type Day } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
@@ -45,6 +45,7 @@ export default async function AtividadesPage({
   }
 
   const role = session.user.role
+  const teamId = session.user.teamId ?? null
   const isSeller = getAccessLevel(role) === "SELLER"
   const canAssign = hasPermission(role, "activities:assign")
   const filters = parseActivityFilters(await searchParams)
@@ -69,15 +70,16 @@ export default async function AtividadesPage({
       organizationId,
       userId,
       role,
+      teamId,
       where: agenda
         ? { ...baseWhere, dueDate: weekWindow }
         : { ...baseWhere, completedAt: done ? { not: null } : null },
       orderBy: !agenda && done ? [{ completedAt: "desc" }] : undefined,
       take: LIST_LIMIT,
     }),
-    canAssign ? getDashboardMembers(organizationId) : null,
+    canAssign ? getDashboardMembers(organizationId, assigneeScope(role, teamId).teamId) : null,
     prisma.opportunity.findMany({
-      where: { organizationId, status: "OPEN", ...opportunityScope(role, userId) },
+      where: { organizationId, status: "OPEN", ...opportunityScope(role, userId, teamId) },
       select: { id: true, title: true },
       orderBy: { updatedAt: "desc" },
       take: 200,

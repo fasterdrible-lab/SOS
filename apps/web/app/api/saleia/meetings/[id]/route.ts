@@ -20,7 +20,7 @@ export const GET = withApiErrors("GET /api/saleia/meetings/[id]", async (_reques
   if (denied) return denied
 
   const { id } = await params
-  const meeting = await getSaleiaMeeting({ organizationId, userId: session.user.id, role: session.user.role, id })
+  const meeting = await getSaleiaMeeting({ organizationId, userId: session.user.id, role: session.user.role, teamId: session.user.teamId, id })
   if (!meeting) return apiError("NOT_FOUND", "Reuniao nao encontrada.")
 
   return NextResponse.json({ meeting })

@@ -52,7 +52,7 @@ export default async function DiagnosticoResultadoPage({
     where: {
       organizationId,
       notes: { contains: diagnosticOpportunityMarker(diagnostic.id) },
-      ...opportunityScope(session?.user?.role, session?.user?.id ?? ""),
+      ...opportunityScope(session?.user?.role, session?.user?.id ?? "", session?.user?.teamId),
     },
     select: { id: true },
   })

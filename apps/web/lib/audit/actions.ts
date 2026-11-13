@@ -30,6 +30,10 @@ export const AUDIT_ACTION_LABELS = {
   "member.removed": "Pessoa removida",
   "member.password-reset-created": "Link de nova senha gerado",
   "member.password-reset": "Senha redefinida",
+  "member.team-changed": "Equipe da pessoa alterada",
+  "team.created": "Equipe criada",
+  "team.renamed": "Equipe renomeada",
+  "team.removed": "Equipe removida",
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTION_LABELS

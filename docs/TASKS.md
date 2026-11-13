@@ -25,14 +25,44 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
-| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | proxima |
-| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | todo |
+| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, pronta em 2026-11-13; sem commit e sem publicacao) |
+| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | proxima |
 | V2-10 | Homologacao final | todo |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-9.2 - Equipes
+
+### Estado
+V.1.30.0, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`). Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento. Publicar pede autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA.
+
+### Regra
+Cada pessoa fica em no maximo uma equipe por organizacao. So o **gestor que esta numa equipe** tem a visao restrita: ve o que e de pessoas da equipe dele (ele incluido) e o que esta **sem responsavel**. Gestor sem equipe e administrador continuam vendo tudo; o vendedor continua vendo so o que e dele. Enquanto ninguem criar equipe, nada muda.
+
+### Resultado
+- Model `Team` (organizacao, nome unico na organizacao) e `OrganizationMember.teamId` (nulo, `onDelete: SetNull`). A sessao leva `teamId`, relido do banco a cada `auth()` como o papel: mudar a equipe vale na hora.
+- Escopo (`lib/authz/permissions.ts`): `opportunityScope(role, userId, teamId)` devolve, para o gestor com equipe, um filtro `NOT` ("o dono nao e alguem desta organizacao fora da minha equipe"), que deixa passar o registro sem dono e o de quem ja saiu da organizacao e nao colide com os `OR` dos filtros de texto. `assigneeScope` limita a quem ele atribui; `isTeamManager` diz se a visao e restrita.
+- Onde vale: negociacoes (lista, quadro, detalhe, editar, mover, ganhar, perder), atividades (lista, agenda, editar, concluir, remover), busca global, Meu Dia, sino, visao 360 da empresa, numeros de `/empresas`, decisoes do SALEIA, reunioes do SALEIA (as das negociacoes que ele ve e as sem negociacao), Dashboard e Report. Fora da equipe responde 404, como inexistente.
+- Atribuir: o gestor com equipe so escolhe dono ou responsavel dentro da equipe (400 fora dela); os seletores de pessoa das telas (quadro, atividades, negociacao, empresa, Dashboard, Report) listam so a equipe.
+- Dashboard: sem vendedor escolhido, os numeros sao os da equipe (rotulo "Sua equipe e negociacoes sem responsavel"); `?vendedor=` de fora da equipe, 404. Leads ficam fora (nao tem dono) e a meta da organizacao nao aparece: valem as metas individuais das pessoas da equipe.
+- Report: o gestor com equipe abre o dia e os dias fechados so de pessoas da equipe (`?vendedor=` de fora, 404; a lista sem filtro traz so a equipe).
+- API (permissao `members:manage`, administrador): `GET/POST /api/settings/teams`, `PATCH/DELETE /api/settings/teams/[id]` (nome de 2 a 60 caracteres, repetido sem diferenciar maiusculas 409, de outra organizacao 404; remover deixa as pessoas sem equipe) e `PATCH /api/settings/members/[id]` agora com `{ role?, teamId? }` (`teamId` nulo tira da equipe; equipe de outra organizacao 400; corpo vazio 400). `GET /api/settings/members` devolve `teamId`.
+- Tela: Configuracoes > Usuarios ganha o cartao **Equipes** (criar, renomear, remover, contagem de pessoas) e um seletor de equipe por pessoa (aparece quando ha equipe).
+- Auditoria: `team.created`, `team.renamed`, `team.removed` (com a quantidade de pessoas) e `member.team-changed` (`from`, `to`).
+- Testes: `npm run check` (149 unitarios; 2 novos em `permissions.test.mjs`) e `npm run test:integration` (228, em 65 suites; nova `teams.integration.mjs`, 12), aprovados localmente em 2026-11-13. O CI ainda nao rodou: nao houve push.
+
+### Limitacoes conhecidas
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
+- Nao ha meta por equipe. No Meu Dia, o gestor com equipe ve o faturamento da equipe contra a meta da organizacao; no Dashboard a meta da organizacao some para ele.
+- Empresas, contatos, leads do IA SDR, planos de acao e diagnosticos nao tem dono: continuam visiveis para toda a organizacao, tambem para o gestor com equipe.
+- Negociacao e atividade sem responsavel aparecem para todos os gestores com equipe.
+- O gestor precisa estar na propria equipe; nao ha "lider" separado nem gestor de mais de uma equipe. Um gestor fora de qualquer equipe ve tudo.
+- As metas (dialogo do Meu Dia) continuam listando todas as pessoas para qualquer gestor.
+- Renomear e remover equipe usam os dialogos do navegador (`prompt` e `confirm`).
+- A regra do filtro (`NOT` com vinculo na organizacao da equipe) so tem teste de integracao no caso de pessoa em duas organizacoes; nao foi medida com volume grande.
 
 ## Tarefa: V2-9.1 - Usuarios, convites e auditoria
 

@@ -21,6 +21,8 @@ export async function decideDiagnosis(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   meetingId: string
   action: DiagnosisAction
   /** So em confirm. */
@@ -29,7 +31,7 @@ export async function decideDiagnosis(input: {
   const { organizationId, userId, action } = input
 
   const meeting = await prisma.saleiaMeeting.findFirst({
-    where: { AND: [{ id: input.meetingId, organizationId }, saleiaMeetingScope(input.role, userId)] },
+    where: { AND: [{ id: input.meetingId, organizationId }, saleiaMeetingScope(input.role, userId, input.teamId)] },
     select: { id: true, offerPresented: true, diagnosisStatus: true },
   })
   if (!meeting) return { ok: false, code: "NOT_FOUND", error: "Reuniao nao encontrada." }

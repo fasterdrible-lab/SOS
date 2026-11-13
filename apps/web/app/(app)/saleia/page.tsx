@@ -40,6 +40,7 @@ export default async function SaleiaPage({
       organizationId,
       userId,
       role,
+      teamId: session.user.teamId,
       where: unlinked ? { companyId: null } : undefined,
       take: LIMIT,
     }),

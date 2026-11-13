@@ -29,6 +29,7 @@ export const POST = withApiErrors("POST /api/saleia/meetings/[id]/diagnosis", as
     organizationId,
     userId: session.user.id,
     role: session.user.role,
+    teamId: session.user.teamId,
     meetingId: id,
     action: parsed.data.action,
     reason: parsed.data.action === "confirm" ? parsed.data.reason : null,

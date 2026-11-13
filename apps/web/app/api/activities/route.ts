@@ -6,7 +6,7 @@ import { apiError, validationError } from "@/lib/api/errors"
 import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
-import { getAccessLevel, hasPermission } from "@/lib/authz/permissions"
+import { getAccessLevel, hasPermission, assigneeScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { ownerWhere } from "@/lib/opportunities/board"
 import { activityInputSchema } from "@/lib/validations/activity"
@@ -29,7 +29,7 @@ export const GET = withApiErrors("GET /api/activities", async (request: Request)
   const activities = await listActivities({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
     where: {
       completedAt: filters.status === "concluidas" ? { not: null } : null,
       ...(filters.type ? { type: filters.type } : {}),
@@ -70,16 +70,16 @@ export const POST = withApiErrors("POST /api/activities", async (request: Reques
 
   if (ownerId) {
     const member = await prisma.organizationMember.findFirst({
-      where: { organizationId, userId: ownerId },
+      where: { organizationId, userId: ownerId, ...assigneeScope(session.user.role, session.user.teamId) },
       select: { id: true },
     })
-    if (!member) return apiError("BAD_REQUEST", "Responsavel invalido.")
+    if (!member) return apiError("BAD_REQUEST", "Responsavel invalido ou de outra equipe.")
   }
 
   const links = await checkActivityLinks({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
     companyId: parsed.data.companyId ?? null,
     contactId: parsed.data.contactId ?? null,
     opportunityId: parsed.data.opportunityId ?? null,

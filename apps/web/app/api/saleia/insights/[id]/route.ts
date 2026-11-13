@@ -27,7 +27,7 @@ export const POST = withApiErrors("POST /api/saleia/insights/[id]", async (reque
   const result = await decideSaleiaInsight({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
     insightId: (await params).id,
     action: parsed.data.action,
   })

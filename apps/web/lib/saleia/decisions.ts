@@ -58,15 +58,17 @@ export async function decideSaleiaInsight(input: {
   organizationId: string
   userId: string
   role: string | null | undefined
+  /** Equipe de quem consulta; restringe o gestor com equipe (V2-9.2). */
+  teamId: string | null
   insightId: string
   action: InsightAction
   now?: Date
 }): Promise<DecisionResult> {
-  const { organizationId, userId, role, action } = input
+  const { organizationId, userId, role, teamId, action } = input
   const now = input.now ?? new Date()
 
   const insight = await prisma.saleiaInsight.findFirst({
-    where: { id: input.insightId, organizationId, meeting: saleiaMeetingScope(role, userId) },
+    where: { id: input.insightId, organizationId, meeting: saleiaMeetingScope(role, userId, teamId) },
     include: {
       meeting: {
         select: { id: true, title: true, startedAt: true, companyId: true, contactId: true, opportunityId: true },
@@ -135,13 +137,13 @@ export async function decideSaleiaInsight(input: {
     let links = await checkActivityLinks({
       organizationId,
       userId,
-      role,
+      role, teamId,
       opportunityId: meeting.opportunityId,
       companyId: meeting.opportunityId ? null : meeting.companyId,
       contactId: meeting.opportunityId ? null : meeting.contactId,
     })
     if (!links.ok && !meeting.opportunityId && meeting.companyId) {
-      links = await checkActivityLinks({ organizationId, userId, role, opportunityId: null, companyId: meeting.companyId, contactId: null })
+      links = await checkActivityLinks({ organizationId, userId, role, teamId, opportunityId: null, companyId: meeting.companyId, contactId: null })
     }
     if (!links.ok) return fail("UNPROCESSABLE", links.error)
     const linked = links
@@ -183,7 +185,7 @@ export async function decideSaleiaInsight(input: {
   async function acceptStage(): Promise<DecisionResult> {
     const opportunity = meeting.opportunityId
       ? await prisma.opportunity.findFirst({
-          where: { id: meeting.opportunityId, organizationId, ...opportunityScope(role, userId) },
+          where: { id: meeting.opportunityId, organizationId, ...opportunityScope(role, userId, teamId) },
           include: {
             stage: { select: { id: true, pipelineId: true, probability: true, archivedAt: true, requiredFields: true } },
           },

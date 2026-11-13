@@ -1,5 +1,34 @@
 # CHANGELOG — SalesOS
 
+## [V.1.30.0] — 2026-11-13 (pronta; sem commit e sem publicacao — producao segue na V.1.29.0)
+
+### Tarefa V2-9.2 — Equipes
+- Configuracoes > Usuarios ganha o cartao **Equipes**: criar, renomear e remover, com a contagem de pessoas. Cada pessoa fica em no maximo uma equipe, escolhida na lista de pessoas.
+- **Gestor com equipe ve so a equipe**: negociacoes e atividades das pessoas da equipe dele e as que estao sem responsavel. Vale no quadro, na lista, no detalhe, na busca, no Meu Dia, no sino, na empresa, nas reunioes e recomendacoes do SALEIA, no Dashboard e no Report. O que e de outra equipe responde como inexistente.
+- Gestor sem equipe e administrador continuam vendo tudo; vendedor continua vendo so o que e dele. Sem equipes cadastradas, nada muda.
+- O gestor com equipe so atribui negociacoes e atividades a pessoas da propria equipe, e os filtros de pessoa mostram so a equipe.
+- Dashboard do gestor com equipe: numeros da equipe, sem leads e sem a meta da organizacao (ficam as metas individuais). Report: dia e dias fechados so de pessoas da equipe.
+- Mudar a equipe de alguem vale na hora (a sessao rele a equipe do banco). Remover a equipe deixa as pessoas sem equipe; nada mais e apagado.
+- Novas acoes auditadas `team.created`, `team.renamed`, `team.removed` e `member.team-changed`.
+- Testes: 2 unitarios em `permissions.test.mjs` e `teams.integration.mjs` (12). Total: 149 unitarios e 228 de integracao, aprovados localmente.
+
+**Migration:** `20261112120000_teams` (aditiva: tabela `teams` e coluna nula `organization_members.teamId`). Ainda nao aplicada em producao.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261112120000_teams/migration.sql`
+- `apps/web/lib/teams/service.ts`, `app/api/settings/teams/route.ts`, `app/api/settings/teams/[id]/route.ts`
+- `apps/web/app/(app)/configuracoes/usuarios/team-panel.tsx`
+- `apps/web/tests/teams.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `types/next-auth.d.ts`, `lib/auth.ts`, `lib/authz/permissions.ts`, `lib/audit/actions.ts`, `lib/validations/member.ts`, `lib/members/service.ts`
+- `apps/web/lib/activities/service.ts`, `lib/companies/overview.ts`, `lib/dashboard/executive.ts`, `lib/meu-dia/summary.ts`, `lib/notifications/summary.ts`, `lib/opportunities/detail.ts`, `lib/organizations/client-summary.ts`, `lib/search/global-search.ts`
+- `apps/web/lib/saleia/service.ts`, `lib/saleia/decisions.ts`, `lib/saleia/diagnosis.ts`, `lib/report/access.ts`, `lib/report/service.ts`
+- `apps/web/app/api/activities/route.ts`, `activities/[id]/route.ts`, `companies/[id]/route.ts`, `dashboard/route.ts`, `meu-dia/route.ts`, `notifications/route.ts`, `opportunities/route.ts`, `opportunities/[id]/route.ts`, `reports/daily/route.ts`, `reports/daily/closed/route.ts`, `saleia/insights/[id]/route.ts`, `saleia/meetings/route.ts`, `saleia/meetings/[id]/route.ts`, `saleia/meetings/[id]/diagnosis/route.ts`, `search/route.ts`, `settings/members/[id]/route.ts`
+- `apps/web/app/(app)/layout.tsx`, `atividades/page.tsx`, `configuracoes/usuarios/page.tsx`, `configuracoes/usuarios/member-list.tsx`, `dashboard/page.tsx`, `diagnostico/[id]/page.tsx`, `empresas/page.tsx`, `empresas/[id]/page.tsx`, `meu-dia/page.tsx`, `pipeline/page.tsx`, `pipeline/[id]/page.tsx`, `report/page.tsx`, `saleia/page.tsx`, `saleia/[id]/page.tsx`
+- `apps/web/tests/permissions.test.mjs`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.29.0] — 2026-11-11 (publicada em producao, imagem `salesos-web:16`)
 
 ### Tarefa V2-9.1 — Usuarios, convites e auditoria

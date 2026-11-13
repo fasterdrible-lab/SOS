@@ -4,6 +4,7 @@ import { apiError } from "@/lib/api/errors"
 import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
+import { assigneeScope } from "@/lib/authz/permissions"
 import {
   getDashboardMembers,
   getExecutiveDashboard,
@@ -25,7 +26,7 @@ export const GET = withApiErrors("GET /api/dashboard", async (request: Request) 
 
   const params = new URL(request.url).searchParams
   const [members, pipelines] = await Promise.all([
-    getDashboardMembers(organizationId),
+    getDashboardMembers(organizationId, assigneeScope(session.user.role, session.user.teamId).teamId),
     getPipelines(organizationId),
   ])
   const seller = resolveSellerFilter(session.user.role, members, params.get("vendedor"))
@@ -42,6 +43,7 @@ export const GET = withApiErrors("GET /api/dashboard", async (request: Request) 
     organizationId,
     userId: session.user.id,
     role: session.user.role,
+    teamId: session.user.teamId,
     period: parsePeriod(params.get("periodo")),
     sellerId: seller.sellerId,
     members,

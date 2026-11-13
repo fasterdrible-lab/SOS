@@ -27,6 +27,7 @@ export const GET = withApiErrors("GET /api/reports/daily", async (request: Reque
     organizationId,
     userId: session.user.id,
     role: session.user.role,
+    teamId: session.user.teamId,
     requested: params.get("vendedor"),
   })
   if (subject.invalid) return apiError("NOT_FOUND", "Vendedor nao encontrado.")

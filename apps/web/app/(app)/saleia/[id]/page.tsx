@@ -32,7 +32,7 @@ export default async function SaleiaMeetingPage({ params }: { params: Promise<{ 
   if (!hasPermission(session.user.role, "saleia:read")) return <AccessDenied />
 
   const { id } = await params
-  const meeting = await getSaleiaMeeting({ organizationId, userId, role: session.user.role, id })
+  const meeting = await getSaleiaMeeting({ organizationId, userId, role: session.user.role, teamId: session.user.teamId, id })
   if (!meeting) notFound()
 
   const stages = meeting.opportunity

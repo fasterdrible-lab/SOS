@@ -38,7 +38,7 @@ export default async function EmpresasPage() {
             organizationId,
             status: "OPEN",
             companyId: { not: null },
-            ...opportunityScope(session?.user?.role, session?.user?.id ?? ""),
+            ...opportunityScope(session?.user?.role, session?.user?.id ?? "", session?.user?.teamId),
           },
           _sum: { value: true },
           _count: true,

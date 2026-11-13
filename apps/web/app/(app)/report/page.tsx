@@ -5,7 +5,7 @@ import { AccessDenied } from "@/components/access-denied"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { auth } from "@/lib/auth"
-import { hasPermission } from "@/lib/authz/permissions"
+import { hasPermission, isTeamManager } from "@/lib/authz/permissions"
 import { dayKey } from "@/lib/dashboard/period"
 import { resolveReportSubject } from "@/lib/report/access"
 import { dayNavigation, parseDayKey, resolveReportDay } from "@/lib/report/rules"
@@ -54,6 +54,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
     organizationId,
     userId,
     role: session.user.role,
+    teamId: session.user.teamId,
     requested: first(query.vendedor),
   })
   const sellerId = subject.invalid || subject.subjectId === userId ? null : subject.subjectId
@@ -74,7 +75,15 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
   )
 
   if (tab === "fechados") {
-    const reports = await listClosedReports({ organizationId, userId, role: session.user.role, sellerId })
+    const reports = await listClosedReports({
+      organizationId,
+      userId,
+      role: session.user.role,
+      sellerId,
+      teamUserIds: isTeamManager(session.user.role, session.user.teamId)
+        ? (subject.members?.map((member) => member.userId) ?? null)
+        : null,
+    })
     return (
       <main className="min-w-0 flex-1 space-y-4 p-4 sm:p-6">
         {filters}

@@ -111,8 +111,9 @@ export default async function MeuDiaPage() {
   }
 
   const role = session.user.role
+  const teamId = session.user.teamId ?? null
   const now = new Date()
-  const summary = await getMyDaySummary({ organizationId, userId, role, now })
+  const summary = await getMyDaySummary({ organizationId, userId, role, teamId, now })
   const goalEditor = hasPermission(role, "goals:manage")
     ? await loadGoalMembers(organizationId, summary.month)
     : null

@@ -7,8 +7,18 @@ export const inviteCreateSchema = z.object({
   role: z.enum(ASSIGNABLE_ROLES),
 })
 
-export const memberRoleSchema = z.object({
-  role: z.enum(ASSIGNABLE_ROLES),
+/** Papel e/ou equipe (`teamId` nulo tira da equipe); pelo menos um dos dois. */
+export const memberUpdateSchema = z
+  .object({
+    role: z.enum(ASSIGNABLE_ROLES).optional(),
+    teamId: z.string().min(1).max(60).nullable().optional(),
+  })
+  .refine((data) => data.role !== undefined || data.teamId !== undefined, {
+    message: "Informe o papel ou a equipe.",
+  })
+
+export const teamNameSchema = z.object({
+  name: z.string().trim().min(2).max(60),
 })
 
 /** Conta nova: nome e senha. Conta existente: so a senha atual, para provar que e a dona. */

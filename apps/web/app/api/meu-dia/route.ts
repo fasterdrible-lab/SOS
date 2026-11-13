@@ -20,7 +20,7 @@ export const GET = withApiErrors("GET /api/meu-dia", async () => {
   const summary = await getMyDaySummary({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
   })
 
   return NextResponse.json({ summary })

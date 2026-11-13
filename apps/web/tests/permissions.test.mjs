@@ -2,7 +2,9 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
 import {
+  assigneeScope,
   canCreateOrganization,
+  isTeamManager,
   getAccessLevel,
   hasPermission,
   opportunityScope,
@@ -59,6 +61,27 @@ describe("escopo de oportunidades", () => {
   it("nao limita gestor nem administrador", () => {
     assert.deepEqual(opportunityScope("CONSULTANT", "u1"), {})
     assert.deepEqual(opportunityScope("MANAGER", "u1"), {})
+  })
+
+  it("gestor com equipe ve a equipe e o que esta sem dono (V2-9.2)", () => {
+    const scope = opportunityScope("MANAGER", "u1", "team-a")
+    // NOT em vez de OR: nao colide com os filtros de texto, que usam OR.
+    assert.deepEqual(Object.keys(scope), ["NOT"])
+    const some = scope.NOT.owner.members.some
+    assert.deepEqual(some.organization, { teams: { some: { id: "team-a" } } })
+    assert.deepEqual(some.OR, [{ teamId: null }, { teamId: { not: "team-a" } }])
+    assert.deepEqual(opportunityScope("MANAGER", "u1", null), {})
+  })
+
+  it("a equipe nao muda o escopo de administrador nem de vendedor", () => {
+    assert.deepEqual(opportunityScope("ADMIN", "u1", "team-a"), {})
+    assert.deepEqual(opportunityScope("MEMBER", "u1", "team-a"), { ownerId: "u1" })
+    assert.equal(isTeamManager("MANAGER", "team-a"), true)
+    assert.equal(isTeamManager("MANAGER", null), false)
+    assert.equal(isTeamManager("ADMIN", "team-a"), false)
+    assert.deepEqual(assigneeScope("MANAGER", "team-a"), { teamId: "team-a" })
+    assert.deepEqual(assigneeScope("ADMIN", "team-a"), {})
+    assert.deepEqual(assigneeScope("MANAGER", null), {})
   })
 
   it("limita o vendedor as proprias", () => {

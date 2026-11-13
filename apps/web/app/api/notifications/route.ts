@@ -20,7 +20,7 @@ export const GET = withApiErrors("GET /api/notifications", async () => {
   const notifications = await getHeaderNotifications({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
   })
 
   return NextResponse.json({ notifications })

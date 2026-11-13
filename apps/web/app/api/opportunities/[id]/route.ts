@@ -4,7 +4,7 @@ import { apiError, codeForStatus, logServerError, validationError } from "@/lib/
 import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
-import { hasPermission, opportunityScope } from "@/lib/authz/permissions"
+import { hasPermission, opportunityScope, assigneeScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { recordAudit } from "@/lib/audit/record"
 import { StaleOpportunityError, toStageRef, writeOpportunityChange } from "@/lib/opportunities/change"
@@ -36,7 +36,7 @@ export const GET = withApiErrors("GET /api/opportunities/[id]", async (
     id: (await params).id,
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
   })
 
   if (!opportunity) {
@@ -66,7 +66,7 @@ export const PUT = withApiErrors("PUT /api/opportunities/[id]", async (
 
   const { id } = await params
   const existing = await prisma.opportunity.findFirst({
-    where: { id, organizationId, ...opportunityScope(session.user.role, session.user.id) },
+    where: { id, organizationId, ...opportunityScope(session.user.role, session.user.id, session.user.teamId) },
     include: { stage: { select: { requiredFields: true } } },
   })
 
@@ -109,10 +109,10 @@ export const PUT = withApiErrors("PUT /api/opportunities/[id]", async (
 
   if (next.ownerId) {
     const member = await prisma.organizationMember.findFirst({
-      where: { organizationId, userId: next.ownerId },
+      where: { organizationId, userId: next.ownerId, ...assigneeScope(session.user.role, session.user.teamId) },
       select: { id: true },
     })
-    if (!member) return apiError("BAD_REQUEST", "Dono invalido.")
+    if (!member) return apiError("BAD_REQUEST", "Dono invalido ou de outra equipe.")
   }
 
   const plan = planOpportunityEdit({
@@ -191,7 +191,7 @@ export const PATCH = withApiErrors("PATCH /api/opportunities/[id]", async (
     where: {
       id,
       organizationId,
-      ...opportunityScope(session.user.role, session.user.id),
+      ...opportunityScope(session.user.role, session.user.id, session.user.teamId),
     },
     include: {
       stage: {

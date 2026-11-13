@@ -4,6 +4,7 @@ import { apiError } from "@/lib/api/errors"
 import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
+import { isTeamManager } from "@/lib/authz/permissions"
 import { resolveReportSubject } from "@/lib/report/access"
 import { listClosedReports } from "@/lib/report/service"
 
@@ -24,6 +25,7 @@ export const GET = withApiErrors("GET /api/reports/daily/closed", async (request
     organizationId,
     userId: session.user.id,
     role: session.user.role,
+    teamId: session.user.teamId,
     requested,
   })
   if (subject.invalid) return apiError("NOT_FOUND", "Vendedor nao encontrado.")
@@ -33,6 +35,9 @@ export const GET = withApiErrors("GET /api/reports/daily/closed", async (request
     userId: session.user.id,
     role: session.user.role,
     sellerId: requested ? subject.subjectId : null,
+    teamUserIds: isTeamManager(session.user.role, session.user.teamId)
+      ? (subject.members?.map((member) => member.userId) ?? null)
+      : null,
   })
 
   return NextResponse.json({ reports })

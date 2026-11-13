@@ -21,14 +21,17 @@ interface Member {
   role: string
   createdAt: string
   sharedAccount: boolean
+  teamId: string | null
 }
 
 export function MemberList({
   members,
+  teams,
   currentUserId,
   resetHours,
 }: {
   members: Member[]
+  teams: { id: string; name: string }[]
   currentUserId: string
   resetHours: number
 }) {
@@ -77,6 +80,14 @@ export function MemberList({
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ role }),
+    })
+  }
+
+  function changeTeam(member: Member, teamId: string) {
+    void send(member, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ teamId: teamId || null }),
     })
   }
 
@@ -135,6 +146,22 @@ export function MemberList({
                 </div>
                 <div className="flex items-center gap-2">
                   {busy === member.id && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                  {teams.length > 0 && (
+                    <select
+                      aria-label={`Equipe de ${member.name ?? member.email}`}
+                      value={member.teamId ?? ""}
+                      disabled={busy !== null}
+                      onChange={(event) => changeTeam(member, event.target.value)}
+                      className={selectClass}
+                    >
+                      <option value="">Sem equipe</option>
+                      {teams.map((team) => (
+                        <option key={team.id} value={team.id}>
+                          {team.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <select
                     aria-label={`Papel de ${member.name ?? member.email}`}
                     value={member.role}

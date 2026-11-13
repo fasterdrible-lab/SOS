@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { listActivities } from "@/lib/activities/service"
 import { listSaleiaMeetings } from "@/lib/saleia/service"
 import { auth } from "@/lib/auth"
-import { hasPermission } from "@/lib/authz/permissions"
+import { hasPermission, assigneeScope } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
 import { getOpportunityDetail } from "@/lib/opportunities/detail"
@@ -47,8 +47,9 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
   if (!organizationId || !userId) notFound()
 
   const role = session.user.role
+  const teamId = session.user.teamId ?? null
   const { id } = await params
-  const opportunity = await getOpportunityDetail({ id, organizationId, userId, role })
+  const opportunity = await getOpportunityDetail({ id, organizationId, userId, role, teamId })
 
   // De outra organizacao ou de outro vendedor: mesma resposta de inexistente.
   if (!opportunity) notFound()
@@ -59,11 +60,11 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
 
   const [meetings, activities, pipelines, members, companies, contacts] = await Promise.all([
     hasPermission(role, "saleia:read")
-      ? listSaleiaMeetings({ organizationId, userId, role, where: { opportunityId: opportunity.id }, take: 10 })
+      ? listSaleiaMeetings({ organizationId, userId, role, teamId, where: { opportunityId: opportunity.id }, take: 10 })
       : [],
-    listActivities({ organizationId, userId, role, where: { opportunityId: opportunity.id } }),
+    listActivities({ organizationId, userId, role, teamId, where: { opportunityId: opportunity.id } }),
     getPipelines(organizationId),
-    canAssign ? getDashboardMembers(organizationId) : null,
+    canAssign ? getDashboardMembers(organizationId, assigneeScope(role, teamId).teamId) : null,
     prisma.company.findMany({
       where: { organizationId },
       select: { id: true, name: true },

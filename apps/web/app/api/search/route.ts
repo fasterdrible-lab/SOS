@@ -22,7 +22,7 @@ export const GET = withApiErrors("GET /api/search", async (request: Request) => 
   const groups = await globalSearch({
     organizationId,
     userId: session.user.id,
-    role: session.user.role,
+    role: session.user.role, teamId: session.user.teamId,
     term,
   })
 

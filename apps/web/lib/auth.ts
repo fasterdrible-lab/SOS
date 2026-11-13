@@ -63,17 +63,18 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           (last?.lastOrganizationId
             ? await prisma.organizationMember.findUnique({
                 where: { organizationId_userId: { organizationId: last.lastOrganizationId, userId } },
-                select: { organizationId: true, role: true },
+                select: { organizationId: true, role: true, teamId: true },
               })
             : null) ??
           (await prisma.organizationMember.findFirst({
             where: { userId },
             orderBy: { createdAt: "asc" },
-            select: { organizationId: true, role: true },
+            select: { organizationId: true, role: true, teamId: true },
           }))
 
         token.organizationId = member?.organizationId ?? null
         token.role = member?.role ?? null
+        token.teamId = member?.teamId ?? null
       }
 
       // Revalida vinculo e papel a cada leitura da sessao: remover um membro ou
@@ -86,13 +87,13 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
           (organizationId
             ? await prisma.organizationMember.findUnique({
                 where: { organizationId_userId: { organizationId, userId } },
-                select: { organizationId: true, role: true },
+                select: { organizationId: true, role: true, teamId: true },
               })
             : null) ??
           (await prisma.organizationMember.findFirst({
             where: { userId },
             orderBy: { createdAt: "asc" },
-            select: { organizationId: true, role: true },
+            select: { organizationId: true, role: true, teamId: true },
           }))
 
         if (!member) {
@@ -106,6 +107,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
 
         token.organizationId = member?.organizationId ?? null
         token.role = member?.role ?? null
+        token.teamId = member?.teamId ?? null
       }
 
       if (trigger === "update" && token.id) {
@@ -123,12 +125,13 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
                 userId: token.id as string,
               },
             },
-            select: { organizationId: true, role: true },
+            select: { organizationId: true, role: true, teamId: true },
           })
 
           if (member) {
             token.organizationId = member.organizationId
             token.role = member.role
+            token.teamId = member.teamId
           }
         }
       }
@@ -139,6 +142,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       session.user.id = token.id as string
       session.user.organizationId = token.organizationId as string | null
       session.user.role = token.role as string | null
+      session.user.teamId = (token.teamId as string | null | undefined) ?? null
       return session
     },
   },

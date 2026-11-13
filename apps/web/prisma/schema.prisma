@@ -39,6 +39,7 @@ model Organization {
   dailyReports    DailyReport[]
   invites         OrganizationInvite[]
   passwordResets  PasswordReset[]
+  teams           Team[]
 
   @@map("organizations")
 }
@@ -48,13 +49,32 @@ model OrganizationMember {
   organizationId String
   userId         String
   role           Role     @default(MEMBER)
+  /// Equipe (V2-9.2): no maximo uma por pessoa em cada organizacao.
+  teamId         String?
   createdAt      DateTime @default(now())
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team         Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, userId])
+  @@index([teamId])
   @@map("organization_members")
+}
+
+/// Equipe comercial (V2-9.2). O gestor com equipe ve a equipe e o que esta sem dono.
+model Team {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      OrganizationMember[]
+
+  @@unique([organizationId, name])
+  @@map("teams")
 }
 
 /// Convite por link de uso unico (V2-9.1). Guarda so o hash do token.

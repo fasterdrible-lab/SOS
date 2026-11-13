@@ -330,12 +330,15 @@ export async function listClosedReports(input: {
   role: string | null | undefined
   /** Ja validado; ignorado para o vendedor. */
   sellerId?: string | null
+  /** Sem sellerId, limita a estas pessoas: a equipe do gestor com equipe (V2-9.2). */
+  teamUserIds?: string[] | null
   take?: number
 }): Promise<ClosedReport[]> {
   const isSeller = getAccessLevel(input.role) === "SELLER"
   const userId = isSeller ? input.userId : (input.sellerId ?? undefined)
+  const person = userId ? { userId } : input.teamUserIds ? { userId: { in: input.teamUserIds } } : {}
   const rows = await prisma.dailyReport.findMany({
-    where: { organizationId: input.organizationId, ...(userId ? { userId } : {}) },
+    where: { organizationId: input.organizationId, ...person },
     include: closedInclude,
     orderBy: [{ day: "desc" }, { closedAt: "desc" }],
     take: input.take ?? 60,

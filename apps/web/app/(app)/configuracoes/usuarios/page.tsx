@@ -3,10 +3,12 @@ import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { INVITE_TTL_DAYS, PASSWORD_RESET_TTL_HOURS } from "@/lib/members/rules"
 import { listMembers } from "@/lib/members/service"
+import { listTeams } from "@/lib/teams/service"
 
 import { SettingsNav } from "../settings-nav"
 import { InvitePanel } from "./invite-panel"
 import { MemberList } from "./member-list"
+import { TeamPanel } from "./team-panel"
 
 export default async function UsuariosPage() {
   const session = await auth()
@@ -22,7 +24,7 @@ export default async function UsuariosPage() {
   }
   if (!hasPermission(session.user.role, "members:manage")) return <AccessDenied />
 
-  const { members, invites } = await listMembers(organizationId)
+  const [{ members, invites }, teams] = await Promise.all([listMembers(organizationId), listTeams(organizationId)])
 
   return (
     <main className="min-w-0 flex-1 p-4 sm:p-6">
@@ -37,7 +39,8 @@ export default async function UsuariosPage() {
         </div>
 
         <InvitePanel invites={invites} ttlDays={INVITE_TTL_DAYS} />
-        <MemberList members={members} currentUserId={userId} resetHours={PASSWORD_RESET_TTL_HOURS} />
+        <TeamPanel teams={teams} />
+        <MemberList members={members} teams={teams} currentUserId={userId} resetHours={PASSWORD_RESET_TTL_HOURS} />
       </div>
     </main>
   )

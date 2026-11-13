@@ -6,7 +6,7 @@ import { apiError, validationError } from "@/lib/api/errors"
 import { withApiErrors } from "@/lib/api/handler"
 import { auth } from "@/lib/auth"
 import { denyUnless } from "@/lib/authz/guard"
-import { hasPermission } from "@/lib/authz/permissions"
+import { hasPermission, assigneeScope } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import { activityUpdateSchema } from "@/lib/validations/activity"
 
@@ -29,7 +29,7 @@ export const PATCH = withApiErrors("PATCH /api/activities/[id]", async (request:
 
   const { id } = await params
   const existing = await prisma.activity.findFirst({
-    where: { id, organizationId, ...activityScope(session.user.role, session.user.id) },
+    where: { id, organizationId, ...activityScope(session.user.role, session.user.id, session.user.teamId) },
   })
   if (!existing) return apiError("NOT_FOUND", "Atividade nao encontrada.")
 
@@ -46,10 +46,10 @@ export const PATCH = withApiErrors("PATCH /api/activities/[id]", async (request:
     }
     if (ownerId) {
       const member = await prisma.organizationMember.findFirst({
-        where: { organizationId, userId: ownerId },
+        where: { organizationId, userId: ownerId, ...assigneeScope(session.user.role, session.user.teamId) },
         select: { id: true },
       })
-      if (!member) return apiError("BAD_REQUEST", "Responsavel invalido.")
+      if (!member) return apiError("BAD_REQUEST", "Responsavel invalido ou de outra equipe.")
     }
   }
 
@@ -58,7 +58,7 @@ export const PATCH = withApiErrors("PATCH /api/activities/[id]", async (request:
     ? await checkActivityLinks({
         organizationId,
         userId: session.user.id,
-        role: session.user.role,
+        role: session.user.role, teamId: session.user.teamId,
         companyId: companyId === undefined ? existing.companyId : companyId,
         contactId: contactId === undefined ? existing.contactId : contactId,
         opportunityId: opportunityId === undefined ? existing.opportunityId : opportunityId,
@@ -95,7 +95,7 @@ export const DELETE = withApiErrors("DELETE /api/activities/[id]", async (_reque
 
   const { id } = await params
   const { count } = await prisma.activity.deleteMany({
-    where: { id, organizationId, ...activityScope(session.user.role, session.user.id) },
+    where: { id, organizationId, ...activityScope(session.user.role, session.user.id, session.user.teamId) },
   })
   if (count === 0) return apiError("NOT_FOUND", "Atividade nao encontrada.")
 

@@ -63,6 +63,7 @@ export async function listMembers(organizationId: string, now = new Date()) {
       select: {
         id: true,
         role: true,
+        teamId: true,
         createdAt: true,
         user: { select: { id: true, name: true, email: true, _count: { select: { members: true } } } },
       },
@@ -91,6 +92,7 @@ export async function listMembers(organizationId: string, now = new Date()) {
       name: member.user.name,
       email: member.user.email,
       role: member.role,
+      teamId: member.teamId,
       createdAt: member.createdAt.toISOString(),
       /** Participa de outras organizacoes: a senha nao e redefinida por aqui. */
       sharedAccount: member.user._count.members > 1,

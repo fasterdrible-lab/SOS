@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 import { auth } from "@/lib/auth"
-import { getAccessLevel, hasPermission, opportunityScope } from "@/lib/authz/permissions"
+import { getAccessLevel, hasPermission, opportunityScope, assigneeScope } from "@/lib/authz/permissions"
 import { getDashboardMembers } from "@/lib/dashboard/executive"
 import { prisma } from "@/lib/db"
 import type { Prisma } from "@/lib/generated/prisma/client"
@@ -55,11 +55,12 @@ export default async function PipelinePage({
   }
 
   const role = session.user.role
+  const teamId = session.user.teamId ?? null
   const isSeller = getAccessLevel(role) === "SELLER"
   const filters = parseBoardFilters(await searchParams)
   const [pipelines, members] = await Promise.all([
     getPipelines(organizationId),
-    getDashboardMembers(organizationId),
+    getDashboardMembers(organizationId, assigneeScope(role, teamId).teamId),
   ])
   const pipeline = pipelines.find((item) => item.id === filters.pipelineId) ?? pipelines[0]
   const statusFilter = BOARD_STATUSES.find((item) => item.key === filters.status)!
@@ -70,7 +71,7 @@ export default async function PipelinePage({
     pipelineId: pipeline.id,
     status: { in: statusFilter.statuses },
     ...(isSeller ? {} : ownerWhere(filters.owner, userId)),
-    ...opportunityScope(role, userId),
+    ...opportunityScope(role, userId, teamId),
     ...(filters.query
       ? { OR: [{ title: like }, { company: { name: like } }, { contact: { name: like } }] }
       : {}),

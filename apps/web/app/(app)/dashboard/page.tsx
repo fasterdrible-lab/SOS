@@ -14,7 +14,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card"
 import { AccessDenied } from "@/components/access-denied"
 import { auth } from "@/lib/auth"
-import { getAccessLevel, hasPermission } from "@/lib/authz/permissions"
+import { assigneeScope, getAccessLevel, hasPermission, isTeamManager } from "@/lib/authz/permissions"
 import {
   getDashboardMembers,
   getExecutiveDashboard,
@@ -81,7 +81,7 @@ export default async function DashboardPage({
   const isSeller = getAccessLevel(role) === "SELLER"
 
   const [members, pipelines, diagnostics] = await Promise.all([
-    getDashboardMembers(organizationId),
+    getDashboardMembers(organizationId, assigneeScope(session.user.role, session.user.teamId).teamId),
     getPipelines(organizationId),
     prisma.diagnostic.count({ where: { organizationId } }),
   ])
@@ -94,6 +94,7 @@ export default async function DashboardPage({
     organizationId,
     userId,
     role,
+    teamId: session.user.teamId,
     period,
     sellerId,
     members,
@@ -106,7 +107,9 @@ export default async function DashboardPage({
       ? "Suas negociações"
       : dashboard.scope === "SELLER"
         ? members.find((member) => member.userId === dashboard.sellerId)?.name
-        : "Toda a organização"
+        : isTeamManager(role, session.user.teamId)
+          ? "Sua equipe e negociações sem responsável"
+          : "Toda a organização"
 
   return (
     <main className="flex-1 space-y-4 p-4 sm:p-6">
