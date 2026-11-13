@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-9.3, configurações comerciais. Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Configurações também tem a aba Comercial (V2-9.3, ainda não publicada). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-10, homologação final. Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -73,6 +73,7 @@ O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-re
 Organization (tenant)
   └── User (N:N via OrganizationMember; teamId opcional)
   └── Team (equipe comercial; cada pessoa em no maximo uma por organizacao)
+  └── CommercialSettings (uma linha por organizacao: dias para esfriar e feriados; sem linha, padroes)
   └── OrganizationInvite (convite por link: hash do token, papel, validade, aceite ou revogacao)
   └── PasswordReset (link de nova senha gerado por um administrador: hash do token, validade, uso)
   └── Lead
@@ -140,7 +141,11 @@ Menu e titulo do cabecalho: lib/navigation.ts (item some sem a permissao)
 Entrada apos login: /meu-dia
 Meu Dia: getMyDaySummary (lib/meu-dia/summary.ts), usado pela pagina e por GET /api/meu-dia
   vendedor: proprias oportunidades e meta individual | gestor/admin: organizacao e meta da equipe
-Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias uteis seg-sex
+Datas de negocio: lib/time/business-calendar.ts, fuso America/Sao_Paulo, dias uteis seg-sex menos feriados
+Configuracoes comerciais (V2-9.3): getCommercialSettings (lib/settings/commercial.ts), regras em lib/settings/rules.ts
+  coolingAfterDays (padrao 14, 1-180): "esfriando" no Meu Dia, no Dashboard e no sino
+  holidays (AAAA-MM-DD, ate 100): businessDaysOfMonth(now, holidays) -> ideal, projecao e falta por dia das metas
+  GET/PUT /api/settings/commercial e /configuracoes/comercial (commercial-settings:manage, administrador), auditado
 Metas: SalesGoal (organizationId, month AAAA-MM, scopeKey ORG ou userId), PUT /api/goals
 ```
 

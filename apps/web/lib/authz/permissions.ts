@@ -43,6 +43,8 @@ const PERMISSIONS = {
   "members:manage": ADMINS,
   /** Consultar o registro de auditoria. */
   "audit:read": ADMINS,
+  /** Dias para "esfriando" e feriados da organizacao. */
+  "commercial-settings:manage": ADMINS,
   "organizations:create": ADMINS,
 } as const
 

@@ -17,7 +17,6 @@ import { auth } from "@/lib/auth"
 import { hasPermission } from "@/lib/authz/permissions"
 import { prisma } from "@/lib/db"
 import {
-  COOLING_AFTER_DAYS,
   getMyDaySummary,
   type ActivitySummaryItem,
   type OpportunityItem,
@@ -230,7 +229,7 @@ export default async function MeuDiaPage() {
         <OpportunityCard
           icon={Snowflake}
           title="Negociações esfriando"
-          hint={`Sem mudar de etapa há mais de ${COOLING_AFTER_DAYS} dias.`}
+          hint={`Sem mudar de etapa há mais de ${summary.coolingAfterDays} dias.`}
           list={summary.cooling}
           empty="Nenhuma negociação parada além do prazo."
           describe={(item) => `${days(item.daysInStage)} em ${item.stageName.toLowerCase()}`}

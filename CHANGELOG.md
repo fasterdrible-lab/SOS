@@ -1,5 +1,30 @@
 # CHANGELOG — SalesOS
 
+## [V.1.31.0] — 2026-11-13 (pronta; sem commit e sem publicacao — producao segue na V.1.29.0)
+
+### Tarefa V2-9.3 — Configuracoes comerciais
+- Configuracoes ganha a aba **Comercial** (administrador).
+- **Negociacoes esfriando**: o limite de dias sem mudar de etapa, antes fixo em 14, passa a ser escolhido por cliente (1 a 180). Vale no Meu Dia, na saude do pipeline do Dashboard e no sino.
+- **Feriados**: dias sem expediente cadastrados por data saem da conta de dias uteis. Mudam o ideal ate hoje, a projecao do mes e o quanto falta por dia para a meta, no Meu Dia e no Dashboard.
+- Sem nada salvo, tudo continua como antes (14 dias, nenhum feriado).
+- Nova permissao `commercial-settings:manage` (administrador) e nova acao auditada `settings.commercial-updated`, so com os nomes dos campos alterados.
+- Testes: `settings-rules.test.mjs` (7) e `settings.integration.mjs` (6). Total: 156 unitarios e 234 de integracao, aprovados localmente.
+
+**Migration:** `20261113120000_commercial_settings` (aditiva: tabela `commercial_settings`). Ainda nao aplicada em producao.
+
+**Arquivos criados:**
+- `apps/web/prisma/migrations/20261113120000_commercial_settings/migration.sql`
+- `apps/web/lib/settings/rules.ts`, `lib/settings/commercial.ts`, `lib/validations/commercial-settings.ts`
+- `apps/web/app/api/settings/commercial/route.ts`
+- `apps/web/app/(app)/configuracoes/comercial/page.tsx`, `commercial-form.tsx`
+- `apps/web/tests/settings-rules.test.mjs`, `tests/settings.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/prisma/schema.prisma`, `lib/authz/permissions.ts`, `lib/audit/actions.ts`, `lib/time/business-calendar.ts`
+- `apps/web/lib/meu-dia/summary.ts`, `lib/dashboard/executive.ts`, `lib/notifications/summary.ts`
+- `apps/web/app/(app)/meu-dia/page.tsx`, `dashboard/page.tsx`, `configuracoes/settings-nav.tsx`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.30.0] — 2026-11-13 (commit `9eefea0`, CI aprovado; sem publicacao — producao segue na V.1.29.0)
 
 ### Tarefa V2-9.2 — Equipes

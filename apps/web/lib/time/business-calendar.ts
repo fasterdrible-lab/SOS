@@ -117,15 +117,22 @@ export interface BusinessDays {
   remaining: number
 }
 
-/** Segunda a sexta. Feriados ainda nao sao considerados. */
-export function businessDaysOfMonth(now: Date, timeZone = BUSINESS_TIME_ZONE): BusinessDays {
+/** Segunda a sexta, menos os feriados informados (AAAA-MM-DD, configurados por organizacao). */
+export function businessDaysOfMonth(
+  now: Date,
+  holidays: readonly string[] = [],
+  timeZone = BUSINESS_TIME_ZONE
+): BusinessDays {
   const today = calendarDateIn(now, timeZone)
+  const prefix = `${today.year}-${String(today.month).padStart(2, "0")}-`
+  const off = new Set(holidays)
   let total = 0
   let elapsed = 0
   let remaining = 0
 
   for (let day = 1; day <= daysInMonth(today.year, today.month); day++) {
     if (!isWeekday({ ...today, day })) continue
+    if (off.has(prefix + String(day).padStart(2, "0"))) continue
     total++
     if (day <= today.day) elapsed++
     if (day >= today.day) remaining++

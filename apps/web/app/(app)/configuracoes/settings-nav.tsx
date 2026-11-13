@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 const TABS = [
   { key: "integracoes", label: "Integrações", href: "/configuracoes" },
   { key: "usuarios", label: "Usuários", href: "/configuracoes/usuarios" },
+  { key: "comercial", label: "Comercial", href: "/configuracoes/comercial" },
   { key: "auditoria", label: "Auditoria", href: "/configuracoes/auditoria" },
 ] as const
 

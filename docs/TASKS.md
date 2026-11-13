@@ -26,13 +26,41 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
-| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | proxima |
-| V2-10 | Homologacao final | todo |
+| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, pronta em 2026-11-13; sem commit e sem publicacao) |
+| V2-10 | Homologacao final | proxima |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-9.3 - Configuracoes comerciais
+
+### Escopo
+A tarefa dizia "dias para esfriando e outros parametros". Entraram os dois parametros que a documentacao apontava como fixos a espera desta tarefa: o limite de dias para a negociacao esfriar (V2-2.1) e os feriados na conta de dias uteis (V2-2.1 e V2-3). Escolha feita na execucao, sem consulta ao usuario; outros parametros ficam para quando forem pedidos.
+
+### Estado
+V.1.31.0, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`; a V.1.30.0 tambem nao foi publicada). Migration aditiva `20261113120000_commercial_settings`, aplicada so no banco de desenvolvimento.
+
+### Resultado
+- Model `CommercialSettings` (uma linha por organizacao: `coolingAfterDays`, padrao 14, e `holidays`, lista de `AAAA-MM-DD`). Sem linha valem os padroes, entao nada muda ate um administrador salvar.
+- Regras puras em `lib/settings/rules.ts` (padroes, limites, `isCalendarDay`, `normalizeHolidays`, `changedSettings`); leitura e gravacao em `lib/settings/commercial.ts`.
+- `GET/PUT /api/settings/commercial` (permissao nova `commercial-settings:manage`, administrador). `PUT` recebe `{ coolingAfterDays, holidays }` inteiros: dias de 1 a 180 (inteiro), ate 100 feriados, cada um um dia que existe; fora disso 400. Feriados voltam sem repetidos e em ordem. Responde `{ settings, changed }`; sem mudanca nao grava nem audita.
+- Esfriando: o limite configurado vale no Meu Dia (lista e texto), na saude do pipeline do Dashboard e no sino. `MyDaySummary.coolingAfterDays` e `dashboard.health.coolingAfterDays` levam o valor para as telas; a constante `COOLING_AFTER_DAYS` saiu.
+- Feriados: `businessDaysOfMonth(now, holidays)` tira os feriados em dia de semana do total, do decorrido e do restante. Muda o "ideal ate hoje", a projecao e o "falta por dia" das metas no Meu Dia e no Dashboard (inclusive por vendedor e na tabela do time).
+- Tela: aba **Comercial** em Configuracoes (`/configuracoes/comercial`), com o limite de dias, a lista de feriados (adicionar por data, remover) e Salvar.
+- Auditoria: `settings.commercial-updated`, so com os nomes dos campos alterados.
+- Testes: `npm run check` (156 unitarios; novo `settings-rules.test.mjs`, 7) e `npm run test:integration` (234, em 67 suites; nova `settings.integration.mjs`, 6), aprovados localmente em 2026-11-13. O CI ainda nao rodou com ela: nao houve push.
+
+### Limitacoes conhecidas
+- Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
+- Feriados sao cadastrados um a um, por data; nao ha calendario nacional pronto nem feriado que se repete todo ano.
+- Feriados so entram na conta de dias uteis das metas. Prazos de atividades, "fechamento vencido" e os dias da negociacao na etapa continuam em dias corridos.
+- "Esfriando" conta dias corridos desde a ultima mudanca de etapa, sem descontar fim de semana nem feriado, e o limite e um so para todos os funis e etapas.
+- O Report nao usa nenhum dos dois parametros.
+- Mudar o limite nao e retroativo em nada gravado: os numeros sao sempre calculados na hora.
+- Cada leitura do Meu Dia, do Dashboard e do sino faz uma consulta a mais (por chave primaria) para ler as configuracoes; sem cache.
+- So o administrador ve e altera; o gestor nao tem leitura da tela.
 
 ## Tarefa: V2-9.2 - Equipes
 
@@ -369,7 +397,7 @@ Captura local `telas 2 crm.jpeg` (fora do git, contem dados de outra empresa): f
 - As abas "Vendas / Pre-venda" da referencia nao foram feitas: pre-venda depende de reunioes (V2-6). O filtro de funis entrou na V2-4.1.
 - O funil conta entradas de etapa no periodo; negociacoes antigas sem historico (criadas antes da V2-1.2) so tem a entrada reconstituida pela migration.
 - "Origem da venda" usa a origem do lead, que hoje so existe nas oportunidades do IA SDR; as demais aparecem como "Sem origem" ate haver campanha/origem na negociacao.
-- "No ritmo, o mes fecha" e as metas sao sempre do mes corrente, independente do filtro (indicado na tela). Feriados nao entram nos dias uteis.
+- "No ritmo, o mes fecha" e as metas sao sempre do mes corrente, independente do filtro (indicado na tela). Feriados entram nos dias uteis desde a V2-9.3 (Configuracoes > Comercial).
 - A variacao do periodo "este mes" compara com os mesmos dias do mes anterior; no inicio do mes a base e pequena.
 - Sem exportacao nem graficos de evolucao alem do faturamento diario.
 
@@ -401,8 +429,8 @@ Metas mensais por organizacao e por vendedor, cadastradas por gestor ou administ
 
 ### Limitacoes conhecidas
 - ~~O cabecalho ainda nao tem busca global, notificacoes nem alternancia de tema~~: feito na V2-2.2.
-- Feriados nao entram na conta de dias uteis.
-- O limite de 14 dias para "esfriando" e fixo ate as configuracoes comerciais (V2-9).
+- ~~Feriados nao entram na conta de dias uteis~~: cadastrados em Configuracoes > Comercial desde a V2-9.3.
+- ~~O limite de 14 dias para "esfriando" e fixo ate as configuracoes comerciais (V2-9)~~: configuravel desde a V2-9.3.
 - Reunioes, follow-ups e fechamento do dia dependem das FASES V2-6 e V2-8; recomendacoes, da V2-7.
 - ~~O `/dashboard` ainda calcula o mes em UTC~~: corrigido na V2-3.
 - Tarefas dos planos de acao nao tem responsavel: aparecem para toda a organizacao.

@@ -25,7 +25,6 @@ import {
 import type { RankedGroups } from "@/lib/dashboard/metrics"
 import { parsePeriod } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
-import { COOLING_AFTER_DAYS } from "@/lib/meu-dia/summary"
 import { getPipelines } from "@/lib/pipelines/service"
 import { BUSINESS_TIME_ZONE } from "@/lib/time/business-calendar"
 import { cn } from "@/lib/utils"
@@ -282,7 +281,7 @@ function HealthCard({ dashboard }: { dashboard: ExecutiveDashboard }) {
     {
       label: "Esfriando",
       value: String(health.cooling),
-      detail: `paradas há mais de ${COOLING_AFTER_DAYS} dias`,
+      detail: `paradas há mais de ${health.coolingAfterDays} dias`,
       alert: health.cooling > 0,
     },
     {

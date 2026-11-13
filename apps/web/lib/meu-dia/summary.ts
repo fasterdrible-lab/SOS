@@ -8,6 +8,7 @@ import {
   type GoalProgress,
 } from "@/lib/meu-dia/goal-progress"
 import { saleiaMeetingScope } from "@/lib/saleia/service"
+import { getCommercialSettings } from "@/lib/settings/commercial"
 import { getUnseenQualifiedLeadsCount } from "@/lib/sdr/notifications"
 import { dayKey } from "@/lib/dashboard/period"
 import {
@@ -19,8 +20,6 @@ import {
 } from "@/lib/time/business-calendar"
 import { ORGANIZATION_GOAL_SCOPE } from "@/lib/validations/goal"
 
-/** Sem movimentacao ha mais que isso, a negociacao esta esfriando. Configuravel na V2-9. */
-export const COOLING_AFTER_DAYS = 14
 const LIST_LIMIT = 5
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -69,6 +68,8 @@ export interface MyDaySummary {
   salesToday: { count: number; revenue: number }
   proposals: OpportunityList
   cooling: OpportunityList
+  /** Dias sem mudar de etapa para esfriar, das configuracoes comerciais (V2-9.3). */
+  coolingAfterDays: number
   overdueClose: OpportunityList
   tasks: { overdue: number; today: number; items: TaskItem[] }
   /** Nulo quando o papel nao acompanha o IA SDR. */
@@ -139,7 +140,8 @@ export async function getMyDaySummary(input: {
   const month = monthKey(now)
   const monthWindow = monthRange(now)
   const today = dayRange(now)
-  const coolingBefore = new Date(now.getTime() - COOLING_AFTER_DAYS * DAY_MS)
+  const settings = await getCommercialSettings(organizationId)
+  const coolingBefore = new Date(now.getTime() - settings.coolingAfterDays * DAY_MS)
 
   const scoped = { organizationId, ...opportunityScope(role, userId, teamId) }
   const open = { ...scoped, status: "OPEN" as const }
@@ -318,7 +320,7 @@ export async function getMyDaySummary(input: {
     goal: computeGoalProgress({
       goal: goal ? Number(goal.amount) : null,
       revenue,
-      businessDays: businessDaysOfMonth(now),
+      businessDays: businessDaysOfMonth(now, settings.holidays),
     }),
     wonCount: wonMonth._count,
     lostCount: lostMonth,
@@ -327,6 +329,7 @@ export async function getMyDaySummary(input: {
     salesToday: { count: wonToday._count, revenue: Number(wonToday._sum.value ?? 0) },
     proposals: { total: proposalsTotal, items: proposals.map((row) => toItem(row, now)) },
     cooling: { total: coolingTotal, items: cooling.map((row) => toItem(row, now)) },
+    coolingAfterDays: settings.coolingAfterDays,
     overdueClose: { total: overdueCloseTotal, items: overdueClose.map((row) => toItem(row, now)) },
     tasks: {
       overdue: tasksOverdue,

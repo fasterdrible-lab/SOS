@@ -18,7 +18,7 @@ import {
 } from "@/lib/dashboard/period"
 import { prisma } from "@/lib/db"
 import { computeGoalProgress, type GoalProgress } from "@/lib/meu-dia/goal-progress"
-import { COOLING_AFTER_DAYS } from "@/lib/meu-dia/summary"
+import { getCommercialSettings } from "@/lib/settings/commercial"
 import type { PipelineSummary } from "@/lib/pipelines/service"
 import {
   businessDaysOfMonth,
@@ -76,6 +76,8 @@ export interface ExecutiveDashboard {
   /** Funil filtrado ou, com todos, o padrao: etapas diferem entre funis. */
   funnel: { pipelineId: string; pipelineName: string; leads: number | null; steps: FunnelStep[] }
   health: {
+    /** Dias sem mudar de etapa para esfriar, das configuracoes comerciais (V2-9.3). */
+    coolingAfterDays: number
     openCount: number
     openValue: number
     cooling: number
@@ -165,6 +167,7 @@ export async function getExecutiveDashboard(input: {
   const threeMonthsAgo = monthRange(new Date(month.start.getTime() - 80 * DAY_MS)).start
   const today = startOfCalendarDate(calendarDateIn(now))
   const open = { ...base, status: "OPEN" as const }
+  const settings = await getCommercialSettings(organizationId)
 
   const [
     wonCurrent,
@@ -210,7 +213,7 @@ export async function getExecutiveDashboard(input: {
       : null,
     prisma.opportunity.aggregate({ where: open, _sum: { value: true }, _count: true }),
     prisma.opportunity.count({
-      where: { ...open, stageChangedAt: { lt: new Date(now.getTime() - COOLING_AFTER_DAYS * DAY_MS) } },
+      where: { ...open, stageChangedAt: { lt: new Date(now.getTime() - settings.coolingAfterDays * DAY_MS) } },
     }),
     prisma.opportunity.count({ where: { ...open, expectedClose: { lt: today } } }),
     prisma.opportunity.groupBy({
@@ -257,7 +260,7 @@ export async function getExecutiveDashboard(input: {
   )
   const monthTotal = monthByOwner.reduce((sum, row) => sum + Number(row._sum.value ?? 0), 0)
   const goalByScope = new Map(goals.map((goal) => [goal.scopeKey, Number(goal.amount)]))
-  const businessDays = businessDaysOfMonth(now)
+  const businessDays = businessDaysOfMonth(now, settings.holidays)
   const goalOf = (scopeKey: string) => goalByScope.get(scopeKey) ?? null
   // Nao ha meta por equipe: o gestor com equipe ve as metas individuais dela.
   const paceGoal = !ownerId && teamManager ? null : goalOf(ownerId ?? ORGANIZATION_GOAL_SCOPE)
@@ -330,6 +333,7 @@ export async function getExecutiveDashboard(input: {
       steps: buildFunnel(stageEntries, funnelPipeline.stages),
     },
     health: {
+      coolingAfterDays: settings.coolingAfterDays,
       openCount: openTotals._count,
       openValue: Number(openTotals._sum.value ?? 0),
       cooling,

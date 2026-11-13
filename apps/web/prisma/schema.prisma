@@ -40,6 +40,7 @@ model Organization {
   invites         OrganizationInvite[]
   passwordResets  PasswordReset[]
   teams           Team[]
+  commercialSettings CommercialSettings?
 
   @@map("organizations")
 }
@@ -75,6 +76,20 @@ model Team {
 
   @@unique([organizationId, name])
   @@map("teams")
+}
+
+/// Configuracoes comerciais (V2-9.3): uma linha por organizacao; sem linha, valem os padroes.
+model CommercialSettings {
+  organizationId   String   @id
+  /// Dias sem mudar de etapa para a negociacao contar como esfriando.
+  coolingAfterDays Int      @default(14)
+  /// Feriados (AAAA-MM-DD), fora da conta de dias uteis.
+  holidays         String[] @default([])
+  updatedAt        DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("commercial_settings")
 }
 
 /// Convite por link de uso unico (V2-9.1). Guarda so o hash do token.

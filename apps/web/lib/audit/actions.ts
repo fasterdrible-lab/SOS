@@ -34,6 +34,7 @@ export const AUDIT_ACTION_LABELS = {
   "team.created": "Equipe criada",
   "team.renamed": "Equipe renomeada",
   "team.removed": "Equipe removida",
+  "settings.commercial-updated": "Configuracoes comerciais alteradas",
 } as const
 
 export type AuditAction = keyof typeof AUDIT_ACTION_LABELS
