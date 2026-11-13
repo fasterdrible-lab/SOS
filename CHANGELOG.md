@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.31.0] — 2026-11-13 (pronta; sem commit e sem publicacao — producao segue na V.1.29.0)
+## [V.1.31.0] — 2026-11-13 (commit `d291f21`, CI aprovado; sem publicacao — producao segue na V.1.29.0)
 
 ### Tarefa V2-9.3 — Configuracoes comerciais
 - Configuracoes ganha a aba **Comercial** (administrador).

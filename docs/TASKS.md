@@ -26,7 +26,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
-| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, pronta em 2026-11-13; sem commit e sem publicacao) |
+| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, commit `d291f21`, CI aprovado; sem publicacao) |
 | V2-10 | Homologacao final | proxima |
 
 ### Pendencias de seguranca identificadas na auditoria
@@ -40,7 +40,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 A tarefa dizia "dias para esfriando e outros parametros". Entraram os dois parametros que a documentacao apontava como fixos a espera desta tarefa: o limite de dias para a negociacao esfriar (V2-2.1) e os feriados na conta de dias uteis (V2-2.1 e V2-3). Escolha feita na execucao, sem consulta ao usuario; outros parametros ficam para quando forem pedidos.
 
 ### Estado
-V.1.31.0, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`; a V.1.30.0 tambem nao foi publicada). Migration aditiva `20261113120000_commercial_settings`, aplicada so no banco de desenvolvimento.
+V.1.31.0, commit `d291f21` na branch `feat/saleos-v2`, CI aprovado em 2026-11-13; **sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`; a V.1.30.0 tambem nao foi publicada). Migration aditiva `20261113120000_commercial_settings`, aplicada so no banco de desenvolvimento.
 
 ### Resultado
 - Model `CommercialSettings` (uma linha por organizacao: `coolingAfterDays`, padrao 14, e `holidays`, lista de `AAAA-MM-DD`). Sem linha valem os padroes, entao nada muda ate um administrador salvar.
@@ -50,7 +50,7 @@ V.1.31.0, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`:
 - Feriados: `businessDaysOfMonth(now, holidays)` tira os feriados em dia de semana do total, do decorrido e do restante. Muda o "ideal ate hoje", a projecao e o "falta por dia" das metas no Meu Dia e no Dashboard (inclusive por vendedor e na tabela do time).
 - Tela: aba **Comercial** em Configuracoes (`/configuracoes/comercial`), com o limite de dias, a lista de feriados (adicionar por data, remover) e Salvar.
 - Auditoria: `settings.commercial-updated`, so com os nomes dos campos alterados.
-- Testes: `npm run check` (156 unitarios; novo `settings-rules.test.mjs`, 7) e `npm run test:integration` (234, em 67 suites; nova `settings.integration.mjs`, 6), aprovados localmente em 2026-11-13. O CI ainda nao rodou com ela: nao houve push.
+- Testes: `npm run check` (156 unitarios; novo `settings-rules.test.mjs`, 7) e `npm run test:integration` (234, em 67 suites; nova `settings.integration.mjs`, 6), aprovados localmente e no CI em 2026-11-13.
 
 ### Limitacoes conhecidas
 - Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.
