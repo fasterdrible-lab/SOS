@@ -25,7 +25,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
-| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, pronta em 2026-11-13; sem commit e sem publicacao) |
+| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e outros parametros) | proxima |
 | V2-10 | Homologacao final | todo |
 
@@ -37,7 +37,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 ## Tarefa: V2-9.2 - Equipes
 
 ### Estado
-V.1.30.0, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`). Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento. Publicar pede autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA.
+V.1.30.0, commit `9eefea0` na branch `feat/saleos-v2`, CI aprovado em 2026-11-13; **sem publicacao** (producao segue na V.1.29.0, `salesos-web:16`). Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento. Publicar pede autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA.
 
 ### Regra
 Cada pessoa fica em no maximo uma equipe por organizacao. So o **gestor que esta numa equipe** tem a visao restrita: ve o que e de pessoas da equipe dele (ele incluido) e o que esta **sem responsavel**. Gestor sem equipe e administrador continuam vendo tudo; o vendedor continua vendo so o que e dele. Enquanto ninguem criar equipe, nada muda.
@@ -52,7 +52,7 @@ Cada pessoa fica em no maximo uma equipe por organizacao. So o **gestor que esta
 - API (permissao `members:manage`, administrador): `GET/POST /api/settings/teams`, `PATCH/DELETE /api/settings/teams/[id]` (nome de 2 a 60 caracteres, repetido sem diferenciar maiusculas 409, de outra organizacao 404; remover deixa as pessoas sem equipe) e `PATCH /api/settings/members/[id]` agora com `{ role?, teamId? }` (`teamId` nulo tira da equipe; equipe de outra organizacao 400; corpo vazio 400). `GET /api/settings/members` devolve `teamId`.
 - Tela: Configuracoes > Usuarios ganha o cartao **Equipes** (criar, renomear, remover, contagem de pessoas) e um seletor de equipe por pessoa (aparece quando ha equipe).
 - Auditoria: `team.created`, `team.renamed`, `team.removed` (com a quantidade de pessoas) e `member.team-changed` (`from`, `to`).
-- Testes: `npm run check` (149 unitarios; 2 novos em `permissions.test.mjs`) e `npm run test:integration` (228, em 65 suites; nova `teams.integration.mjs`, 12), aprovados localmente em 2026-11-13. O CI ainda nao rodou: nao houve push.
+- Testes: `npm run check` (149 unitarios; 2 novos em `permissions.test.mjs`) e `npm run test:integration` (228, em 65 suites; nova `teams.integration.mjs`, 12), aprovados localmente e no CI em 2026-11-13.
 
 ### Limitacoes conhecidas
 - Sem verificacao em navegador real: telas conferidas pelo HTML nos testes de integracao.

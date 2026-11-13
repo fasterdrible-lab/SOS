@@ -1,6 +1,6 @@
 # CHANGELOG — SalesOS
 
-## [V.1.30.0] — 2026-11-13 (pronta; sem commit e sem publicacao — producao segue na V.1.29.0)
+## [V.1.30.0] — 2026-11-13 (commit `9eefea0`, CI aprovado; sem publicacao — producao segue na V.1.29.0)
 
 ### Tarefa V2-9.2 — Equipes
 - Configuracoes > Usuarios ganha o cartao **Equipes**: criar, renomear e remover, com a contagem de pessoas. Cada pessoa fica em no maximo uma equipe, escolhida na lista de pessoas.

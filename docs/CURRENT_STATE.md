@@ -2,7 +2,7 @@
 
 **Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) em producao desde 2026-11-11
 **Data:** 2026-11-13
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta, sem commit e sem publicacao; proxima: V2-9.3 (configuracoes comerciais)
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta (commit `9eefea0`, CI aprovado), sem publicacao; proxima: V2-9.3 (configuracoes comerciais)
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
@@ -17,7 +17,7 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-9.2 (V.1.30.0, pronta em 2026-11-13, **nao commitada nem publicada**): equipes em Configuracoes > Usuarios; o gestor que esta numa equipe ve so o que e da equipe e o que esta sem responsavel, em negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report. Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento.
+  - V2-9.2 (V.1.30.0, pronta em 2026-11-13, commit `9eefea0`, CI aprovado, **nao publicada**): equipes em Configuracoes > Usuarios; o gestor que esta numa equipe ve so o que e da equipe e o que esta sem responsavel, em negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report. Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento.
   - V2-9.1 (publicada em 2026-11-11, `salesos-web:16`): Configuracoes > Usuarios (convite por link de uso unico valido por 7 dias, troca de papel, remocao sem deixar a organizacao sem administrador, link de nova senha valido por 24 h) e Configuracoes > Auditoria (consulta do `AuditLog` com filtros). O login abre a ultima organizacao usada. Migrations aditivas `20261111120000_member_invites` e `20261111130000_password_resets`. A V2-9 foi dividida (decisao do usuario): equipes na 9.2, configuracoes comerciais na 9.3.
   - V2-8.2 (publicada em 2026-11-11 com a V2-9.1): "So diagnostico" no SOS. Campo opcional `offer` no contrato SALEIA, migration aditiva `20261110120000_saleia_diagnosis_only`, confirmar (com o motivo da IA ou reescrito), contestar e desfazer, numero e secao no Report, retrato no fechamento. O envio de `offer` pelo SALE-IA ficou para a V2-8.3.
   - V2-8.3 (SALE-IA V.1.4.200, publicada em 2026-11-11 junto com a V.1.4.199): o relatorio automatico do SALE-IA (V.1.4.200) diz se a oferta foi apresentada e o envio ao SOS leva `offer`. Nenhum arquivo do SOS mudou alem da documentacao.
@@ -30,7 +30,7 @@
   - V2-4.3 (publicada em 2026-11-05): campos obrigatorios por etapa; ganhar exige valor.
   - V2-4.2 (publicada em 2026-11-05): quadro com arrastar, filtros, lista, detalhe e edicao da negociacao.
   - V2-4.1 (publicada em 2026-11-04): funis e etapas configuraveis, status (em andamento, ganha, perdida) separado da etapa.
-- **Testes:** 149 unitarios e 228 de integracao, aprovados localmente com a V2-9.2 em 2026-11-13 (ainda sem push, entao o CI nao rodou com ela); o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
+- **Testes:** 149 unitarios e 228 de integracao, aprovados localmente com a V2-9.2 em 2026-11-13 (CI aprovado no commit `9eefea0`); o CI roda todos a cada push. O arrastar foi verificado em navegador real, mas esse roteiro nao esta no repositorio.
 - **Protecoes:** limite de uso do IA SDR (conversa, organizacao e IP), backup diario local e criptografado no Backblaze B2 (ultimo manual: `salesos-20261106-170337`, antes da publicacao da V2-7.1), `www.saleos.tech` com certificado.
 - **IA:** nenhuma chave cadastrada em producao; IA SDR e Consultor Digital ainda nao respondem (tarefa 9.2).
 
@@ -310,7 +310,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-9.2** - Equipes: cadastro em Configuracoes > Usuarios, pessoa em no maximo uma equipe, e o gestor com equipe vendo so a equipe e o que esta sem responsavel (negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report), atribuindo so dentro dela. 377 testes automatizados (149 + 228), aprovados localmente. V.1.30.0, pronta em 2026-11-13 com migration aditiva; falta commit, push (CI), publicacao (com autorizacao e backup) e conferir em navegador.
+**Tarefa V2-9.2** - Equipes: cadastro em Configuracoes > Usuarios, pessoa em no maximo uma equipe, e o gestor com equipe vendo so a equipe e o que esta sem responsavel (negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report), atribuindo so dentro dela. 377 testes automatizados (149 + 228), aprovados localmente. V.1.30.0, pronta em 2026-11-13 com migration aditiva; commit `9eefea0`, CI aprovado; falta publicacao (com autorizacao e backup) e conferir em navegador.
 
 **Tarefa V2-9.1** - Usuarios e auditoria: convite por link de uso unico (so o hash no banco), aceite com conta nova ou existente, troca de papel e remocao sem deixar a organizacao sem administrador, link de nova senha gerado pelo administrador, login na ultima organizacao usada e consulta do `AuditLog` em Configuracoes. 363 testes automatizados (147 + 216). V.1.29.0, commit `a727a67`, CI aprovado. Publicada em 2026-11-11 (`salesos-web:16`, junto com a V.1.28.0), depois do backup `salesos-20261111-192322` (local e externo), com duas migrations aditivas; falta conferir em navegador.
 
@@ -370,13 +370,13 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Conferir em navegador as telas da V2-6, da V2-7.3 (acoes na reuniao da SALEIA) e da V2-8.1 (Report).
 - Publicar o SALE-IA V.1.4.199 (com autorizacao e `reunioes_ativas = 0`), reprocessar as 13 sessoes com relatorio em erro (pedido do usuario) e conferir a primeira reuniao real chegando em `/saleia` (log do SALE-IA: `journalctl -u saleia | grep '\[SalesOS\]'`). Trocar o token do Grafana Cloud exposto no chat.
 - Conferir a primeira reuniao real chegando em `/saleia` com a oferta avaliada (SALE-IA V.1.4.200 no ar desde 2026-11-11) e decidir o reprocessamento das 18 sessoes do SALE-IA com relatorio em erro (custa IA e cria cliente/oportunidade; nao feito). Seguir com a V2-9.3 e a V2-10 (`docs/TASKS.md`).
-- Commitar, enviar (CI) e publicar a V2-9.2 (V.1.30.0), com autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA; depois conferir em navegador o cartao Equipes e a visao de um gestor com equipe.
+- Publicar a V2-9.2 (V.1.30.0), com autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA; depois conferir em navegador o cartao Equipes e a visao de um gestor com equipe.
 - Conferir em navegador, na producao, Configuracoes > Usuarios e Auditoria, o aceite de um convite real e o link de nova senha.
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-V2-9.3: configuracoes comerciais (dias para "esfriando" e outros parametros) (`docs/TASKS.md`). Antes, decidir o commit e a publicacao da V2-9.2.
+V2-9.3: configuracoes comerciais (dias para "esfriando" e outros parametros) (`docs/TASKS.md`). Antes, decidir a publicacao da V2-9.2.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.
