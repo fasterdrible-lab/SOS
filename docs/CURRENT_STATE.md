@@ -2,7 +2,7 @@
 
 **Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) em producao desde 2026-11-11
 **Data:** 2026-11-13
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta (commit `9eefea0`, CI aprovado), sem publicacao; V2-9.3 (configuracoes comerciais, V.1.31.0) pronta (commit `d291f21`, CI aprovado), sem publicacao; V2-10 (homologacao final, local) concluida em 2026-11-13, sem commit: Prompt Mestre V2 implementado, falta publicar a 9.2 e a 9.3 e homologar em producao
+**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta (commit `9eefea0`, CI aprovado), sem publicacao; V2-9.3 (configuracoes comerciais, V.1.31.0) pronta (commit `d291f21`, CI aprovado), sem publicacao; V2-10 (homologacao final, local) concluida em 2026-11-13 (commit `11ff112`, CI aprovado): Prompt Mestre V2 implementado, falta publicar a 9.2 e a 9.3 e homologar em producao
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
@@ -17,7 +17,7 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-10 (V.1.31.1, 2026-11-13, **nao commitada**): homologacao local completa, aprovada com ressalvas (`docs/HOMOLOGACAO_V2.md`). Roteiro de navegador `npm run homologacao` (94 verificacoes) e dois ajustes visuais. A producao nao foi tocada.
+  - V2-10 (V.1.31.1, 2026-11-13, commit `11ff112`, CI aprovado, **nao publicada**): homologacao local completa, aprovada com ressalvas (`docs/HOMOLOGACAO_V2.md`). Roteiro de navegador `npm run homologacao` (94 verificacoes) e dois ajustes visuais. A producao nao foi tocada.
   - V2-9.3 (V.1.31.0, pronta em 2026-11-13, commit `d291f21`, CI aprovado, **nao publicada**): aba Comercial em Configuracoes, com os dias para a negociacao esfriar (padrao 14) e os feriados, que saem da conta de dias uteis das metas. Migration aditiva `20261113120000_commercial_settings`, aplicada so no banco de desenvolvimento.
   - V2-9.2 (V.1.30.0, pronta em 2026-11-13, commit `9eefea0`, CI aprovado, **nao publicada**): equipes em Configuracoes > Usuarios; o gestor que esta numa equipe ve so o que e da equipe e o que esta sem responsavel, em negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report. Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento.
   - V2-9.1 (publicada em 2026-11-11, `salesos-web:16`): Configuracoes > Usuarios (convite por link de uso unico valido por 7 dias, troca de papel, remocao sem deixar a organizacao sem administrador, link de nova senha valido por 24 h) e Configuracoes > Auditoria (consulta do `AuditLog` com filtros). O login abre a ultima organizacao usada. Migrations aditivas `20261111120000_member_invites` e `20261111130000_password_resets`. A V2-9 foi dividida (decisao do usuario): equipes na 9.2, configuracoes comerciais na 9.3.
@@ -319,7 +319,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-10** - Homologacao final, local (decisao do usuario): suite inteira aprovada (156 unitarios, 234 de integracao), 94 verificacoes em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, pelo roteiro novo `npm run homologacao`; dois ajustes visuais (data do Report e rotulo da aba Comercial); relatorio em `docs/HOMOLOGACAO_V2.md`. V.1.31.1, sem migration; falta commit e push. A producao nao foi tocada.
+**Tarefa V2-10** - Homologacao final, local (decisao do usuario): suite inteira aprovada (156 unitarios, 234 de integracao), 94 verificacoes em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, pelo roteiro novo `npm run homologacao`; dois ajustes visuais (data do Report e rotulo da aba Comercial); relatorio em `docs/HOMOLOGACAO_V2.md`. V.1.31.1, sem migration; commit `11ff112`, CI aprovado em 2026-11-16. A producao nao foi tocada.
 
 **Tarefa V2-9.3** - Configuracoes comerciais: aba Comercial em Configuracoes (administrador) com os dias para a negociacao esfriar, usados no Meu Dia, no Dashboard e no sino, e os feriados, descontados dos dias uteis das metas. 390 testes automatizados (156 + 234), aprovados localmente. V.1.31.0, pronta em 2026-11-13 com migration aditiva; commit `d291f21`, CI aprovado; falta publicacao (com autorizacao e backup) e conferir em navegador.
 
@@ -383,7 +383,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Conferir em navegador as telas da V2-6, da V2-7.3 (acoes na reuniao da SALEIA) e da V2-8.1 (Report).
 - Publicar o SALE-IA V.1.4.199 (com autorizacao e `reunioes_ativas = 0`), reprocessar as 13 sessoes com relatorio em erro (pedido do usuario) e conferir a primeira reuniao real chegando em `/saleia` (log do SALE-IA: `journalctl -u saleia | grep '\[SalesOS\]'`). Trocar o token do Grafana Cloud exposto no chat.
 - Conferir a primeira reuniao real chegando em `/saleia` com a oferta avaliada (SALE-IA V.1.4.200 no ar desde 2026-11-11) e decidir o reprocessamento das 18 sessoes do SALE-IA com relatorio em erro (custa IA e cria cliente/oportunidade; nao feito). O Prompt Mestre V2 nao tem mais tarefas abertas em `docs/TASKS.md`.
-- Commitar e enviar a V2-10 (V.1.31.1). Depois, homologar em producao com a conta real e cada papel (depende de publicar a V2-9.2 e a V2-9.3).
+- ~~Commitar e enviar a V2-10 (V.1.31.1)~~: feito (`11ff112`, CI aprovado). Falta homologar em producao com a conta real e cada papel (depende de publicar a V2-9.2 e a V2-9.3).
 - Tarefa de atualizacao de dependencias (`zod`, `axios`, `prisma`, `shadcn`), com a suite inteira depois.
 - Publicar a V2-9.3 (V.1.31.0) junto com a V2-9.2, com autorizacao e backup antes; depois conferir em navegador a aba Comercial.
 - Publicar a V2-9.2 (V.1.30.0), com autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA; depois conferir em navegador o cartao Equipes e a visao de um gestor com equipe.

@@ -27,7 +27,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, commit `d291f21`, CI aprovado; sem publicacao) |
-| V2-10 | Homologacao final (local) | done (V.1.31.1, pronta em 2026-11-13; sem commit e sem publicacao; relatorio em `docs/HOMOLOGACAO_V2.md`) |
+| V2-10 | Homologacao final (local) | done (V.1.31.1, commit `11ff112`, CI aprovado em 2026-11-16; sem publicacao; relatorio em `docs/HOMOLOGACAO_V2.md`) |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
@@ -40,7 +40,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 Homologacao **local completa**, sem tocar na producao: suite inteira, telas de cada papel em navegador real contra o banco local, relatorio com metricas e pendencias, e correcao dos defeitos que aparecessem. Publicar a V2-9.2 e a V2-9.3 e homologar em producao ficaram de fora.
 
 ### Estado
-V.1.31.1, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao**. Sem migration.
+V.1.31.1, pronta em 2026-11-13; commit `11ff112` na branch `feat/saleos-v2`, enviado e com CI aprovado em 2026-11-16; **sem publicacao**. Sem migration.
 
 ### Resultado
 - Relatorio em `docs/HOMOLOGACAO_V2.md`: resultado, metricas, cobertura por fase, o que nao foi verificado e pendencias.
