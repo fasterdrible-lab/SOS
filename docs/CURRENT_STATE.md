@@ -1,7 +1,7 @@
 # CURRENT_STATE.md - SalesOS
 
 **Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) em producao desde 2026-11-11
-**Data:** 2026-11-13
+**Data:** 2026-11-16 (publicacao da `salesos-web:17` em andamento: imagem na VPS, troca pendente)
 **Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta (commit `9eefea0`, CI aprovado), sem publicacao; V2-9.3 (configuracoes comerciais, V.1.31.0) pronta (commit `d291f21`, CI aprovado), sem publicacao; V2-10 (homologacao final, local) concluida em 2026-11-13 (commit `11ff112`, CI aprovado): Prompt Mestre V2 implementado, falta publicar a 9.2 e a 9.3 e homologar em producao
 
 ## Estado Atual
@@ -393,6 +393,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-O Prompt Mestre V2 esta concluido no codigo. Proximo passo, por decisao do usuario: publicar a V2-9.2 e a V2-9.3 (com autorizacao e backup) e homologar em producao. As pendencias estao em `docs/HOMOLOGACAO_V2.md`.
+O Prompt Mestre V2 esta concluido no codigo. **Publicacao da V2-9.2, V2-9.3 e V2-10 em andamento** (autorizada em 2026-11-16): backup `salesos-20261116-182117` feito e imagem `salesos-web:17` (commit `4222bed`) ja carregada na VPS; falta, com `reunioes_ativas = 0` no SALE-IA, aplicar as duas migrations, trocar `WEB_TAG` para 17 e conferir. A producao segue na `salesos-web:16`. Passos em `docs/TASKS.md` ("Publicacao da V2-9.2, V2-9.3 e V2-10"). Depois, homologar em producao. As pendencias estao em `docs/HOMOLOGACAO_V2.md`.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

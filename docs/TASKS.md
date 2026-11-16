@@ -29,6 +29,14 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, commit `d291f21`, CI aprovado; sem publicacao) |
 | V2-10 | Homologacao final (local) | done (V.1.31.1, commit `11ff112`, CI aprovado em 2026-11-16; sem publicacao; relatorio em `docs/HOMOLOGACAO_V2.md`) |
 
+### Publicacao da V2-9.2, V2-9.3 e V2-10 (em andamento)
+Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`).
+- [x] CI verde (`11ff112`; `4222bed` so docs).
+- [x] Backup `salesos-20261116-182117`, local e externo.
+- [x] Imagem gerada e carregada na VPS. **Desvio:** a carga foi feita com 1 reuniao ativa no SALE-IA (a checagem conferia o campo, nao o valor 0); o SALE-IA seguiu respondendo. Daqui em diante, conferir o valor (`"reunioes_ativas":0`) antes de cada passo pesado.
+- [ ] Com `reunioes_ativas = 0`: `migrate deploy` (`20261112120000_teams` e `20261113120000_commercial_settings`, aditivas), `WEB_TAG=17`, `docker compose up -d web`. Em 2026-11-16 o SALE-IA ficou mais de uma hora com 1 reuniao ativa (a unica do dia), talvez presa.
+- [ ] Verificacoes de "Depois" (`docs/DEPLOY.md`) e homologacao em producao com a conta real e cada papel. Reverter: `WEB_TAG=16` (migrations aditivas).
+
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
