@@ -27,12 +27,34 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, commit `d291f21`, CI aprovado; sem publicacao) |
-| V2-10 | Homologacao final | proxima |
+| V2-10 | Homologacao final (local) | done (V.1.31.1, pronta em 2026-11-13; sem commit e sem publicacao; relatorio em `docs/HOMOLOGACAO_V2.md`) |
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-10 - Homologacao final
+
+### Decisao (usuario, 2026-11-13)
+Homologacao **local completa**, sem tocar na producao: suite inteira, telas de cada papel em navegador real contra o banco local, relatorio com metricas e pendencias, e correcao dos defeitos que aparecessem. Publicar a V2-9.2 e a V2-9.3 e homologar em producao ficaram de fora.
+
+### Estado
+V.1.31.1, pronta em 2026-11-13 na arvore de trabalho da branch `feat/saleos-v2`: **sem commit, sem push e sem publicacao**. Sem migration.
+
+### Resultado
+- Relatorio em `docs/HOMOLOGACAO_V2.md`: resultado, metricas, cobertura por fase, o que nao foi verificado e pendencias.
+- Aprovado localmente: lint e tipos sem erro, 156 unitarios, 234 de integracao (67 suites), build, 15 migrations sem diferenca para o schema e 94 verificacoes em navegador.
+- Roteiro de navegador no repositorio: `apps/web/scripts/homologacao.mjs` (`npm run homologacao`). Cria um cliente de exemplo pelas APIs, abre as telas em Chrome com administrador, gestora com equipe e vendedor, em desktop, celular 390 px e tema claro, confere status, textos, erros do navegador e rolagem lateral, grava capturas e apaga os dados. Sem dependencia nova (CDP pelo WebSocket do Node); recusa rodar fora de localhost; fora do CI.
+- Defeitos corrigidos: data do Report com "De" em maiuscula (dia e dias fechados) e rotulo quebrando na aba Comercial. Nenhum defeito funcional.
+- Achado registrado, nao corrigido: `npm audit --omit=dev` mostra 29 alertas (1 critico, 18 altos), nao so o critico que a documentacao citava. A maioria vem das CLIs do `shadcn` e do `prisma`; `zod` abaixo de 4.6.6 esta no caminho das requisicoes.
+
+### Limitacoes conhecidas
+- A homologacao foi local: nada foi conferido em `saleos.tech`, e a V2-9.2 e a V2-9.3 continuam sem publicar.
+- O roteiro clica em poucos fluxos (login, busca, configuracoes comerciais, criar equipe, tema, sair); os demais formularios e dialogos seguem cobertos so pela API. O arrastar do quadro nao foi refeito.
+- O roteiro depende do Chrome (ou Edge) instalado e nao roda no CI; as capturas nao sao comparadas automaticamente, so 14 foram olhadas nesta tarefa.
+- A reuniao do SALEIA do roteiro e inserida no banco, nao recebida pelo webhook (que tem teste proprio).
+- Respostas reais da IA, reuniao real do SALE-IA, login Google, carga e outros navegadores nao foram verificados.
 
 ## Tarefa: V2-9.3 - Configuracoes comerciais
 

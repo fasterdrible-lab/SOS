@@ -85,7 +85,7 @@ export function CommercialForm({
               Aparece no Meu Dia, na saúde do pipeline do Dashboard e no sino.
             </p>
           </div>
-          <div className="max-w-40 space-y-1.5">
+          <div className="max-w-56 space-y-1.5">
             <Label htmlFor="cooling-days">Dias sem mudar de etapa</Label>
             <Input
               id="cooling-days"

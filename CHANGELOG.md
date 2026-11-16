@@ -1,5 +1,23 @@
 # CHANGELOG — SalesOS
 
+## [V.1.31.1] — 2026-11-13 (pronta; sem commit e sem publicacao — producao segue na V.1.29.0)
+
+### Tarefa V2-10 — Homologacao final (local)
+- Relatorio `docs/HOMOLOGACAO_V2.md`: aprovado localmente com ressalvas, com metricas, cobertura por fase, o que nao foi verificado e pendencias. A producao nao foi tocada.
+- Novo roteiro `npm run homologacao` (`apps/web/scripts/homologacao.mjs`): abre as telas em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, e grava capturas. 94 verificacoes, todas aprovadas. Sem dependencia nova; fora do CI.
+- Corrigido: a data do Report aparecia como "13 De Novembro De 2026" (dia e dias fechados).
+- Corrigido: rotulo "Dias sem mudar de etapa" quebrava em duas linhas na aba Comercial.
+- Registrado, sem alteracao: `npm audit --omit=dev` mostra 29 alertas (1 critico, 18 altos).
+
+Sem migration.
+
+**Arquivos criados:**
+- `docs/HOMOLOGACAO_V2.md`, `apps/web/scripts/homologacao.mjs`
+
+**Arquivos alterados:**
+- `apps/web/package.json`, `apps/web/app/(app)/report/page.tsx`, `apps/web/app/(app)/configuracoes/comercial/commercial-form.tsx`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.31.0] — 2026-11-13 (commit `d291f21`, CI aprovado; sem publicacao — producao segue na V.1.29.0)
 
 ### Tarefa V2-9.3 — Configuracoes comerciais

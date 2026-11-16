@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Configurações também tem a aba Comercial (V2-9.3, ainda não publicada). Próxima tarefa do Prompt Mestre V2 (`docs/TASKS.md`): V2-10, homologação final. Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Configurações também tem a aba Comercial (V2-9.3, ainda não publicada). O Prompt Mestre V2 foi homologado localmente em 2026-11-13 (`docs/HOMOLOGACAO_V2.md`). Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 
@@ -271,6 +271,8 @@ npm run check             -> lint + tsc + testes unitarios (regras puras: permis
 npm run test:integration  -> HTTP contra o app em localhost:3100 e o banco local; recusa rodar fora de localhost
 Cada suite cria registros com prefixo proprio e os apaga ao final
 GitHub Actions: os dois, mais migrations e build, em PostgreSQL temporario, a cada push
+npm run homologacao       -> scripts/homologacao.mjs: Chrome real (CDP pelo WebSocket do Node, sem dependencia),
+  cliente de exemplo criado pelas APIs, telas por papel em desktop, celular e tema claro, capturas; fora do CI
 ```
 
 ### Backup

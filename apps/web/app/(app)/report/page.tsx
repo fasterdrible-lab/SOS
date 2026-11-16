@@ -102,7 +102,7 @@ export default async function ReportPage({ searchParams }: { searchParams: Query
       {filters}
 
       <p className="text-sm text-muted-foreground">
-        <span className="capitalize">{longDay.format(asDate(report.day))}</span>
+        <span className="inline-block first-letter:uppercase">{longDay.format(asDate(report.day))}</span>
         {personName && <span> · dia de {personName}</span>}
         {report.closed ? (
           <span> · fechado em {dateTime.format(new Date(report.closed.closedAt))}</span>
@@ -304,7 +304,7 @@ function ClosedList({ reports, showPerson }: { reports: ClosedReport[]; showPers
                 className="block space-y-1 px-5 py-3 hover:bg-foreground/[0.02]"
               >
                 <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-                  <span className="font-medium capitalize text-foreground">
+                  <span className="inline-block font-medium text-foreground first-letter:uppercase">
                     {parseDayKey(report.day) ? shortDay.format(asDate(report.day)) : report.day}
                   </span>
                   {showPerson && <span className="text-muted-foreground">{report.userName}</span>}
