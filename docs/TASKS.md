@@ -25,17 +25,21 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-8.2 | Report: "So diagnostico" no SOS (contrato, recebimento, confirmar/reescrever/contestar, Report) | done (V.1.28.0, em producao desde 2026-11-11, `salesos-web:16`) |
 | V2-8.3 | SALE-IA: enviar `offer` (oferta apresentada e motivo) no evento `meeting.analyzed` | done (SALE-IA V.1.4.200, em producao desde 2026-11-11, junto com a V.1.4.199) |
 | V2-9.1 | Administracao: usuarios, convites por link, papeis e consulta da auditoria | done (V.1.29.0, em producao desde 2026-11-11, `salesos-web:16`) |
-| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, commit `9eefea0`, CI aprovado; sem publicacao) |
-| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, commit `d291f21`, CI aprovado; sem publicacao) |
-| V2-10 | Homologacao final (local) | done (V.1.31.1, commit `11ff112`, CI aprovado em 2026-11-16; sem publicacao; relatorio em `docs/HOMOLOGACAO_V2.md`) |
+| V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, em producao desde 2026-11-18, `salesos-web:17`) |
+| V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, em producao desde 2026-11-18, `salesos-web:17`) |
+| V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
+| V2-11 | Homologacao em producao com a conta real e cada papel | pending |
 
-### Publicacao da V2-9.2, V2-9.3 e V2-10 (em andamento)
+### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
 Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`).
 - [x] CI verde (`11ff112`; `4222bed` so docs).
 - [x] Backup `salesos-20261116-182117`, local e externo.
 - [x] Imagem gerada e carregada na VPS. **Desvio:** a carga foi feita com 1 reuniao ativa no SALE-IA (a checagem conferia o campo, nao o valor 0); o SALE-IA seguiu respondendo. Daqui em diante, conferir o valor (`"reunioes_ativas":0`) antes de cada passo pesado.
-- [ ] Com `reunioes_ativas = 0`: `migrate deploy` (`20261112120000_teams` e `20261113120000_commercial_settings`, aditivas), `WEB_TAG=17`, `docker compose up -d web`. Em 2026-11-16 o SALE-IA ficou mais de uma hora com 1 reuniao ativa (a unica do dia), talvez presa.
-- [ ] Verificacoes de "Depois" (`docs/DEPLOY.md`) e homologacao em producao com a conta real e cada papel. Reverter: `WEB_TAG=16` (migrations aditivas).
+- [x] 2026-11-18: a imagem 17 (e a 15) nao estavam mais na VPS, provavelmente removidas por limpeza de imagens sem uso. Gerada de novo (build todo em cache, mesmo codigo) e enviada as 14:38 UTC, esperando `reunioes_ativas` voltar a 0 (havia 1 reuniao ativa).
+- [x] Backup novo `salesos-20261118-144623` (local e externo), pois o anterior tinha dois dias.
+- [x] Com `reunioes_ativas = 0`: `WEB_TAG=17`, `migrate deploy` (`20261112120000_teams` e `20261113120000_commercial_settings` aplicadas; 15 no total), `docker compose up -d web`, as 14:47 UTC.
+- [x] Verificacoes de "Depois": `/login` 200 em `127.0.0.1:3010`, log `Ready` sem erro; `/meu-dia`, `/configuracoes/comercial`, `/configuracoes/usuarios` e `/api/settings/commercial` sem sessao levam ao login; `www.saleos.tech` 301 para o dominio principal; SALE-IA respondendo (`reunioes_ativas` 0). Reverter: `WEB_TAG=16` (migrations aditivas; a 16 continua na VPS).
+- [ ] Homologacao em producao com a conta real e cada papel: tarefa V2-11.
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.

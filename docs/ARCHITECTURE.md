@@ -58,7 +58,7 @@ Módulo 7 — Dashboard Consultoria    → /clientes (Meus Clientes)
 Módulo 8 — Academia Comercial       → não construído, fora do menu
 ```
 
-O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2, ainda não publicada). Configurações também tem a aba Comercial (V2-9.3, ainda não publicada). O Prompt Mestre V2 foi homologado localmente em 2026-11-13 (`docs/HOMOLOGACAO_V2.md`). Módulos entram no menu apenas quando tiverem tela.
+O SALE-IA envia `offer` desde a V.1.4.200 (V2-8.3), tirado do relatório pós-reunião automático. Configurações tem as abas Integrações, Usuários e Auditoria (V2-9.1). Usuários também cadastra as equipes (V2-9.2). Configurações também tem a aba Comercial (V2-9.3). Ambas em produção desde 2026-11-18. O Prompt Mestre V2 foi homologado localmente em 2026-11-13 (`docs/HOMOLOGACAO_V2.md`). Módulos entram no menu apenas quando tiverem tela.
 
 ## Banco de Dados — Modelo Multiempresa
 

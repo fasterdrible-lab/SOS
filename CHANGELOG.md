@@ -1,12 +1,15 @@
 # CHANGELOG — SalesOS
 
-## [V.1.31.1] — 2026-11-13 (commit `11ff112`, CI aprovado em 2026-11-16; publicacao em andamento — producao segue na V.1.29.0)
+## [V.1.31.1] — 2026-11-13 (commit `11ff112`, CI aprovado em 2026-11-16; em producao desde 2026-11-18, `salesos-web:17`)
 
-### Publicacao da V2-9.2, V2-9.3 e V2-10 (`salesos-web:17`) — em andamento, 2026-11-16
-Autorizada pelo usuario em 2026-11-16. Feito ate agora:
-- Backup `salesos-20261116-182117` (local e externo), antes de qualquer mudanca.
-- Imagem `salesos-web:17` gerada do commit `4222bed` e carregada na VPS. A carga foi feita com 1 reuniao ativa no SALE-IA, contra a regra do `docs/DEPLOY.md` (a checagem conferia o campo, nao o valor 0); o SALE-IA continuou respondendo.
-- Pendente: com `reunioes_ativas = 0`, aplicar as migrations `20261112120000_teams` e `20261113120000_commercial_settings`, trocar `WEB_TAG` para 17 e fazer as verificacoes de "Depois". A producao continua na `salesos-web:16`, sem as migrations.
+### Publicacao da V2-9.2, V2-9.3 e V2-10 (`salesos-web:17`) — concluida em 2026-11-18
+Autorizada pelo usuario em 2026-11-16.
+- Backup `salesos-20261116-182117` (local e externo) e imagem `salesos-web:17` (commit `4222bed`) carregada na VPS em 2026-11-16, com 1 reuniao ativa no SALE-IA, contra a regra do `docs/DEPLOY.md` (a checagem conferia o campo, nao o valor 0).
+- 2026-11-18: a imagem 17 (e a 15) nao estavam mais na VPS. A 17 foi gerada de novo, do mesmo codigo, e reenviada depois de `reunioes_ativas` voltar a 0.
+- Backup novo `salesos-20261118-144623` (local e externo).
+- Migrations `20261112120000_teams` e `20261113120000_commercial_settings` aplicadas; `WEB_TAG=17` as 14:47 UTC.
+- Verificacoes de "Depois" aprovadas (login 200, `Ready`, rotas novas pedem login, `www` redireciona, SALE-IA respondendo). A `salesos-web:16` fica na VPS para reverter.
+- Falta homologar em producao com a conta real e cada papel (V2-11).
 
 ### Tarefa V2-10 — Homologacao final (local)
 - Relatorio `docs/HOMOLOGACAO_V2.md`: aprovado localmente com ressalvas, com metricas, cobertura por fase, o que nao foi verificado e pendencias. A producao nao foi tocada.

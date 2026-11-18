@@ -1,14 +1,14 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.29.0 em producao (`salesos-web:16`, desde 2026-11-11, com a V.1.28.0); SALE-IA V.1.4.200 (V2-8.3) em producao desde 2026-11-11
-**Data:** 2026-11-16 (publicacao da `salesos-web:17` em andamento: imagem na VPS, troca pendente)
-**Fase:** Prompt Mestre V2 - FASES V2-1 a V2-6, V2-7, V2-8.1, V2-8.2 e V2-9.1 publicadas (V2-7.2 e V2-8.3 no SALE-IA); V2-9.2 (equipes, V.1.30.0) pronta (commit `9eefea0`, CI aprovado), sem publicacao; V2-9.3 (configuracoes comerciais, V.1.31.0) pronta (commit `d291f21`, CI aprovado), sem publicacao; V2-10 (homologacao final, local) concluida em 2026-11-13 (commit `11ff112`, CI aprovado): Prompt Mestre V2 implementado, falta publicar a 9.2 e a 9.3 e homologar em producao
+**Versao atual:** V.1.31.1 em producao (`salesos-web:17`, desde 2026-11-18, com a V.1.30.0 e a V.1.31.0); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
+**Data:** 2026-11-18
+**Fase:** Prompt Mestre V2 publicado por inteiro (V2-1 a V2-10; V2-7.2 e V2-8.3 no SALE-IA). Falta homologar em producao com a conta real e cada papel
 
 ## Estado Atual
 `https://saleos.tech` esta no ar, com app e banco em Docker na VPS `200.141.20.162` (`/opt/salesos`), atras do nginx, ao lado da producao do SALE-IA. Operacao em `docs/DEPLOY.md`; uso das telas em `docs/GUIA_DE_USO.md`.
 
-- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda o codigo da V2-9.1 (commit `a727a67`, CI aprovado nas duas branches), que inclui a V2-8.2 (`41072db`).
-- **Producao:** imagem `salesos-web:16` desde 2026-11-11, publicada depois do backup `salesos-20261111-192322` (local e externo), com `reunioes_ativas = 0` no SALE-IA. `next` 16.4.3, `next-auth` 5.0.0-beta.32. 13 migrations aplicadas (as tres ultimas, `20261110120000_saleia_diagnosis_only`, `20261111120000_member_invites` e `20261111130000_password_resets`, aditivas). Imagem `salesos-web:15` mantida na VPS: para reverter, basta voltar `WEB_TAG` (as colunas e tabelas novas ficam sem uso). A integracao SALEIA foi conectada em producao na organizacao NEX-ALS em 2026-11-06; nenhum evento recebido ainda.
+- **Codigo:** branch `feat/saleos-v2`, alinhada com `main` no GitHub. A producao roda o codigo da V2-10 (commit `11ff112`; imagem gerada de `4222bed`, que so muda documentacao), CI aprovado.
+- **Producao:** imagem `salesos-web:17` desde 2026-11-18 14:47 UTC, publicada depois do backup `salesos-20261118-144623` (local e externo), com `reunioes_ativas = 0` no SALE-IA. `next` 16.4.3, `next-auth` 5.0.0-beta.32. 15 migrations aplicadas (as duas ultimas, `20261112120000_teams` e `20261113120000_commercial_settings`, aditivas). Imagem `salesos-web:16` mantida na VPS: para reverter, basta voltar `WEB_TAG=16` (as tabelas e colunas novas ficam sem uso). A `salesos-web:15` nao existe mais na VPS. A integracao SALEIA foi conectada em producao na organizacao NEX-ALS em 2026-11-06; nenhum evento recebido ainda.
 - **Dados:** 1 usuario (admin, papel `CONSULTANT`), 1 cliente e 1 empresa. Nenhuma oportunidade, meta ou chave de IA cadastrada.
 - **Prompt Mestre V2** (`docs/AUDITORIA_V2.md`, `docs/TASKS.md`), publicado em 2026-10-31:
   - V2-1.1: papeis (administrador, gestor, vendedor), dono da oportunidade, sessao revalidada no banco, `AuditLog` e correcao de falhas criticas do `next` e do `next-auth`.
@@ -17,9 +17,9 @@
   - V2-2.1: Meu Dia como pagina inicial, metas mensais, cabecalho global com Sair e menu filtrado pelo papel.
   - V2-2.2 (publicada em 2026-11-02): busca global, notificacoes e tema claro no cabecalho.
   - V2-3 (publicada em 2026-11-02): Dashboard Executivo com filtros de periodo e vendedor, funil, saude, metas, time, origem e motivos de perda.
-  - V2-10 (V.1.31.1, 2026-11-13, commit `11ff112`, CI aprovado, **nao publicada**): homologacao local completa, aprovada com ressalvas (`docs/HOMOLOGACAO_V2.md`). Roteiro de navegador `npm run homologacao` (94 verificacoes) e dois ajustes visuais. A producao nao foi tocada.
-  - V2-9.3 (V.1.31.0, pronta em 2026-11-13, commit `d291f21`, CI aprovado, **nao publicada**): aba Comercial em Configuracoes, com os dias para a negociacao esfriar (padrao 14) e os feriados, que saem da conta de dias uteis das metas. Migration aditiva `20261113120000_commercial_settings`, aplicada so no banco de desenvolvimento.
-  - V2-9.2 (V.1.30.0, pronta em 2026-11-13, commit `9eefea0`, CI aprovado, **nao publicada**): equipes em Configuracoes > Usuarios; o gestor que esta numa equipe ve so o que e da equipe e o que esta sem responsavel, em negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report. Migration aditiva `20261112120000_teams`, aplicada so no banco de desenvolvimento.
+  - V2-10 (V.1.31.1, 2026-11-13, commit `11ff112`, publicada em 2026-11-18, `salesos-web:17`): homologacao local completa, aprovada com ressalvas (`docs/HOMOLOGACAO_V2.md`). Roteiro de navegador `npm run homologacao` (94 verificacoes) e dois ajustes visuais.
+  - V2-9.3 (V.1.31.0, commit `d291f21`, publicada em 2026-11-18, `salesos-web:17`): aba Comercial em Configuracoes, com os dias para a negociacao esfriar (padrao 14) e os feriados, que saem da conta de dias uteis das metas. Migration aditiva `20261113120000_commercial_settings`, aplicada em producao.
+  - V2-9.2 (V.1.30.0, commit `9eefea0`, publicada em 2026-11-18, `salesos-web:17`): equipes em Configuracoes > Usuarios; o gestor que esta numa equipe ve so o que e da equipe e o que esta sem responsavel, em negociacoes, atividades, busca, Meu Dia, sino, empresa, SALEIA, Dashboard e Report. Migration aditiva `20261112120000_teams`, aplicada em producao.
   - V2-9.1 (publicada em 2026-11-11, `salesos-web:16`): Configuracoes > Usuarios (convite por link de uso unico valido por 7 dias, troca de papel, remocao sem deixar a organizacao sem administrador, link de nova senha valido por 24 h) e Configuracoes > Auditoria (consulta do `AuditLog` com filtros). O login abre a ultima organizacao usada. Migrations aditivas `20261111120000_member_invites` e `20261111130000_password_resets`. A V2-9 foi dividida (decisao do usuario): equipes na 9.2, configuracoes comerciais na 9.3.
   - V2-8.2 (publicada em 2026-11-11 com a V2-9.1): "So diagnostico" no SOS. Campo opcional `offer` no contrato SALEIA, migration aditiva `20261110120000_saleia_diagnosis_only`, confirmar (com o motivo da IA ou reescrito), contestar e desfazer, numero e secao no Report, retrato no fechamento. O envio de `offer` pelo SALE-IA ficou para a V2-8.3.
   - V2-8.3 (SALE-IA V.1.4.200, publicada em 2026-11-11 junto com a V.1.4.199): o relatorio automatico do SALE-IA (V.1.4.200) diz se a oferta foi apresentada e o envio ao SOS leva `offer`. Nenhum arquivo do SOS mudou alem da documentacao.
@@ -305,7 +305,9 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 ## Problemas Encontrados
 - `npm.cmd run build` passou.
 - `npm run lint` sem erros desde a V2-1.3.
-- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa do Docker Desktop aberto e de `docker start salesos-postgres`; as 15 migrations estao aplicadas (producao tem 13: faltam a `20261112120000_teams` e a `20261113120000_commercial_settings`).
+- Banco de desenvolvimento: container `salesos-postgres` (porta 5437). Precisa do Docker Desktop aberto e de `docker start salesos-postgres`; as 15 migrations estao aplicadas (producao tambem, desde 2026-11-18).
+- SALE-IA em 2026-11-18: `/health` "degradado", IA indisponivel em todos os provedores (deepseek, openai e anthropic sem saldo, gemini com chave invalida, groq no limite de uso). Sem IA, o relatorio automatico nao e gerado e nenhuma reuniao chega ao SOS.
+- Em 2026-11-18 a imagem `salesos-web:17`, carregada em 2026-11-16, e a `salesos-web:15` nao estavam mais na VPS (provavelmente removidas por limpeza de imagens sem uso). A 17 foi gerada de novo, do mesmo codigo, e reenviada.
 - Respostas reais da IA (IA SDR e Consultor Digital) nao validadas: a chave recebida em 2026-10-30 tem prefixo `gsk_` (Groq), incompativel com o cliente atual, que so chama `api.anthropic.com`. Desde a V2-1.3, a recusa do provedor aparece no log com o status HTTP.
 - O modelo `claude-sonnet-5` do Consultor Digital nao foi confirmado pela API real.
 - A validacao automatizada e por HTTP, mais capturas do Meu Dia em Chrome headless com dados de exemplo. A conta real em producao nao foi testada em navegador depois da V2; o formulario de motivo da perda e as telas por papel tambem nao. Login Google nao esta configurado.
@@ -319,6 +321,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Publicacao da V2-9.2, V2-9.3 e V2-10** (autorizada em 2026-11-16, concluida em 2026-11-18): `salesos-web:17` (commit `4222bed`, mesmo codigo do `11ff112`) em producao desde 14:47 UTC, depois do backup `salesos-20261118-144623` (local e externo), com `reunioes_ativas = 0` conferido pelo valor antes do envio, das migrations e da troca. Migrations `20261112120000_teams` e `20261113120000_commercial_settings` aplicadas (15 no total). Verificado: `/login` 200 local, `Ready` sem erro no log, `/meu-dia`, `/configuracoes/comercial`, `/configuracoes/usuarios` e `/api/settings/commercial` sem sessao levam ao login, `www` redireciona, SALE-IA respondendo. A imagem 17 de 2026-11-16 tinha sumido da VPS e foi gerada e enviada de novo. Falta homologar em navegador com a conta real.
+
 **Tarefa V2-10** - Homologacao final, local (decisao do usuario): suite inteira aprovada (156 unitarios, 234 de integracao), 94 verificacoes em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, pelo roteiro novo `npm run homologacao`; dois ajustes visuais (data do Report e rotulo da aba Comercial); relatorio em `docs/HOMOLOGACAO_V2.md`. V.1.31.1, sem migration; commit `11ff112`, CI aprovado em 2026-11-16. A producao nao foi tocada.
 
 **Tarefa V2-9.3** - Configuracoes comerciais: aba Comercial em Configuracoes (administrador) com os dias para a negociacao esfriar, usados no Meu Dia, no Dashboard e no sino, e os feriados, descontados dos dias uteis das metas. 390 testes automatizados (156 + 234), aprovados localmente. V.1.31.0, pronta em 2026-11-13 com migration aditiva; commit `d291f21`, CI aprovado; falta publicacao (com autorizacao e backup) e conferir em navegador.
@@ -383,16 +387,15 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Conferir em navegador as telas da V2-6, da V2-7.3 (acoes na reuniao da SALEIA) e da V2-8.1 (Report).
 - Publicar o SALE-IA V.1.4.199 (com autorizacao e `reunioes_ativas = 0`), reprocessar as 13 sessoes com relatorio em erro (pedido do usuario) e conferir a primeira reuniao real chegando em `/saleia` (log do SALE-IA: `journalctl -u saleia | grep '\[SalesOS\]'`). Trocar o token do Grafana Cloud exposto no chat.
 - Conferir a primeira reuniao real chegando em `/saleia` com a oferta avaliada (SALE-IA V.1.4.200 no ar desde 2026-11-11) e decidir o reprocessamento das 18 sessoes do SALE-IA com relatorio em erro (custa IA e cria cliente/oportunidade; nao feito). O Prompt Mestre V2 nao tem mais tarefas abertas em `docs/TASKS.md`.
-- ~~Commitar e enviar a V2-10 (V.1.31.1)~~: feito (`11ff112`, CI aprovado). Falta homologar em producao com a conta real e cada papel (depende de publicar a V2-9.2 e a V2-9.3).
+- Homologar em producao com a conta real e cada papel (V2-9.2, V2-9.3 e V2-10 publicadas em 2026-11-18): aba Comercial, cartao Equipes e a visao de um gestor com equipe.
 - Tarefa de atualizacao de dependencias (`zod`, `axios`, `prisma`, `shadcn`), com a suite inteira depois.
-- Publicar a V2-9.3 (V.1.31.0) junto com a V2-9.2, com autorizacao e backup antes; depois conferir em navegador a aba Comercial.
-- Publicar a V2-9.2 (V.1.30.0), com autorizacao, backup antes e `reunioes_ativas = 0` no SALE-IA; depois conferir em navegador o cartao Equipes e a visao de um gestor com equipe.
+- Repor credito ou chaves de IA do SALE-IA (todos os provedores fora em 2026-11-18); sem isso nenhuma reuniao chega ao SOS.
 - Conferir em navegador, na producao, Configuracoes > Usuarios e Auditoria, o aceite de um convite real e o link de nova senha.
 - Trocar a chave do Backblaze (tarefa 10.9).
 - Decidir sobre Object Lock no bucket, alertas de falha e visibilidade do repositorio.
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-O Prompt Mestre V2 esta concluido no codigo. **Publicacao da V2-9.2, V2-9.3 e V2-10 em andamento** (autorizada em 2026-11-16): backup `salesos-20261116-182117` feito e imagem `salesos-web:17` (commit `4222bed`) ja carregada na VPS; falta, com `reunioes_ativas = 0` no SALE-IA, aplicar as duas migrations, trocar `WEB_TAG` para 17 e conferir. A producao segue na `salesos-web:16`. Passos em `docs/TASKS.md` ("Publicacao da V2-9.2, V2-9.3 e V2-10"). Depois, homologar em producao. As pendencias estao em `docs/HOMOLOGACAO_V2.md`.
+O Prompt Mestre V2 esta publicado por inteiro (`salesos-web:17`, 2026-11-18). Proximo passo: **homologar em producao** com a conta real e cada papel (administrador, gestor com equipe, vendedor), em navegador. As pendencias estao em `docs/HOMOLOGACAO_V2.md`.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.
