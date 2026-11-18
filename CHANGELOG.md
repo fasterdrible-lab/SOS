@@ -1,5 +1,22 @@
 # CHANGELOG — SalesOS
 
+## [V.1.32.0] — 2026-11-18
+
+### Tarefa V2-12 — Manual do Usuario no app
+- Novo item **Manual do Usuario** no rodape do menu, para todos os papeis, no padrao da EGIDE.
+- `/manual`: 19 assuntos em 7 grupos, com busca sem acento. `/manual/[assunto]`: objetivo, quando utilizar, como acessar (com "Abrir a tela"), passo a passo, exemplo, resultados, duvidas, erros comuns, limitacoes e o espaco do video (em preparacao).
+- Testes: `manual-content.test.mjs` (6) e `manual.integration.mjs` (4). Total: 162 unitarios e 238 de integracao.
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/lib/manual/content.ts`, `apps/web/app/(app)/manual/page.tsx`, `apps/web/app/(app)/manual/[slug]/page.tsx`
+- `apps/web/tests/manual-content.test.mjs`, `apps/web/tests/manual.integration.mjs`
+
+**Arquivos alterados:**
+- `apps/web/lib/navigation.ts`, `apps/web/components/app-sidebar.tsx`
+- `docs/ARCHITECTURE.md`, `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.31.1] — 2026-11-13 (commit `11ff112`, CI aprovado em 2026-11-16; em producao desde 2026-11-18, `salesos-web:17`)
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (`salesos-web:17`) — concluida em 2026-11-18

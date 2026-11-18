@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Badge } from "@/components/ui/badge"
 import { hasPermission } from "@/lib/authz/permissions"
-import { NAV_GROUPS, SETTINGS_ITEM, isActivePath, type NavItem } from "@/lib/navigation"
+import { MANUAL_ITEM, NAV_GROUPS, SETTINGS_ITEM, isActivePath, type NavItem } from "@/lib/navigation"
 import { cn } from "@/lib/utils"
 
 function canSee(item: NavItem, role: string | null) {
@@ -94,24 +94,34 @@ export function AppSidebar({
         ))}
       </SidebarContent>
 
-      {canSee(SETTINGS_ITEM, role) && (
-        <SidebarFooter className="px-2 py-3">
-          <SidebarSeparator className="opacity-20 mb-3" />
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                isActive={isActivePath(pathname, SETTINGS_ITEM.href)}
-                tooltip={SETTINGS_ITEM.title}
-                render={<Link href={SETTINGS_ITEM.href} />}
-                className="text-muted-foreground hover:text-foreground hover:bg-foreground/5 rounded-md"
-              >
-                <SETTINGS_ITEM.icon className="w-4 h-4" />
-                <span>{SETTINGS_ITEM.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      )}
+      <SidebarFooter className="px-2 py-3">
+        <SidebarSeparator className="opacity-20 mb-3" />
+        <SidebarMenu>
+          {[SETTINGS_ITEM, MANUAL_ITEM]
+            .filter((item) => canSee(item, role))
+            .map((item) => {
+              const isActive = isActivePath(pathname, item.href)
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    tooltip={item.title}
+                    render={<Link href={item.href} />}
+                    className={cn(
+                      "rounded-md",
+                      isActive
+                        ? "bg-[#D4A64F]/10 text-gold-fg font-medium"
+                        : "text-muted-foreground hover:text-foreground hover:bg-foreground/5"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }

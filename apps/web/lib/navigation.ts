@@ -7,6 +7,7 @@ import {
   ClipboardList,
   KanbanSquare,
   LayoutDashboard,
+  LifeBuoy,
   ListChecks,
   ListTodo,
   Settings,
@@ -80,13 +81,20 @@ export const SETTINGS_ITEM: NavItem = {
   permission: "integrations:manage",
 }
 
+/** Manual do Usuario (V2-12): no rodape, para todos os papeis, como na EGIDE. */
+export const MANUAL_ITEM: NavItem = {
+  title: "Manual do Usuário",
+  href: "/manual",
+  icon: LifeBuoy,
+}
+
 export function isActivePath(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/")
 }
 
 /** Titulo do cabecalho: o item de menu de rota mais especifica. */
 export function pageTitle(pathname: string): string {
-  const items = [...NAV_GROUPS.flatMap((group) => group.items), SETTINGS_ITEM]
+  const items = [...NAV_GROUPS.flatMap((group) => group.items), SETTINGS_ITEM, MANUAL_ITEM]
   const match = items
     .filter((item) => isActivePath(pathname, item.href))
     .sort((a, b) => b.href.length - a.href.length)[0]

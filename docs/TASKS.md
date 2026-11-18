@@ -28,6 +28,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
+| V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, 2026-11-18; publicacao autorizada pelo usuario) |
 | V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
@@ -41,10 +42,31 @@ Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`
 - [x] Verificacoes de "Depois": `/login` 200 em `127.0.0.1:3010`, log `Ready` sem erro; `/meu-dia`, `/configuracoes/comercial`, `/configuracoes/usuarios` e `/api/settings/commercial` sem sessao levam ao login; `www.saleos.tech` 301 para o dominio principal; SALE-IA respondendo (`reunioes_ativas` 0). Reverter: `WEB_TAG=16` (migrations aditivas; a 16 continua na VPS).
 - [ ] Homologacao em producao com a conta real e cada papel: tarefa V2-11.
 
+### V2-11 - Homologacao em producao (em andamento)
+- [x] 2026-11-18, sem sessao, em `saleos.tech`: `/login` com "Esqueci a senha"; `/convite/<invalido>` mostra "Convite nao encontrado"; `/redefinir-senha/<invalido>` abre (200); `/api/settings/teams`, `commercial`, `members`, `audit`, `/api/meu-dia` e `/api/dashboard` levam ao login (307); `POST /api/invites/<invalido>` 400; webhook do SALEIA sem assinatura 401.
+- [ ] Roteiro do manual `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx` (12 etapas, administrador, gestor com equipe e vendedor), feito pelo usuario no navegador.
+
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
 - Limite de tentativas de login e cabecalhos de seguranca no nginx e no app.
 - Decidir o controle de novas contas antes de configurar o login Google.
+
+## Tarefa: V2-12 - Manual do Usuario no app
+
+### Decisao (usuario, 2026-11-18)
+Pedido durante a V2-11: "Manual do Usuario" no menu, dentro do app, no padrao do modulo de ajuda da EGIDE (`frontend/src/modules/help`), e publicado.
+
+### Resultado
+- `lib/manual/content.ts`: 19 artigos em 7 grupos (Primeiros passos, Rotina comercial, CRM, Indicadores, Inteligencia, Consultoria, Administracao), cada um com os 9 itens da EGIDE (objetivo, quando utilizar, como acessar, passo a passo, exemplo, resultados, duvidas, erros comuns, limitacoes), publico e espaco do video ("em preparacao"). Busca sem acento nem maiusculas (`searchArticles`).
+- Telas: `/manual` (indice por grupo, busca por `?q=`) e `/manual/[slug]` (artigo com "Abrir a tela"; slug desconhecido 404). Para todos os papeis; artigos de administrador mostram "Para: Administrador".
+- Menu: item "Manual do Usuario" no rodape, abaixo de Configuracoes, para todos os papeis (`MANUAL_ITEM`, `lib/navigation.ts`).
+- Testes: `manual-content.test.mjs` (6: slugs, grupos, 9 itens, cada artigo aponta para uma tela que existe, busca) e `manual.integration.mjs` (4: login, indice e menu do vendedor, busca, artigo e 404). Total: 162 unitarios e 238 de integracao, aprovados localmente. Capturas em Chrome (desktop, celular 390 px e tema claro): sem rolagem lateral nem erro no navegador.
+
+### Limitacoes conhecidas
+- Sem videos: o espaco mostra "Video demonstrativo em preparacao" ate haver `embedUrl`.
+- Sem ajuda contextual (botao de ajuda por tela, como na EGIDE) nem inventario funcional.
+- O conteudo e escrito a mao: mudar uma tela pede atualizar o artigo (o teste confere so que a rota existe).
+- `docs/GUIA_DE_USO.md` continua desatualizado em relacao a V2-9 (usuarios, equipes, comercial); o manual do app e a referencia mais nova.
 
 ## Tarefa: V2-10 - Homologacao final
 

@@ -233,6 +233,8 @@ apps/web/lib/settings/rules.ts, commercial.ts     -> configuracoes comerciais: p
 apps/web/app/api/settings/commercial/route.ts     -> le e grava as configuracoes comerciais (administrador)
 apps/web/app/(app)/configuracoes/comercial/*      -> aba Comercial: dias para esfriar e feriados
 docs/INTEGRACAO_SALEIA.md                         -> contrato do evento SALE-IA -> SalesOS
+apps/web/lib/manual/content.ts                    -> Manual do Usuario: artigos, grupos e busca (V2-12)
+apps/web/app/(app)/manual/page.tsx, [slug]/page.tsx -> indice e artigo do manual
 apps/web/tests/support.mjs                        -> cliente HTTP e travas de ambiente dos testes de integracao
 apps/web/tests/*.test.mjs                         -> testes unitarios (permissoes, etapas, erros, calendario, metas)
 apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, regras comerciais, erros, Meu Dia)
@@ -321,6 +323,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-12** - Manual do Usuario no app, no padrao da EGIDE: item no rodape do menu para todos os papeis, `/manual` com 19 assuntos em 7 grupos e busca, `/manual/[slug]` com os 9 itens e o espaco do video. 162 unitarios e 238 de integracao aprovados localmente; capturas em Chrome sem erro. V.1.32.0, sem migration. Publicacao autorizada pelo usuario em 2026-11-18.
+
 **Publicacao da V2-9.2, V2-9.3 e V2-10** (autorizada em 2026-11-16, concluida em 2026-11-18): `salesos-web:17` (commit `4222bed`, mesmo codigo do `11ff112`) em producao desde 14:47 UTC, depois do backup `salesos-20261118-144623` (local e externo), com `reunioes_ativas = 0` conferido pelo valor antes do envio, das migrations e da troca. Migrations `20261112120000_teams` e `20261113120000_commercial_settings` aplicadas (15 no total). Verificado: `/login` 200 local, `Ready` sem erro no log, `/meu-dia`, `/configuracoes/comercial`, `/configuracoes/usuarios` e `/api/settings/commercial` sem sessao levam ao login, `www` redireciona, SALE-IA respondendo. A imagem 17 de 2026-11-16 tinha sumido da VPS e foi gerada e enviada de novo. Falta homologar em navegador com a conta real.
 
 **Tarefa V2-10** - Homologacao final, local (decisao do usuario): suite inteira aprovada (156 unitarios, 234 de integracao), 94 verificacoes em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, pelo roteiro novo `npm run homologacao`; dois ajustes visuais (data do Report e rotulo da aba Comercial); relatorio em `docs/HOMOLOGACAO_V2.md`. V.1.31.1, sem migration; commit `11ff112`, CI aprovado em 2026-11-16. A producao nao foi tocada.
