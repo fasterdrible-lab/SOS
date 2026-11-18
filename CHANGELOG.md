@@ -11,6 +11,9 @@ Autorizada pelo usuario em 2026-11-16.
 - Verificacoes de "Depois" aprovadas (login 200, `Ready`, rotas novas pedem login, `www` redireciona, SALE-IA respondendo). A `salesos-web:16` fica na VPS para reverter.
 - Falta homologar em producao com a conta real e cada papel (V2-11).
 
+### Manual da homologacao em producao (V2-11) — 2026-11-18
+- Novo `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, no padrao dos manuais da EGIDE: 12 etapas por papel (administrador, gestor com equipe, vendedor), com capturas da homologacao local, resultado esperado, checklist e o que nao e coberto. Sem mudanca de codigo nem nova publicacao.
+
 ### Tarefa V2-10 — Homologacao final (local)
 - Relatorio `docs/HOMOLOGACAO_V2.md`: aprovado localmente com ressalvas, com metricas, cobertura por fase, o que nao foi verificado e pendencias. A producao nao foi tocada.
 - Novo roteiro `npm run homologacao` (`apps/web/scripts/homologacao.mjs`): abre as telas em Chrome real com administrador, gestora com equipe e vendedor, em desktop, celular e tema claro, e grava capturas. 94 verificacoes, todas aprovadas. Sem dependencia nova; fora do CI.

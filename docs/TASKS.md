@@ -28,7 +28,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
-| V2-11 | Homologacao em producao com a conta real e cada papel | pending |
+| V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
 Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`).
