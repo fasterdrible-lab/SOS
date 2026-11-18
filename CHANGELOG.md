@@ -1,5 +1,18 @@
 # CHANGELOG — SalesOS
 
+## [V.1.32.1] — 2026-11-18
+
+### Seguranca: Next.js 16.4.3 -> 16.4.6
+- O build local do Next.js 16.4.3 passou a parar com "known security vulnerability" (aviso de agente do proprio Next). Atualizados `next` e `eslint-config-next` para 16.4.6; `npm audit --omit=dev` deixa de apontar o `next` (28 alertas restantes, todos de outros pacotes, ja registrados na V2-10).
+- Verificado localmente: `npm run check` (162), build sem o aviso, `npm run test:integration` (238) e `npm run homologacao` (94 verificacoes em Chrome, 0 falhas).
+- Nota de ambiente: o app local de testes precisa subir com `AUTH_URL=http://localhost:3100` (como no CI); com o `AUTH_URL` do `.env` (porta 3000), o redirecionamento ao login vai para a porta errada e o roteiro acusa 2 falhas.
+
+Sem migration.
+
+**Arquivos alterados:**
+- `apps/web/package.json`, `apps/web/package-lock.json`
+- `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.32.0] — 2026-11-18 (commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18 19:14 UTC, `salesos-web:18`)
 
 Publicada depois do backup `salesos-20261118-190727` (local e externo), com 1 reuniao ativa no SALE-IA, a pedido do usuario; o SALE-IA continuou ativo.
