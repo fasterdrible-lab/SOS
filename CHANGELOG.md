@@ -1,6 +1,8 @@
 # CHANGELOG — SalesOS
 
-## [V.1.32.1] — 2026-11-18
+## [V.1.32.1] — 2026-11-18 (commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`)
+
+Publicada depois do backup `salesos-20261118-202614` (local e externo), com `reunioes_ativas = 0`. Conferido: Next 16.4.6 no container, `/login` 200, telas internas levam ao login, `www` 301, log sem erro. Reverter: `WEB_TAG=18`.
 
 ### Seguranca: Next.js 16.4.3 -> 16.4.6
 - O build local do Next.js 16.4.3 passou a parar com "known security vulnerability" (aviso de agente do proprio Next). Atualizados `next` e `eslint-config-next` para 16.4.6; `npm audit --omit=dev` deixa de apontar o `next` (28 alertas restantes, todos de outros pacotes, ja registrados na V2-10).

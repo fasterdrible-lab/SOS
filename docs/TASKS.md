@@ -28,7 +28,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
-| SEG-1 | Next.js 16.4.3 -> 16.4.6 (alerta de seguranca) | done (V.1.32.1, 2026-11-18; check, build, 238 de integracao e 94 de navegador aprovados) |
+| SEG-1 | Next.js 16.4.3 -> 16.4.6 (alerta de seguranca) | done (V.1.32.1, commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`, backup `salesos-20261118-202614` antes; reverter `WEB_TAG=18`) |
 | V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18, `salesos-web:18`) |
 | V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE) |
 

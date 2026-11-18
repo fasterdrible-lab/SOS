@@ -1,6 +1,6 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.32.0 em producao (`salesos-web:18`, desde 2026-11-18 19:14 UTC: Manual do Usuario, V2-12; a `salesos-web:17` trouxe a V.1.30.0 a V.1.31.1); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
+**Versao atual:** V.1.32.1 em producao (`salesos-web:19`, desde 2026-11-18 20:29 UTC: Next.js 16.4.6, SEG-1; a `salesos-web:18` trouxe o Manual do Usuario, V2-12; a `salesos-web:17` trouxe a V.1.30.0 a V.1.31.1); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
 **Data:** 2026-11-18
 **Fase:** Prompt Mestre V2 publicado por inteiro (V2-1 a V2-10; V2-7.2 e V2-8.3 no SALE-IA). Falta homologar em producao com a conta real e cada papel
 
@@ -323,7 +323,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**SEG-1** - Next.js 16.4.3 -> 16.4.6 (e `eslint-config-next`), pelo alerta de seguranca que passou a barrar o build local. V.1.32.1, sem migration: check (162), build, integracao (238) e homologacao em Chrome (94) aprovados localmente. O `next` sai do `npm audit`; restam 28 alertas de outros pacotes.
+**SEG-1** - Next.js 16.4.3 -> 16.4.6 (e `eslint-config-next`), pelo alerta de seguranca que passou a barrar o build local. V.1.32.1, sem migration: check (162), build, integracao (238) e homologacao em Chrome (94) aprovados localmente. O `next` sai do `npm audit`; restam 28 alertas de outros pacotes. Commit `8ae8dff`, CI aprovado; publicada em 2026-11-18 20:29 UTC (`salesos-web:19`), depois do backup `salesos-20261118-202614`, com `reunioes_ativas = 0`. Reverter: `WEB_TAG=18`.
 
 **Tarefa V2-12** - Manual do Usuario no app, no padrao da EGIDE: item no rodape do menu para todos os papeis, `/manual` com 19 assuntos em 7 grupos e busca, `/manual/[slug]` com os 9 itens e o espaco do video. 162 unitarios e 238 de integracao aprovados localmente; capturas em Chrome sem erro. V.1.32.0, sem migration, commit `8e2ba07`, CI aprovado. Publicada em 2026-11-18 (`salesos-web:18`), depois do backup `salesos-20261118-190727`, com 1 reuniao ativa no SALE-IA por pedido do usuario. Reverter: `WEB_TAG=17`.
 
