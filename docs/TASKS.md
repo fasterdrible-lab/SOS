@@ -28,7 +28,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-9.2 | Administracao: equipes (gestor ve so a propria equipe) | done (V.1.30.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-9.3 | Administracao: configuracoes comerciais (dias para "esfriando" e feriados) | done (V.1.31.0, em producao desde 2026-11-18, `salesos-web:17`) |
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
-| V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, 2026-11-18; publicacao autorizada pelo usuario) |
+| V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18, `salesos-web:18`) |
 | V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
@@ -61,6 +61,11 @@ Pedido durante a V2-11: "Manual do Usuario" no menu, dentro do app, no padrao do
 - Telas: `/manual` (indice por grupo, busca por `?q=`) e `/manual/[slug]` (artigo com "Abrir a tela"; slug desconhecido 404). Para todos os papeis; artigos de administrador mostram "Para: Administrador".
 - Menu: item "Manual do Usuario" no rodape, abaixo de Configuracoes, para todos os papeis (`MANUAL_ITEM`, `lib/navigation.ts`).
 - Testes: `manual-content.test.mjs` (6: slugs, grupos, 9 itens, cada artigo aponta para uma tela que existe, busca) e `manual.integration.mjs` (4: login, indice e menu do vendedor, busca, artigo e 404). Total: 162 unitarios e 238 de integracao, aprovados localmente. Capturas em Chrome (desktop, celular 390 px e tema claro): sem rolagem lateral nem erro no navegador.
+
+### Publicacao (2026-11-18)
+- Backup `salesos-20261118-190727` (local e externo). Imagem `salesos-web:18` (commit `8e2ba07`, CI aprovado nas duas branches), sem migration.
+- **Desvio autorizado:** o usuario pediu para publicar sem esperar a reuniao ativa do SALE-IA (`reunioes_ativas = 1`). Envio e troca de 19:12 a 19:14 UTC. O SALE-IA continuou ativo, com a reuniao em andamento; os erros do log dele sao os de IA indisponivel, anteriores (986 nos 20 minutos antes).
+- Verificado: `/login` 200, `/manual` sem sessao leva ao login, `www` 301, log `Ready` sem erro. Reverter: `WEB_TAG=17`. A `salesos-web:16` foi removida da VPS.
 
 ### Limitacoes conhecidas
 - Sem videos: o espaco mostra "Video demonstrativo em preparacao" ate haver `embedUrl`.

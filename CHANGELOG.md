@@ -1,6 +1,8 @@
 # CHANGELOG — SalesOS
 
-## [V.1.32.0] — 2026-11-18
+## [V.1.32.0] — 2026-11-18 (commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18 19:14 UTC, `salesos-web:18`)
+
+Publicada depois do backup `salesos-20261118-190727` (local e externo), com 1 reuniao ativa no SALE-IA, a pedido do usuario; o SALE-IA continuou ativo.
 
 ### Tarefa V2-12 — Manual do Usuario no app
 - Novo item **Manual do Usuario** no rodape do menu, para todos os papeis, no padrao da EGIDE.

@@ -1,6 +1,6 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.31.1 em producao (`salesos-web:17`, desde 2026-11-18, com a V.1.30.0 e a V.1.31.0); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
+**Versao atual:** V.1.32.0 em producao (`salesos-web:18`, desde 2026-11-18 19:14 UTC: Manual do Usuario, V2-12; a `salesos-web:17` trouxe a V.1.30.0 a V.1.31.1); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
 **Data:** 2026-11-18
 **Fase:** Prompt Mestre V2 publicado por inteiro (V2-1 a V2-10; V2-7.2 e V2-8.3 no SALE-IA). Falta homologar em producao com a conta real e cada papel
 
@@ -323,7 +323,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-12** - Manual do Usuario no app, no padrao da EGIDE: item no rodape do menu para todos os papeis, `/manual` com 19 assuntos em 7 grupos e busca, `/manual/[slug]` com os 9 itens e o espaco do video. 162 unitarios e 238 de integracao aprovados localmente; capturas em Chrome sem erro. V.1.32.0, sem migration. Publicacao autorizada pelo usuario em 2026-11-18.
+**Tarefa V2-12** - Manual do Usuario no app, no padrao da EGIDE: item no rodape do menu para todos os papeis, `/manual` com 19 assuntos em 7 grupos e busca, `/manual/[slug]` com os 9 itens e o espaco do video. 162 unitarios e 238 de integracao aprovados localmente; capturas em Chrome sem erro. V.1.32.0, sem migration, commit `8e2ba07`, CI aprovado. Publicada em 2026-11-18 (`salesos-web:18`), depois do backup `salesos-20261118-190727`, com 1 reuniao ativa no SALE-IA por pedido do usuario. Reverter: `WEB_TAG=17`.
 
 **Publicacao da V2-9.2, V2-9.3 e V2-10** (autorizada em 2026-11-16, concluida em 2026-11-18): `salesos-web:17` (commit `4222bed`, mesmo codigo do `11ff112`) em producao desde 14:47 UTC, depois do backup `salesos-20261118-144623` (local e externo), com `reunioes_ativas = 0` conferido pelo valor antes do envio, das migrations e da troca. Migrations `20261112120000_teams` e `20261113120000_commercial_settings` aplicadas (15 no total). Verificado: `/login` 200 local, `Ready` sem erro no log, `/meu-dia`, `/configuracoes/comercial`, `/configuracoes/usuarios` e `/api/settings/commercial` sem sessao levam ao login, `www` redireciona, SALE-IA respondendo. A imagem 17 de 2026-11-16 tinha sumido da VPS e foi gerada e enviada de novo. Falta homologar em navegador com a conta real.
 
