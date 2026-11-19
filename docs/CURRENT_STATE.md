@@ -323,6 +323,8 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
+**Tarefa V2-13** - Logo SaleOS (pedido do usuario em 2026-11-19, durante a V2-11): simbolo no menu lateral, logo completo no login, simbolo no convite e na nova senha, e icone da aba (`app/icon.png`, `app/apple-icon.png`, `app/favicon.ico`) no lugar do triangulo padrao do Next. Titulo da aba "SaleOS — Sales Operating System". V.1.33.0, sem migration: check (162) e build aprovados localmente. **Sem commit e sem publicacao.**
+
 **SEG-1** - Next.js 16.4.3 -> 16.4.6 (e `eslint-config-next`), pelo alerta de seguranca que passou a barrar o build local. V.1.32.1, sem migration: check (162), build, integracao (238) e homologacao em Chrome (94) aprovados localmente. O `next` sai do `npm audit`; restam 28 alertas de outros pacotes. Commit `8ae8dff`, CI aprovado; publicada em 2026-11-18 20:29 UTC (`salesos-web:19`), depois do backup `salesos-20261118-202614`, com `reunioes_ativas = 0`. Reverter: `WEB_TAG=18`.
 
 **Tarefa V2-12** - Manual do Usuario no app, no padrao da EGIDE: item no rodape do menu para todos os papeis, `/manual` com 19 assuntos em 7 grupos e busca, `/manual/[slug]` com os 9 itens e o espaco do video. 162 unitarios e 238 de integracao aprovados localmente; capturas em Chrome sem erro. V.1.32.0, sem migration, commit `8e2ba07`, CI aprovado. Publicada em 2026-11-18 (`salesos-web:18`), depois do backup `salesos-20261118-190727`, com 1 reuniao ativa no SALE-IA por pedido do usuario. Reverter: `WEB_TAG=17`.

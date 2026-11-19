@@ -1,12 +1,12 @@
 import Link from "next/link"
-import { TrendingUp } from "lucide-react"
 
+import { BrandMark } from "@/components/brand"
 import { roleLabel } from "@/lib/members/rules"
 import { getInviteByToken } from "@/lib/members/service"
 
 import { AcceptForm } from "./accept-form"
 
-export const metadata = { title: "Convite - SalesOS", robots: { index: false } }
+export const metadata = { title: "Convite - SaleOS", robots: { index: false } }
 
 const STATE_MESSAGES = {
   ACCEPTED: "Este convite já foi usado. Entre com seu e-mail e senha.",
@@ -23,10 +23,8 @@ export default async function ConvitePage({ params }: { params: Promise<{ token:
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4A64F]">
-            <TrendingUp className="h-4 w-4 text-[#1E1B3A]" />
-          </div>
-          <span className="font-semibold text-foreground">SalesOS</span>
+          <BrandMark size={32} />
+          <span className="font-semibold text-foreground">SaleOS</span>
         </div>
 
         {!invite ? (

@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronRight, TrendingUp } from "lucide-react"
+import { ChevronRight } from "lucide-react"
+import { BrandMark } from "@/components/brand"
 import {
   Sidebar,
   SidebarContent,
@@ -42,12 +43,10 @@ export function AppSidebar({
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#D4A64F] flex items-center justify-center shrink-0">
-            <TrendingUp className="w-4 h-4 text-[#1E1B3A]" />
-          </div>
+          <BrandMark size={32} />
           <div className="flex flex-col leading-none group-data-[collapsible=icon]:hidden">
-            <span className="font-semibold text-foreground text-sm">SalesOS</span>
-            <span className="text-[10px] text-muted-foreground">Revenue Growth</span>
+            <span className="font-semibold text-foreground text-sm">SaleOS</span>
+            <span className="text-[10px] text-muted-foreground">Operating System</span>
           </div>
         </div>
       </SidebarHeader>

@@ -1,11 +1,11 @@
 import Link from "next/link"
-import { TrendingUp } from "lucide-react"
 
+import { BrandMark } from "@/components/brand"
 import { getPasswordResetByToken } from "@/lib/members/service"
 
 import { ResetForm } from "./reset-form"
 
-export const metadata = { title: "Nova senha - SalesOS", robots: { index: false } }
+export const metadata = { title: "Nova senha - SaleOS", robots: { index: false } }
 
 const STATE_MESSAGES = {
   USED: "Este link já foi usado. Entre com a senha nova.",
@@ -22,10 +22,8 @@ export default async function RedefinirSenhaPage({ params }: { params: Promise<{
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4A64F]">
-            <TrendingUp className="h-4 w-4 text-[#1E1B3A]" />
-          </div>
-          <span className="font-semibold text-foreground">SalesOS</span>
+          <BrandMark size={32} />
+          <span className="font-semibold text-foreground">SaleOS</span>
         </div>
 
         {!reset || reset.state !== "PENDING" ? (

@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, TrendingUp } from "lucide-react"
+import { Loader2 } from "lucide-react"
+import { BrandLogo } from "@/components/brand"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -45,12 +46,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex">
       {/* Left — Brand panel */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-sidebar p-12 border-r border-foreground/5">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-[#D4A64F] flex items-center justify-center">
-            <TrendingUp className="w-5 h-5 text-[#1E1B3A]" />
-          </div>
-          <span className="font-semibold text-foreground text-lg tracking-tight">SalesOS</span>
-        </div>
+        <BrandLogo size={176} />
 
         <div>
           <blockquote className="text-2xl font-light text-foreground/90 leading-relaxed mb-6">
@@ -72,12 +68,7 @@ export default function LoginPage() {
       <div className="flex flex-1 flex-col items-center justify-center p-8">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-[#D4A64F] flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-[#1E1B3A]" />
-            </div>
-            <span className="font-semibold text-foreground">SalesOS</span>
-          </div>
+          <BrandLogo size={120} className="mb-8 lg:hidden" />
 
           <h1 className="text-2xl font-semibold text-foreground mb-1">Entrar na plataforma</h1>
           <p className="text-muted-foreground text-sm mb-8">

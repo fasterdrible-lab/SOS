@@ -8,9 +8,8 @@ import { THEME_COOKIE, parseTheme } from "@/lib/theme"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "SalesOS — The Operating System for Revenue Growth",
+  title: "SaleOS — Sales Operating System",
   description: "Plataforma operacional de crescimento comercial. CRM + IA + Consultoria em uma única plataforma.",
-  icons: { icon: "/favicon.ico" },
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,22 @@
 # CHANGELOG — SalesOS
 
+## [V.1.33.0] — 2026-11-19 (local, sem commit nem publicacao)
+
+### Tarefa V2-13 — Logo SaleOS
+- Novo logo (enviado pelo usuario) no menu lateral, no login, no convite e na nova senha, pelo componente `components/brand.tsx`.
+- Icone da aba: `app/icon.png`, `app/apple-icon.png` e `app/favicon.ico` com o simbolo do logo (antes, o triangulo padrao do Next).
+- Titulo da aba: "SaleOS — Sales Operating System".
+- Verificado: `npm run check` (162), build e login em Chrome headless.
+
+Sem migration.
+
+**Arquivos criados:**
+- `apps/web/components/brand.tsx`, `apps/web/public/brand/saleos-logo.png`, `apps/web/public/brand/saleos-mark.png`, `apps/web/app/icon.png`, `apps/web/app/apple-icon.png`
+
+**Arquivos alterados:**
+- `apps/web/app/favicon.ico`, `apps/web/app/layout.tsx`, `apps/web/app/(auth)/login/page.tsx`, `apps/web/app/convite/[token]/page.tsx`, `apps/web/app/redefinir-senha/[token]/page.tsx`, `apps/web/components/app-sidebar.tsx`
+- `docs/TASKS.md`, `docs/CURRENT_STATE.md`, `CHANGELOG.md`
+
 ## [V.1.32.1] — 2026-11-18 (commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`)
 
 Publicada depois do backup `salesos-20261118-202614` (local e externo), com `reunioes_ativas = 0`. Conferido: Next 16.4.6 no container, `/login` 200, telas internas levam ao login, `www` 301, log sem erro. Reverter: `WEB_TAG=18`.

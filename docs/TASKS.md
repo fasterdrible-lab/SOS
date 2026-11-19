@@ -30,7 +30,8 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
 | SEG-1 | Next.js 16.4.3 -> 16.4.6 (alerta de seguranca) | done (V.1.32.1, commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`, backup `salesos-20261118-202614` antes; reverter `WEB_TAG=18`) |
 | V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18, `salesos-web:18`) |
-| V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE) |
+| V2-13 | Logo SaleOS no app e no icone da aba | done local (V.1.33.0, 2026-11-19; sem commit nem publicacao) |
+| V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE; etapa 1 aprovada em 2026-11-19) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
 Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`).
@@ -46,6 +47,24 @@ Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`
 ### V2-11 - Homologacao em producao (em andamento)
 - [x] 2026-11-18, sem sessao, em `saleos.tech`: `/login` com "Esqueci a senha"; `/convite/<invalido>` mostra "Convite nao encontrado"; `/redefinir-senha/<invalido>` abre (200); `/api/settings/teams`, `commercial`, `members`, `audit`, `/api/meu-dia` e `/api/dashboard` levam ao login (307); `POST /api/invites/<invalido>` 400; webhook do SALEIA sem assinatura 401.
 - [ ] Roteiro do manual `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx` (12 etapas, administrador, gestor com equipe e vendedor), feito pelo usuario no navegador.
+  - [x] Etapa 1 (2026-11-19): login mostra "Esqueci a senha" com a explicacao e abre o Meu Dia. Observacao: o botao Google aparece, mas o login Google nao esta configurado (pendencia conhecida).
+
+## Tarefa: V2-13 - Logo SaleOS
+
+### Decisao (usuario, 2026-11-19)
+Pedido durante a V2-11: usar o logo enviado no chat (hexagono com "S/S", "SALEOS - Operating System") em toda a aplicacao e no icone da aba.
+
+### Resultado
+- Imagens geradas da imagem enviada (275x277): `public/brand/saleos-logo.png` (logo completo), `public/brand/saleos-mark.png` (so o simbolo), `app/icon.png` (144), `app/apple-icon.png` (180) e `app/favicon.ico` (32 e 48; antes era o triangulo padrao do Next).
+- `components/brand.tsx` (`BrandMark`, `BrandLogo`) no lugar do quadrado dourado com seta: menu lateral (simbolo, "SaleOS" e "Operating System"), login (logo completo no painel e no celular), convite e nova senha.
+- Titulo da aba: "SaleOS — Sales Operating System" (convite e nova senha: "... - SaleOS"). O resto dos textos continua "SalesOS".
+- Verificado: `npm run check` (162), build, login em Chrome headless e icones respondendo 200 sem sessao (o `proxy.ts` ja libera `.png` e `favicon.ico`).
+
+### Limitacoes conhecidas
+- A imagem de origem tem 275 px: o logo fica nitido ate cerca de 180 px; nao ha versao vetorial (SVG).
+- O fundo escuro faz parte da imagem: no tema claro o logo aparece como um bloco escuro.
+- Menu lateral logado nao conferido em navegador (Docker local desligado); a integracao nao rodou.
+- Nome: o logo diz "SALEOS", o resto do app (manual, textos, prompt do Consultor Digital) diz "SalesOS". Unificar e uma decisao do usuario.
 
 ### Pendencias de seguranca identificadas na auditoria
 - ~~Publicar as atualizacoes de `next` e `next-auth` em producao~~: feito em 2026-10-31.
