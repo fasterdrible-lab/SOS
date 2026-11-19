@@ -404,6 +404,6 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 - Academia Comercial (Modulo 8): fora do Prompt Mestre V2; o link para `/academia` foi removido do menu ate haver pagina.
 
 ## Proxima Tarefa Recomendada
-O Prompt Mestre V2 esta publicado por inteiro (`salesos-web:17`, 2026-11-18). Proximo passo: **homologar em producao** com a conta real e cada papel (administrador, gestor com equipe, vendedor), em navegador. As pendencias estao em `docs/HOMOLOGACAO_V2.md`.
+O Prompt Mestre V2 esta publicado por inteiro (`salesos-web:20`, 2026-11-19). Em andamento: **V2-11, homologacao em producao** com a conta real e cada papel, no cliente "Homologação V2" criado para isso. Em 2026-11-19: etapas 1 e 2 aprovadas, 3 a 5 parciais (detalhe em `docs/TASKS.md`); falta a partir do convite do gestor. Depois: **V2-14**, aviso antes de trocar de conta ao aceitar convite (achado da homologacao). As pendencias anteriores estao em `docs/HOMOLOGACAO_V2.md`.
 
 Pendencias anteriores: Tarefa 10.9: antes de usar com clientes reais, trocar a chave do Backblaze exposta no chat. Em paralelo, tarefa 9.2: validar as respostas reais da IA com uma chave Anthropic valida, incluindo a geracao de Lead/Oportunidade em conversa `HOT`.

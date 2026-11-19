@@ -31,6 +31,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | SEG-1 | Next.js 16.4.3 -> 16.4.6 (alerta de seguranca) | done (V.1.32.1, commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`, backup `salesos-20261118-202614` antes; reverter `WEB_TAG=18`) |
 | V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18, `salesos-web:18`) |
 | V2-13 | Logo SaleOS no app e no icone da aba | done (V.1.33.0, commit `2564ee8`, CI aprovado; em producao desde 2026-11-19 13:27 UTC, `salesos-web:20`, backup `salesos-20261119-132137` antes; reverter `WEB_TAG=19`) |
+| V2-14 | Convite: avisar antes de trocar de conta quando ja ha sessao aberta | pending (pedido do usuario em 2026-11-19, depois da V2-11) |
 | V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE; etapa 1 aprovada em 2026-11-19) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
@@ -48,6 +49,21 @@ Autorizada pelo usuario em 2026-11-16. Imagem `salesos-web:17` (commit `4222bed`
 - [x] 2026-11-18, sem sessao, em `saleos.tech`: `/login` com "Esqueci a senha"; `/convite/<invalido>` mostra "Convite nao encontrado"; `/redefinir-senha/<invalido>` abre (200); `/api/settings/teams`, `commercial`, `members`, `audit`, `/api/meu-dia` e `/api/dashboard` levam ao login (307); `POST /api/invites/<invalido>` 400; webhook do SALEIA sem assinatura 401.
 - [ ] Roteiro do manual `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx` (12 etapas, administrador, gestor com equipe e vendedor), feito pelo usuario no navegador.
   - [x] Etapa 1 (2026-11-19): login mostra "Esqueci a senha" com a explicacao e abre o Meu Dia. Observacao: o botao Google aparece, mas o login Google nao esta configurado (pendencia conhecida).
+  - [x] Etapa 2 (2026-11-19): cliente "Homologação V2" criado, "Ativa" na lista e no botao do cabecalho. Logo novo (V2-13) conferido no menu lateral. Observacao: textos de "Meus Clientes" sem acento ("Organizacoes", "diagnostico", "acao"), anterior a V2.
+  - [~] Etapa 3 (2026-11-19): aba Comercial gravou 10 dias e o feriado 20/11/2026 (sexta), mantidos apos recarregar; o Meu Dia mostra "Sem mudar de etapa ha mais de 10 dias". Falta conferir o feriado nos dias uteis: sem meta cadastrada, o Meu Dia nao mostra o total (conferir no Dashboard do administrador; esperado 20 dias uteis em novembro).
+  - [~] Etapa 4 (2026-11-19): convite do vendedor (e-mail pessoal do usuario, sem conta) gerado e aberto corretamente ("Entrar em HOMOLOGAÇÃO V2", "como vendedor", conta nova com nome e senha, logo novo). Falta confirmar a equipe "Equipe A" e o convite do gestor. **Incidente:** o link do convite do vendedor foi colado no chat; como foi aceito em seguida, deixou de valer (uso unico).
+  - [~] Etapa 5 (2026-11-19): o convite do vendedor foi aceito numa aba normal, com a sessao do administrador aberta. O aceite trocou a sessao do navegador para o vendedor sem aviso: a aba do administrador ficou com menu e cabecalho de administrador e o Meu Dia na visao de vendedor ("Suas negociações", "Peça ao seu gestor") ate recarregar. Comportamento coerente com o codigo (o layout nao se redesenha na navegacao); falta o F5 para confirmar o vendedor no cabecalho. Virou a tarefa V2-14 (aviso antes de trocar de conta). Falta o convite do gestor, em janela anonima.
+  - Orientacao para as etapas seguintes: administrador na janela normal, gestor em janela anonima, vendedor em outro navegador.
+
+## Tarefa: V2-14 - Aviso de troca de conta no convite (pendente)
+
+### Origem (V2-11, 2026-11-19)
+Na homologacao, o administrador abriu o convite do vendedor numa aba normal, com a propria sessao aberta. O aceite fez login como o vendedor e trocou a sessao do navegador sem aviso; a aba do administrador ficou com o menu de administrador e o conteudo de vendedor ate recarregar. Nao houve acesso indevido.
+
+### O que fazer
+- Na pagina `/convite/[token]` (e em `/redefinir-senha/[token]`), se ja houver sessao de outra pessoa, mostrar: "Voce esta conectado como X. Aceitar este convite vai sair dessa conta e entrar como Y", com "Aceitar e trocar de conta" e "Cancelar".
+- Se a sessao ja for do mesmo e-mail do convite, seguir como hoje.
+- Teste de integracao para os dois casos.
 
 ## Tarefa: V2-13 - Logo SaleOS
 

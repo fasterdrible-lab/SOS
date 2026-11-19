@@ -12,6 +12,11 @@ Publicada depois do backup `salesos-20261119-132137` (local e externo), com 1 re
 
 Sem migration.
 
+### Homologacao em producao (V2-11), depois da publicacao
+- Etapas 1 e 2 aprovadas (login e cliente "Homologação V2"); logo novo conferido no menu lateral e na pagina do convite.
+- Etapas 3 a 5 parciais: configuracoes comerciais gravadas e valendo no Meu Dia; convite do vendedor gerado e aceito.
+- Achado: aceitar um convite com outra pessoa logada no mesmo navegador troca a sessao sem aviso. Registrado como tarefa V2-14 (so documentacao nesta versao).
+
 **Arquivos criados:**
 - `apps/web/components/brand.tsx`, `apps/web/public/brand/saleos-logo.png`, `apps/web/public/brand/saleos-mark.png`, `apps/web/app/icon.png`, `apps/web/app/apple-icon.png`
 
