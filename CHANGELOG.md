@@ -1,6 +1,8 @@
 # CHANGELOG — SalesOS
 
-## [V.1.33.0] — 2026-11-19 (local, sem commit nem publicacao)
+## [V.1.33.0] — 2026-11-19 (commit `2564ee8`, CI aprovado; em producao desde 2026-11-19 13:27 UTC, `salesos-web:20`)
+
+Publicada depois do backup `salesos-20261119-132137` (local e externo), com 1 reuniao ativa no SALE-IA, a pedido do usuario; o SALE-IA continuou respondendo. Conferido: `/login` 200 com o titulo e os icones novos, imagens 200 sem sessao, `/meu-dia` leva ao login, `www` 301, log sem erro. Reverter: `WEB_TAG=19`.
 
 ### Tarefa V2-13 — Logo SaleOS
 - Novo logo (enviado pelo usuario) no menu lateral, no login, no convite e na nova senha, pelo componente `components/brand.tsx`.

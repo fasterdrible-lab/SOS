@@ -30,7 +30,7 @@ Solicitado pelo usuario em 2026-10-31. Branch: `feat/saleos-v2`. As fases do Pro
 | V2-10 | Homologacao final (local) | done (V.1.31.1, em producao desde 2026-11-18, `salesos-web:17`; relatorio em `docs/HOMOLOGACAO_V2.md`) |
 | SEG-1 | Next.js 16.4.3 -> 16.4.6 (alerta de seguranca) | done (V.1.32.1, commit `8ae8dff`, CI aprovado; em producao desde 2026-11-18 20:29 UTC, `salesos-web:19`, backup `salesos-20261118-202614` antes; reverter `WEB_TAG=18`) |
 | V2-12 | Manual do Usuario no app (padrao EGIDE) | done (V.1.32.0, commit `8e2ba07`, CI aprovado; em producao desde 2026-11-18, `salesos-web:18`) |
-| V2-13 | Logo SaleOS no app e no icone da aba | done local (V.1.33.0, 2026-11-19; sem commit nem publicacao) |
+| V2-13 | Logo SaleOS no app e no icone da aba | done (V.1.33.0, commit `2564ee8`, CI aprovado; em producao desde 2026-11-19 13:27 UTC, `salesos-web:20`, backup `salesos-20261119-132137` antes; reverter `WEB_TAG=19`) |
 | V2-11 | Homologacao em producao com a conta real e cada papel | in progress (2026-11-18, decisao do usuario: ele navega, Claude guia; nenhuma senha pelo chat; roteiro em `Manual_Tutorial_SalesOS_Homologacao_em_Producao.docx`, padrao dos manuais da EGIDE; etapa 1 aprovada em 2026-11-19) |
 
 ### Publicacao da V2-9.2, V2-9.3 e V2-10 (concluida em 2026-11-18)
@@ -59,6 +59,11 @@ Pedido durante a V2-11: usar o logo enviado no chat (hexagono com "S/S", "SALEOS
 - `components/brand.tsx` (`BrandMark`, `BrandLogo`) no lugar do quadrado dourado com seta: menu lateral (simbolo, "SaleOS" e "Operating System"), login (logo completo no painel e no celular), convite e nova senha.
 - Titulo da aba: "SaleOS — Sales Operating System" (convite e nova senha: "... - SaleOS"). O resto dos textos continua "SalesOS".
 - Verificado: `npm run check` (162), build, login em Chrome headless e icones respondendo 200 sem sessao (o `proxy.ts` ja libera `.png` e `favicon.ico`).
+
+### Publicacao (2026-11-19)
+- Commit `2564ee8`, CI aprovado em `main` e `feat/saleos-v2`. Backup `salesos-20261119-132137` (local e externo). Imagem `salesos-web:20`, sem migration.
+- **Desvio autorizado:** o usuario pediu para publicar com 1 reuniao ativa no SALE-IA. Envio de 13:23 a 13:26 UTC, troca as 13:27. O SALE-IA continuou respondendo, com a reuniao em andamento (`/health` "degradado" ja antes, IA sem saldo).
+- Verificado em `saleos.tech`: `/login` 200 com titulo "SaleOS — Sales Operating System" e os links de icone novos; `/icon.png`, `/apple-icon.png`, `/favicon.ico` e `/brand/*.png` 200 sem sessao; `/meu-dia` 307 para o login; `www` 301; log `Ready` sem erro. Reverter: `WEB_TAG=19`. A `salesos-web:18` foi removida da VPS.
 
 ### Limitacoes conhecidas
 - A imagem de origem tem 275 px: o logo fica nitido ate cerca de 180 px; nao ha versao vetorial (SVG).

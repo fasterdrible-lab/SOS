@@ -1,7 +1,7 @@
 # CURRENT_STATE.md - SalesOS
 
-**Versao atual:** V.1.32.1 em producao (`salesos-web:19`, desde 2026-11-18 20:29 UTC: Next.js 16.4.6, SEG-1; a `salesos-web:18` trouxe o Manual do Usuario, V2-12; a `salesos-web:17` trouxe a V.1.30.0 a V.1.31.1); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
-**Data:** 2026-11-18
+**Versao atual:** V.1.33.0 em producao (`salesos-web:20`, desde 2026-11-19 13:27 UTC: logo SaleOS, V2-13; a `salesos-web:19` trouxe o Next.js 16.4.6, SEG-1; a `salesos-web:18` trouxe o Manual do Usuario, V2-12; a `salesos-web:17` trouxe a V.1.30.0 a V.1.31.1); SALE-IA V.1.4.202 em producao (o envio de `offer` vem da V.1.4.200, V2-8.3)
+**Data:** 2026-11-19
 **Fase:** Prompt Mestre V2 publicado por inteiro (V2-1 a V2-10; V2-7.2 e V2-8.3 no SALE-IA). Falta homologar em producao com a conta real e cada papel
 
 ## Estado Atual
@@ -323,7 +323,7 @@ apps/web/tests/*.integration.mjs                  -> testes HTTP (autorizacao, r
 
 
 ## Ultima Tarefa Concluida
-**Tarefa V2-13** - Logo SaleOS (pedido do usuario em 2026-11-19, durante a V2-11): simbolo no menu lateral, logo completo no login, simbolo no convite e na nova senha, e icone da aba (`app/icon.png`, `app/apple-icon.png`, `app/favicon.ico`) no lugar do triangulo padrao do Next. Titulo da aba "SaleOS — Sales Operating System". V.1.33.0, sem migration: check (162) e build aprovados localmente. **Sem commit e sem publicacao.**
+**Tarefa V2-13** - Logo SaleOS (pedido do usuario em 2026-11-19, durante a V2-11): simbolo no menu lateral, logo completo no login, simbolo no convite e na nova senha, e icone da aba (`app/icon.png`, `app/apple-icon.png`, `app/favicon.ico`) no lugar do triangulo padrao do Next. Titulo da aba "SaleOS — Sales Operating System". V.1.33.0, sem migration: check (162) e build aprovados localmente. Commit `2564ee8`, CI aprovado; publicada em 2026-11-19 13:27 UTC (`salesos-web:20`), depois do backup `salesos-20261119-132137`, com 1 reuniao ativa no SALE-IA por pedido do usuario. Reverter: `WEB_TAG=19`.
 
 **SEG-1** - Next.js 16.4.3 -> 16.4.6 (e `eslint-config-next`), pelo alerta de seguranca que passou a barrar o build local. V.1.32.1, sem migration: check (162), build, integracao (238) e homologacao em Chrome (94) aprovados localmente. O `next` sai do `npm audit`; restam 28 alertas de outros pacotes. Commit `8ae8dff`, CI aprovado; publicada em 2026-11-18 20:29 UTC (`salesos-web:19`), depois do backup `salesos-20261118-202614`, com `reunioes_ativas = 0`. Reverter: `WEB_TAG=18`.
 
